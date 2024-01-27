@@ -7,6 +7,9 @@ import { SimboloInterface } from '@designliquido/delegua/fontes/interfaces';
 import { RetornoImportador } from '@designliquido/delegua-node/fontes/importador';
 import { pluralizar } from '@designliquido/flexoes';
 
+/**
+ * Representa um conjunto de consultas SQL.
+ */
 type Consultas = {
   criar: string,
   inserir: string,
@@ -15,24 +18,50 @@ type Consultas = {
   deletar: string,
 }
 
+/**
+ * Representa uma tabela e suas consultas SQL.
+ */
 type SqlType = {
   nome_modelo: string,
   codigo_tabela: Consultas,
 }
 
+/**
+ * Interface que representa uma tabela.
+ * @interface TabelaInterface
+ * @property {string} nome_tabela - O nome da tabela.
+ * @property {AtributoInterface[]} atributos - Os atributos da tabela.
+ */
 interface TabelaInterface {
   nome_tabela: string,
   atributos: AtributoInterface[]
 }
 
+/**
+ * Interface que representa um atributo.
+ *
+ * @interface AtributoInterface
+ * @property {string} nome - O nome do atributo.
+ * @property {string} tipo - O tipo do atributo.
+ */
 interface AtributoInterface {
   nome: string,
   tipo: string
 }
 
+/**
+ * Classe responsável por gerar código SQL com base em modelos de tabelas.
+ */
 export class Shurelya {
   importador: Importador
   arquivos: string[] = []
+
+  /**
+   * Construtor da classe Shurelya.
+   * @param diretorio_atual O diretório atual.
+   * @param caminho_modelos O caminho dos modelos de tabelas.
+   * @param tecnologia A tecnologia utilizada.
+   */
   constructor(
     private readonly diretorio_atual: string,
     private readonly caminho_modelos: string,
@@ -47,12 +76,21 @@ export class Shurelya {
     )
   }
 
+  /**
+   * Obtém os nomes dos modelos de tabelas.
+   * @returns Uma lista com os nomes dos arquivos.
+   */
   pegaNomesModelos(): string[] {
     const diretorio = `${this.diretorio_atual}/${this.caminho_modelos}`;
     const nomesArquivos = fs.readdirSync(diretorio);
     return nomesArquivos;
   }
 
+  /**
+   * Traduz um tipo para o equivalente em SQL.
+   * @param tipo O tipo a ser traduzido.
+   * @returns O tipo traduzido em SQL.
+   */
   traduzirTipo(tipo: string): string {
     switch (tipo) {
       case 'numero':
@@ -60,29 +98,59 @@ export class Shurelya {
       case 'texto':
         return 'varchar'
     }
-   }
+  }
 
+  /**
+   * Gera o código SQL para criar uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para criar a tabela.
+   */
   gerarCodigoSQLCriar(tabela: TabelaInterface): string {
     const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} ${this.traduzirTipo(atributo.tipo).toUpperCase()}`).join(', ');
     return `CREATE TABLE ${tabela.nome_tabela} (${atributosSQL});`;
   }
 
-  gerarCodigoSQLInserir(tabela: TabelaInterface): string { 
+  /**
+   * Gera o código SQL para inserir dados em uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para inserir dados na tabela.
+   */
+  gerarCodigoSQLInserir(tabela: TabelaInterface): string {
     return ''
   }
 
+  /**
+   * Gera o código SQL para atualizar dados em uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para atualizar dados na tabela.
+   */
   gerarCodigoSQLAtualizar(tabela: TabelaInterface): string {
     return ''
   }
 
+  /**
+   * Gera o código SQL para deletar dados de uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para deletar dados da tabela.
+   */
   gerarCodigoSQLDeletar(tabela: TabelaInterface): string {
     return ''
   }
 
+  /**
+   * Gera o código SQL para selecionar dados de uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para selecionar dados da tabela.
+   */
   gerarCodigoSQLSelecionar(tabela: TabelaInterface): string {
     return `SELECT * FROM ${tabela.nome_tabela};`;
   }
 
+  /**
+   * Gera o código SQL para todas as operações em uma lista de tabelas.
+   * @param tabelas As tabelas para as quais o código SQL será gerado.
+   * @returns Uma lista de objetos contendo o nome do modelo de tabela e os códigos SQL correspondentes.
+   */
   gerarSql(tabelas: TabelaInterface[]): SqlType[] {
     const sqls: SqlType[] = []
 
@@ -102,6 +170,10 @@ export class Shurelya {
     return sqls
   }
 
+  /**
+   * Inicia o processo de geração de código SQL.
+   * @returns Uma string vazia.
+   */
   iniciar(): string {
     this.arquivos = this.pegaNomesModelos()
 
@@ -125,7 +197,6 @@ export class Shurelya {
           tipo: propriedade.tipo
         })
       })
-
 
       tabelas.push(tabela)
     })
