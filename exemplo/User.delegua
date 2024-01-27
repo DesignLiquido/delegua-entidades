@@ -1,0 +1,4 @@
+classe Usuario {
+  id: numero
+  nome: texto
+}
