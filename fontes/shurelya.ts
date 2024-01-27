@@ -7,9 +7,17 @@ import { SimboloInterface } from '@designliquido/delegua/fontes/interfaces';
 import { RetornoImportador } from '@designliquido/delegua-node/fontes/importador';
 import { pluralizar } from '@designliquido/flexoes';
 
+type Consultas = {
+  criar: string,
+  inserir: string,
+  selecionar: string,
+  atualizar: string,
+  deletar: string,
+}
+
 type SqlType = {
   nome_modelo: string,
-  codigo_tabela: string,
+  codigo_tabela: Consultas,
 }
 
 interface TabelaInterface {
@@ -54,24 +62,40 @@ export class Shurelya {
     }
    }
 
-  gerarCodigoTabela(tabela: TabelaInterface): string {
-    let codigo = `CREATE TABLE ${tabela.nome_tabela} (`
-    tabela.atributos.forEach(atributo => {
-      codigo += `${atributo.nome} ${this.traduzirTipo(atributo.tipo).toUpperCase()}, `
-    })
-    codigo = codigo.slice(0, -2)
-    codigo += ');'
-    return codigo
+  gerarCodigoSQLCriar(tabela: TabelaInterface): string {
+    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} ${this.traduzirTipo(atributo.tipo).toUpperCase()}`).join(', ');
+    return `CREATE TABLE ${tabela.nome_tabela} (${atributosSQL});`;
+  }
+
+  gerarCodigoSQLInserir(tabela: TabelaInterface): string { 
+    return ''
+  }
+
+  gerarCodigoSQLAtualizar(tabela: TabelaInterface): string {
+    return ''
+  }
+
+  gerarCodigoSQLDeletar(tabela: TabelaInterface): string {
+    return ''
+  }
+
+  gerarCodigoSQLSelecionar(tabela: TabelaInterface): string {
+    return `SELECT * FROM ${tabela.nome_tabela};`;
   }
 
   gerarSql(tabelas: TabelaInterface[]): SqlType[] {
     const sqls: SqlType[] = []
 
     tabelas.forEach(tabela => {
-      const codigo_tabela = this.gerarCodigoTabela(tabela)
       sqls.push({
         nome_modelo: tabela.nome_tabela,
-        codigo_tabela
+        codigo_tabela: {
+          criar: this.gerarCodigoSQLCriar(tabela),
+          inserir: this.gerarCodigoSQLInserir(tabela),
+          atualizar: this.gerarCodigoSQLAtualizar(tabela),
+          deletar: this.gerarCodigoSQLDeletar(tabela),
+          selecionar: this.gerarCodigoSQLSelecionar(tabela)
+        }
       })
     })
 
