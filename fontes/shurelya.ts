@@ -87,8 +87,7 @@ export class Shurelya {
       return [];
     }
 
-    const nomesArquivos = sistemaArquivos.readdirSync(diretorio);
-    return nomesArquivos;
+    return sistemaArquivos.readdirSync(diretorio);
   }
 
   /**
