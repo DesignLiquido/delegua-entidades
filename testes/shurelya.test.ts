@@ -1,6 +1,7 @@
 
+import * as sistemaArquivos from 'fs';
+
 import { Shurelya } from '../fontes/shurelya';
-import fs from 'node:fs';
 
 describe('Shurelya', () => {
   let shurelya: Shurelya;
@@ -11,7 +12,7 @@ describe('Shurelya', () => {
 
   describe('pegaNomesModelos', () => {
     it('Esperado que retorno um array de nomes dos arquivo', () => {
-      const expected = fs.readdirSync(`${process.cwd()}/dados`);
+      const expected = sistemaArquivos.readdirSync(`${process.cwd()}/dados`);
       const actual = shurelya.pegaNomesModelos();
       expect(actual).toEqual(expected);
     });

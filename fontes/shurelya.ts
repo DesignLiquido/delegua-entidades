@@ -1,8 +1,9 @@
+import * as sistemaArquivos from 'fs';
+
 import { Importador } from '@designliquido/delegua-node/fontes/importador/importador'
 import { Lexador } from '@designliquido/delegua/fontes/lexador'
 import { AvaliadorSintatico } from '@designliquido/delegua/fontes/avaliador-sintatico'
-import fs from 'fs';
-import { Classe, Declaracao, PropriedadeClasse } from '@designliquido/delegua/fontes/declaracoes';
+import { Classe, Declaracao } from '@designliquido/delegua/fontes/declaracoes';
 import { SimboloInterface } from '@designliquido/delegua/fontes/interfaces';
 import { RetornoImportador } from '@designliquido/delegua-node/fontes/importador';
 import { pluralizar } from '@designliquido/flexoes';
@@ -82,7 +83,11 @@ export class Shurelya {
    */
   pegaNomesModelos(): string[] {
     const diretorio = `${this.diretorio_atual}/${this.caminho_modelos}`;
-    const nomesArquivos = fs.readdirSync(diretorio);
+    if (!sistemaArquivos.existsSync(diretorio)) {
+      return [];
+    }
+    
+    const nomesArquivos = sistemaArquivos.readdirSync(diretorio);
     return nomesArquivos;
   }
 

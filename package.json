@@ -1,10 +1,10 @@
 {
-  "name": "Shurelya",
+  "name": "shurelya",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/index.js",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "license": "MIT",
   "devDependencies": {
@@ -17,8 +17,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@designliquido/delegua": "^0.30.5",
-    "@designliquido/delegua-node": "^0.30.5",
+    "@designliquido/delegua-node": "^0.30.7",
     "@designliquido/flexoes": "^0.1.0"
   }
 }
