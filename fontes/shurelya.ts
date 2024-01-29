@@ -86,7 +86,7 @@ export class Shurelya {
     if (!sistemaArquivos.existsSync(diretorio)) {
       return [];
     }
-    
+
     const nomesArquivos = sistemaArquivos.readdirSync(diretorio);
     return nomesArquivos;
   }
@@ -186,7 +186,10 @@ export class Shurelya {
       return this.importador.importar(`${this.diretorio_atual}/${this.caminho_modelos}/${arquivo}`)
     })
 
-    const classes: Classe[] = conteudos_arquivos.map(conteudo => conteudo.retornoAvaliadorSintatico.declaracoes.filter(declaracao => declaracao instanceof Classe) as Classe[]).flat()
+    const classes: Classe[] = conteudos_arquivos
+      .map(conteudo => conteudo.retornoAvaliadorSintatico.declaracoes
+        .filter(declaracao => declaracao instanceof Classe) as Classe[])
+      .flat()
 
     const tabelas: TabelaInterface[] = []
 
