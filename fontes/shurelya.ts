@@ -33,7 +33,7 @@ type SqlType = {
  * @property {string} nome_tabela - O nome da tabela.
  * @property {AtributoInterface[]} atributos - Os atributos da tabela.
  */
-interface TabelaInterface {
+export interface TabelaInterface {
   nome_tabela: string,
   atributos: AtributoInterface[]
 }
@@ -101,6 +101,8 @@ export class Shurelya {
         return 'int'
       case 'texto':
         return 'varchar'
+      default:
+        throw new Error(`ShurelyaError: O tipo: ${tipo} não é valido.`)
     }
   }
 
