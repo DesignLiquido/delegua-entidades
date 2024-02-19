@@ -1,4 +1,5 @@
 classe Usuario {
+  @entidades.id
   id: numero
   nome: texto
 }

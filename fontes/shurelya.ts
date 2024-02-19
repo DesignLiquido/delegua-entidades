@@ -10,25 +10,6 @@ import { ObjetoDeleguaClasse } from '@designliquido/delegua/fontes/estruturas/ob
 import { pluralizar } from '@designliquido/flexoes';
 
 /**
- * Representa um conjunto de consultas SQL.
- */
-type Consultas = {
-  criar: string,
-  inserir: string,
-  selecionar: string,
-  atualizar: string,
-  deletar: string,
-}
-
-/**
- * Representa uma tabela e suas consultas SQL.
- */
-type SqlType = {
-  nome_modelo: string,
-  codigo_tabela: Consultas,
-}
-
-/**
  * Interface que representa uma tabela.
  * @interface TabelaInterface
  * @property {string} nome_tabela - O nome da tabela.
@@ -121,6 +102,13 @@ export class Shurelya {
     return tabela
   }
 
+  pegaValoresDasPropriedades(tabela: TabelaInterface, classe: ObjetoDeleguaClasse): string { 
+    return tabela.atributos.map(atributo => {
+      const propriedade = Object.entries(classe.propriedades).find(([key, value]) => key === atributo.nome);
+      return propriedade ? propriedade[1] : null;
+    }).join(', ');
+  }
+
   /**
    * Gera o código SQL para criar uma tabela.
    * @param tabela A tabela para a qual o código SQL será gerado.
@@ -128,7 +116,9 @@ export class Shurelya {
    */
   gerarCodigoSQLCriar(classe: ObjetoDeleguaClasse): string {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
-    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} ${this.traduzirTipo(atributo.tipo)}`).join(', ');
+    const atributosSQL = tabela.atributos.map(atributo => {
+      return `${atributo.nome} ${this.traduzirTipo(atributo.tipo)}`
+    }).join(', ');
     return `CREATE TABLE ${tabela.nome_tabela} (${atributosSQL});`;
   }
 
@@ -140,7 +130,7 @@ export class Shurelya {
   gerarCodigoSQLInserir(classe: ObjetoDeleguaClasse): string {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
     const atributosSQL = tabela.atributos.map(atributo => atributo.nome).join(', ');
-    const valoresSQL = tabela.atributos.map(atributo => classe.propriedades.find(propriedade => propriedade.nome.lexema === atributo.nome).valor).join(', ');
+    const valoresSQL = this.pegaValoresDasPropriedades(tabela, classe)
     return `INSERT INTO ${tabela.nome_tabela} (${atributosSQL}) VALUES (${valoresSQL});`;
   }
 
@@ -150,9 +140,14 @@ export class Shurelya {
    * @returns O código SQL para atualizar dados na tabela.
    */
   gerarCodigoSQLAtualizar(classe: ObjetoDeleguaClasse): string {
-    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
-    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === atributo.nome).valor}`).join(', ');
-    return `UPDATE ${tabela.nome_tabela} SET ${atributosSQL} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema);
+    const atributosSQL = tabela.atributos.map(atributo => {
+      const valorPropriedade = classe.propriedades[atributo.nome];
+      const valorFormatado = typeof valorPropriedade === 'string' ? `'${valorPropriedade}'` : valorPropriedade;
+      return `${atributo.nome} = ${valorFormatado}`;
+    }).join(', ');
+    const id = classe.propriedades['id']; 
+    return `UPDATE ${tabela.nome_tabela} SET ${atributosSQL} WHERE id = ${id};`;
   }
 
   /**
@@ -161,8 +156,9 @@ export class Shurelya {
    * @returns O código SQL para deletar dados da tabela.
    */
   gerarCodigoSQLDeletar(classe: ObjetoDeleguaClasse): string {
-    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
-    return `DELETE FROM ${tabela.nome_tabela} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema);
+    const id = classe.propriedades['id'];
+    return `DELETE FROM ${tabela.nome_tabela} WHERE id = ${id};`;
   }
 
   /**
@@ -181,8 +177,9 @@ export class Shurelya {
    * @returns O código SQL para selecionar um dado da tabela.
    */
   gerarCodigoSQLSelecionarUm(classe: ObjetoDeleguaClasse): string {
-    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
-    return `SELECT * FROM ${tabela.nome_tabela} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema);
+    const id = classe.propriedades['id'];
+    return `SELECT * FROM ${tabela.nome_tabela} WHERE id = ${id};`;
   }
 
   /**
