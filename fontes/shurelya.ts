@@ -6,6 +6,7 @@ import { AvaliadorSintatico } from '@designliquido/delegua/fontes/avaliador-sint
 import { Classe, Declaracao } from '@designliquido/delegua/fontes/declaracoes';
 import { SimboloInterface } from '@designliquido/delegua/fontes/interfaces';
 import { RetornoImportador } from '@designliquido/delegua-node/fontes/importador';
+import { ObjetoDeleguaClasse } from '@designliquido/delegua/fontes/estruturas/objeto-delegua-classe'
 import { pluralizar } from '@designliquido/flexoes';
 
 /**
@@ -56,6 +57,7 @@ interface AtributoInterface {
 export class Shurelya {
   importador: Importador
   arquivos: string[] = []
+  tabelas: TabelaInterface[] = []
 
   /**
    * Construtor da classe Shurelya.
@@ -66,7 +68,8 @@ export class Shurelya {
   constructor(
     private readonly diretorio_atual: string,
     private readonly caminho_modelos: string,
-    private readonly tecnologia: string
+    // TODO - Adicionar suporte a tecnologias.
+    // private readonly tecnologia: string 
   ) {
     this.importador = new Importador(
       new Lexador(),
@@ -107,12 +110,25 @@ export class Shurelya {
   }
 
   /**
+   * Procura uma tabela pelo nome.
+   * @param nome_tabela O nome da tabela a ser procurada.
+   * @returns A tabela encontrada.
+   * @throws {TabelaNaoEncontradaError} Se a tabela não for encontrada.
+   */
+  procuraTabela(nome_tabela: string): TabelaInterface { 
+    const tabela = this.tabelas.find(tabela => tabela.nome_tabela === nome_tabela)
+    if (!tabela) throw new TabelaNaoEncontradaError(nome_tabela)
+    return tabela
+  }
+
+  /**
    * Gera o código SQL para criar uma tabela.
    * @param tabela A tabela para a qual o código SQL será gerado.
    * @returns O código SQL para criar a tabela.
    */
-  gerarCodigoSQLCriar(tabela: TabelaInterface): string {
-    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} ${this.traduzirTipo(atributo.tipo).toUpperCase()}`).join(', ');
+  gerarCodigoSQLCriar(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
+    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} ${this.traduzirTipo(atributo.tipo)}`).join(', ');
     return `CREATE TABLE ${tabela.nome_tabela} (${atributosSQL});`;
   }
 
@@ -121,8 +137,11 @@ export class Shurelya {
    * @param tabela A tabela para a qual o código SQL será gerado.
    * @returns O código SQL para inserir dados na tabela.
    */
-  gerarCodigoSQLInserir(tabela: TabelaInterface): string {
-    return ''
+  gerarCodigoSQLInserir(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
+    const atributosSQL = tabela.atributos.map(atributo => atributo.nome).join(', ');
+    const valoresSQL = tabela.atributos.map(atributo => classe.propriedades.find(propriedade => propriedade.nome.lexema === atributo.nome).valor).join(', ');
+    return `INSERT INTO ${tabela.nome_tabela} (${atributosSQL}) VALUES (${valoresSQL});`;
   }
 
   /**
@@ -130,8 +149,10 @@ export class Shurelya {
    * @param tabela A tabela para a qual o código SQL será gerado.
    * @returns O código SQL para atualizar dados na tabela.
    */
-  gerarCodigoSQLAtualizar(tabela: TabelaInterface): string {
-    return ''
+  gerarCodigoSQLAtualizar(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
+    const atributosSQL = tabela.atributos.map(atributo => `${atributo.nome} = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === atributo.nome).valor}`).join(', ');
+    return `UPDATE ${tabela.nome_tabela} SET ${atributosSQL} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
   }
 
   /**
@@ -139,8 +160,9 @@ export class Shurelya {
    * @param tabela A tabela para a qual o código SQL será gerado.
    * @returns O código SQL para deletar dados da tabela.
    */
-  gerarCodigoSQLDeletar(tabela: TabelaInterface): string {
-    return ''
+  gerarCodigoSQLDeletar(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
+    return `DELETE FROM ${tabela.nome_tabela} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
   }
 
   /**
@@ -148,39 +170,25 @@ export class Shurelya {
    * @param tabela A tabela para a qual o código SQL será gerado.
    * @returns O código SQL para selecionar dados da tabela.
    */
-  gerarCodigoSQLSelecionar(tabela: TabelaInterface): string {
+  gerarCodigoSQLSelecionarTodos(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
     return `SELECT * FROM ${tabela.nome_tabela};`;
   }
 
   /**
-   * Gera o código SQL para todas as operações em uma lista de tabelas.
-   * @param tabelas As tabelas para as quais o código SQL será gerado.
-   * @returns Uma lista de objetos contendo o nome do modelo de tabela e os códigos SQL correspondentes.
+   * Gera o código SQL para selecionar um dado de uma tabela.
+   * @param tabela A tabela para a qual o código SQL será gerado.
+   * @returns O código SQL para selecionar um dado da tabela.
    */
-  gerarSql(tabelas: TabelaInterface[]): SqlType[] {
-    const sqls: SqlType[] = []
-
-    tabelas.forEach(tabela => {
-      sqls.push({
-        nome_modelo: tabela.nome_tabela,
-        codigo_tabela: {
-          criar: this.gerarCodigoSQLCriar(tabela),
-          inserir: this.gerarCodigoSQLInserir(tabela),
-          atualizar: this.gerarCodigoSQLAtualizar(tabela),
-          deletar: this.gerarCodigoSQLDeletar(tabela),
-          selecionar: this.gerarCodigoSQLSelecionar(tabela)
-        }
-      })
-    })
-
-    return sqls
+  gerarCodigoSQLSelecionarUm(classe: ObjetoDeleguaClasse): string {
+    const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
+    return `SELECT * FROM ${tabela.nome_tabela} WHERE id = ${classe.propriedades.find(propriedade => propriedade.nome.lexema === 'id').valor};`;
   }
 
   /**
-   * Inicia o processo de geração de código SQL.
-   * @returns Uma string vazia.
+   * Carrega os modelos de tabelas.
    */
-  iniciar(): string {
+  iniciar(): void {
     this.arquivos = this.pegaNomesModelos()
 
     const conteudos_arquivos: RetornoImportador<SimboloInterface, Declaracao>[] = this.arquivos.map(arquivo => {
@@ -191,8 +199,6 @@ export class Shurelya {
       .map(conteudo => conteudo.retornoAvaliadorSintatico.declaracoes
         .filter(declaracao => declaracao instanceof Classe) as Classe[])
       .flat()
-
-    const tabelas: TabelaInterface[] = []
 
     classes.forEach(classe => {
       const tabela: TabelaInterface = {
@@ -207,14 +213,9 @@ export class Shurelya {
         })
       })
 
-      tabelas.push(tabela)
+      this.tabelas.push(tabela)
     })
 
-    const sqls = this.gerarSql(tabelas)
-
-    console.log(sqls)
-
-    return ''
   }
 }
 

@@ -4,16 +4,11 @@
     // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Execução",
-            "skipFiles": ["<node_internals>/**", "node_modules/**"],
-            "cwd": "${workspaceRoot}",
-            "console": "integratedTerminal",
-            "args": ["${workspaceFolder}${pathSeparator}index.ts"],
-            "runtimeExecutable": "node",
-            "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"]
-        }
+      {
+        "command": "yarn test",
+        "name": "Run npm test",
+        "request": "launch",
+        "type": "node-terminal"
+      }
     ]
 }
