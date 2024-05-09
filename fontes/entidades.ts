@@ -11,29 +11,7 @@ import { ObjetoDeleguaClasse } from '@designliquido/delegua/estruturas/objeto-de
 import { pluralizar } from '@designliquido/flexoes';
 
 import { ErroTabelaNaoEncontrada } from './erros';
-
-/**
- * Interface que representa uma tabela.
- * @interface TabelaInterface
- * @property {string} nome_tabela - O nome da tabela.
- * @property {AtributoInterface[]} atributos - Os atributos da tabela.
- */
-export interface TabelaInterface {
-  nome_tabela: string,
-  atributos: AtributoInterface[]
-}
-
-/**
- * Interface que representa um atributo.
- *
- * @interface AtributoInterface
- * @property {string} nome - O nome do atributo.
- * @property {string} tipo - O tipo do atributo.
- */
-interface AtributoInterface {
-  nome: string,
-  tipo: string
-}
+import { TabelaInterface } from './interfaces/tabela-interface';
 
 /**
  * Classe responsável por gerar código SQL com base em modelos de tabelas.
@@ -100,7 +78,7 @@ export class Entidades {
    * @throws {ErroTabelaNaoEncontrada} Se a tabela não for encontrada.
    */
   procuraTabela(nome_tabela: string): TabelaInterface { 
-    const tabela = this.tabelas.find(tabela => tabela.nome_tabela === nome_tabela)
+    const tabela = this.tabelas.find(tabela => tabela.nomeTabela === nome_tabela)
     if (!tabela) throw new ErroTabelaNaoEncontrada(nome_tabela)
     return tabela
   }
@@ -122,7 +100,7 @@ export class Entidades {
     const atributosSQL = tabela.atributos.map(atributo => {
       return `${atributo.nome} ${this.traduzirTipo(atributo.tipo)}`
     }).join(', ');
-    return `CREATE TABLE ${tabela.nome_tabela} (${atributosSQL});`;
+    return `CREATE TABLE ${tabela.nomeTabela} (${atributosSQL});`;
   }
 
   /**
@@ -134,7 +112,7 @@ export class Entidades {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
     const atributosSQL = tabela.atributos.map(atributo => atributo.nome).join(', ');
     const valoresSQL = this.pegaValoresDasPropriedades(tabela, classe)
-    return `INSERT INTO ${tabela.nome_tabela} (${atributosSQL}) VALUES (${valoresSQL});`;
+    return `INSERT INTO ${tabela.nomeTabela} (${atributosSQL}) VALUES (${valoresSQL});`;
   }
 
   /**
@@ -150,7 +128,7 @@ export class Entidades {
       return `${atributo.nome} = ${valorFormatado}`;
     }).join(', ');
     const id = classe.propriedades['id']; 
-    return `UPDATE ${tabela.nome_tabela} SET ${atributosSQL} WHERE id = ${id};`;
+    return `UPDATE ${tabela.nomeTabela} SET ${atributosSQL} WHERE id = ${id};`;
   }
 
   /**
@@ -161,7 +139,7 @@ export class Entidades {
   gerarCodigoSQLDeletar(classe: ObjetoDeleguaClasse): string {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema);
     const id = classe.propriedades['id'];
-    return `DELETE FROM ${tabela.nome_tabela} WHERE id = ${id};`;
+    return `DELETE FROM ${tabela.nomeTabela} WHERE id = ${id};`;
   }
 
   /**
@@ -171,7 +149,7 @@ export class Entidades {
    */
   gerarCodigoSQLSelecionarTodos(classe: ObjetoDeleguaClasse): string {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema)
-    return `SELECT * FROM ${tabela.nome_tabela};`;
+    return `SELECT * FROM ${tabela.nomeTabela};`;
   }
 
   /**
@@ -182,7 +160,7 @@ export class Entidades {
   gerarCodigoSQLSelecionarUm(classe: ObjetoDeleguaClasse): string {
     const tabela = this.procuraTabela(classe.classe.simboloOriginal.lexema);
     const id = classe.propriedades['id'];
-    return `SELECT * FROM ${tabela.nome_tabela} WHERE id = ${id};`;
+    return `SELECT * FROM ${tabela.nomeTabela} WHERE id = ${id};`;
   }
 
   /**
@@ -202,7 +180,7 @@ export class Entidades {
 
     classes.forEach(classe => {
       const tabela: TabelaInterface = {
-        nome_tabela: pluralizar(classe.simbolo.lexema),
+        nomeTabela: pluralizar(classe.simbolo.lexema),
         atributos: []
       }
 

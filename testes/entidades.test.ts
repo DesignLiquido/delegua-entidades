@@ -1,9 +1,11 @@
 import * as sistemaArquivos from 'fs';
 
-import { Entidades, TabelaInterface } from '../fontes/entidades';
 import { ObjetoDeleguaClasse, DeleguaClasse } from '@designliquido/delegua/estruturas'
 import { Classe, PropriedadeClasse } from '@designliquido/delegua/declaracoes';
 import { SimboloInterface } from '@designliquido/delegua/interfaces';
+
+import { Entidades } from '../fontes/entidades';
+import { TabelaInterface } from '../fontes/interfaces/tabela-interface';
 
 describe('Entidades', () => {
   let entidades: Entidades;
