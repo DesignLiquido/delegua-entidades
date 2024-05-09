@@ -1,6 +1,6 @@
-class TabelaNaoEncontradaError extends Error {
+export class ErroTabelaNaoEncontrada extends Error {
     constructor(nomeTabela: string) {
         super(`Tabela '${nomeTabela}' não encontrada ou não existe.`);
-        this.name = 'TabelaNaoEncontradaError';
+        this.name = 'ErroTabelaNaoEncontrada';
     }
 }

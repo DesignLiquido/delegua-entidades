@@ -1,13 +1,16 @@
 import * as sistemaArquivos from 'fs';
 
-import { Importador } from '@designliquido/delegua-node/fontes/importador/importador'
-import { Lexador } from '@designliquido/delegua/fontes/lexador'
-import { AvaliadorSintatico } from '@designliquido/delegua/fontes/avaliador-sintatico'
-import { Classe, Declaracao } from '@designliquido/delegua/fontes/declaracoes';
-import { SimboloInterface } from '@designliquido/delegua/fontes/interfaces';
-import { RetornoImportador } from '@designliquido/delegua-node/fontes/importador';
-import { ObjetoDeleguaClasse } from '@designliquido/delegua/fontes/estruturas/objeto-delegua-classe'
+import { Importador } from '@designliquido/delegua-node/importador/importador'
+import { Lexador } from '@designliquido/delegua/lexador'
+import { AvaliadorSintatico } from '@designliquido/delegua/avaliador-sintatico'
+import { Classe, Declaracao } from '@designliquido/delegua/declaracoes';
+import { SimboloInterface } from '@designliquido/delegua/interfaces';
+import { RetornoImportador } from '@designliquido/delegua-node/importador';
+import { ObjetoDeleguaClasse } from '@designliquido/delegua/estruturas/objeto-delegua-classe'
+
 import { pluralizar } from '@designliquido/flexoes';
+
+import { ErroTabelaNaoEncontrada } from './erros';
 
 /**
  * Interface que representa uma tabela.
@@ -94,11 +97,11 @@ export class Entidades {
    * Procura uma tabela pelo nome.
    * @param nome_tabela O nome da tabela a ser procurada.
    * @returns A tabela encontrada.
-   * @throws {TabelaNaoEncontradaError} Se a tabela não for encontrada.
+   * @throws {ErroTabelaNaoEncontrada} Se a tabela não for encontrada.
    */
   procuraTabela(nome_tabela: string): TabelaInterface { 
     const tabela = this.tabelas.find(tabela => tabela.nome_tabela === nome_tabela)
-    if (!tabela) throw new TabelaNaoEncontradaError(nome_tabela)
+    if (!tabela) throw new ErroTabelaNaoEncontrada(nome_tabela)
     return tabela
   }
 

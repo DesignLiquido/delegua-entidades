@@ -304,21 +304,32 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@designliquido/delegua-node@^0.30.7":
-  version "0.30.7"
-  resolved "https://registry.yarnpkg.com/@designliquido/delegua-node/-/delegua-node-0.30.7.tgz#c6bb323265aae071465c15aea3d4a767296b2663"
-  integrity sha512-3hc9ft3yWzHOoPBDDHytikKINBPmheupXvFkMws5GVlyqrICkoZG5+N377DHxwhDwpNSMgLLNeJl+R2w1PsJ/Q==
+"@designliquido/birl@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@designliquido/birl/-/birl-0.1.0.tgz#40d9c150a9447100b8dfb3dda1e3d80019fcfca7"
+  integrity sha512-FBQD5QTfS1oksxMdyoAvp/usNqNNGf3bcrIfp4TUYwl4O9IYD1so6msJ++aEKKs+eAFDQo+h/Iage06J94oyIQ==
   dependencies:
-    "@designliquido/delegua" "0.30.7"
+    "@designliquido/delegua" "^0.34.0"
+    lodash "^4.17.21"
+
+"@designliquido/delegua-node@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@designliquido/delegua-node/-/delegua-node-1.2.3.tgz#b637def06e049837184f47f80a0d1d844249176f"
+  integrity sha512-B+zsIpcIMHwYVNqC2clVvglefqtGLykS1e5OSVfRRk7JMZMNLb75uy3sQ7F4lYgvVjpsBVnathMCrKSoVLcEQQ==
+  dependencies:
+    "@designliquido/birl" "^0.1.0"
+    "@designliquido/delegua" "0.34.2"
+    "@designliquido/portugol-studio" "^0.2.1"
+    "@designliquido/potigol" "^0.1.0"
+    "@designliquido/visualg" "^0.1.4"
     chalk "4.1.2"
     commander "^9.4.1"
     json-colorizer "^2.2.2"
-    lodash.clonedeep "^4.5.0"
 
-"@designliquido/delegua@0.30.7":
-  version "0.30.7"
-  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-0.30.7.tgz#7f4a97f5ef0d1583ba033ffe8c0fd0ea2e19bd6f"
-  integrity sha512-8kJ9lDoC/Ak0IkWOn4hjrMk4W8vwT8jcrpbSZp4Ql3DbXaykGZ2XZfZMehm0IiLNw/1UFW8YOnSS4/n5/14IaA==
+"@designliquido/delegua@0.34.2", "@designliquido/delegua@^0.34.0":
+  version "0.34.2"
+  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-0.34.2.tgz#0883fe4dbc2932a4f035d3dbf4499691a90787f0"
+  integrity sha512-SJkyAdwxXSO353df0VEtsbJNRVHiRW6ikLbu4EFKVl3vQ1LlLKp6Jw1uFOdWE46POebmg+2mOxe4EnmPop+Q1g==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
     browser-process-hrtime "^1.0.0"
@@ -329,6 +340,30 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
+
+"@designliquido/portugol-studio@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@designliquido/portugol-studio/-/portugol-studio-0.2.1.tgz#46f7daa77a7848875fcfdae8d607062dc7ffeab5"
+  integrity sha512-D5Z0L6b7/wbK1yiVgWBkKT2Q365zrWiwOc/CmWbD0vxc0UDA9DVcuhF/JaQw02MImtBF0e5vo2l0eI+RQsVhNQ==
+  dependencies:
+    "@designliquido/delegua" "^0.34.0"
+    lodash "^4.17.21"
+
+"@designliquido/potigol@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@designliquido/potigol/-/potigol-0.1.0.tgz#42fa9707f67ec4875cccdd6f6250d5d04907878c"
+  integrity sha512-k3c8Iwig7bG7oQgF2gTGNsRIIGt3uo8X7ha2bSEXHoRpvY28BsMh6DWW/ONRi6ml6xWs4zzjkQHcOndsFm2bfQ==
+  dependencies:
+    "@designliquido/delegua" "^0.34.0"
+    lodash "^4.17.21"
+
+"@designliquido/visualg@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@designliquido/visualg/-/visualg-0.1.4.tgz#cc48858dbc5a0f4477b32d33224f62d8fbb637d4"
+  integrity sha512-CwUmCDhAugDTxFzyGNSiVhqCdG8sFxJQ/gEXDXnV+czqmRo42oRnVCXKtGS53Lqhgm7cHOchF0SIOJYmyVlZOg==
+  dependencies:
+    "@designliquido/delegua" "^0.34.0"
+    lodash "^4.17.21"
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
@@ -1797,6 +1832,11 @@ lodash.memoize@4.x:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==
+
+lodash@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 lru-cache@^5.1.1:
   version "5.1.1"
