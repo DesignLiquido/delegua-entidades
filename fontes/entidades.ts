@@ -35,13 +35,13 @@ interface AtributoInterface {
 /**
  * Classe responsável por gerar código SQL com base em modelos de tabelas.
  */
-export class Shurelya {
+export class Entidades {
   importador: Importador
   arquivos: string[] = []
   tabelas: TabelaInterface[] = []
 
   /**
-   * Construtor da classe Shurelya.
+   * Construtor da classe Entidades.
    * @param diretorio_atual O diretório atual.
    * @param caminho_modelos O caminho dos modelos de tabelas.
    * @param tecnologia A tecnologia utilizada.
@@ -86,7 +86,7 @@ export class Shurelya {
       case 'texto':
         return 'varchar'
       default:
-        throw new Error(`ShurelyaError: O tipo: ${tipo} não é valido.`)
+        throw new Error(`EntidadesError: O tipo: ${tipo} não é valido.`)
     }
   }
 

@@ -1,1 +1,1 @@
-export { Shurelya } from './fontes/shurelya'
+export { Entidades } from './fontes/entidades'

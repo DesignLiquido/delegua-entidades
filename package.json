@@ -1,6 +1,6 @@
 {
-  "name": "shurelya",
-  "version": "1.0.0",
+  "name": "@designliquido/delegua-entidades",
+  "version": "0.0.0",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/index.js",
