@@ -1,23 +1,20 @@
 import * as sistemaArquivos from "fs";
 
-import { Importador } from "@designliquido/delegua-node/importador/importador";
 import { Lexador } from "@designliquido/delegua/lexador";
 import { AvaliadorSintatico } from "@designliquido/delegua/avaliador-sintatico";
-import { Classe, Declaracao } from "@designliquido/delegua/declaracoes";
-import { SimboloInterface } from "@designliquido/delegua/interfaces";
-import { RetornoImportador } from "@designliquido/delegua-node/importador";
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/estruturas/objeto-delegua-classe";
 
 import { pluralizar } from "@designliquido/flexoes";
 
 import { ErroTabelaNaoEncontrada } from "./erros";
 import { TabelaInterface } from "./interfaces/tabela-interface";
+import { DeleguaClasse } from "@designliquido/delegua/estruturas";
 
 /**
  * Classe responsável por gerar código SQL com base em modelos de tabelas.
  */
 export class Entidades {
-    importador: Importador;
+    modelo: DeleguaClasse;
     arquivos: string[] = [];
     tabelas: TabelaInterface[] = [];
 
@@ -27,33 +24,46 @@ export class Entidades {
      * @param caminhoModelos O caminho dos modelos de tabelas.
      * @param tecnologia A tecnologia utilizada.
      */
-    constructor(
-        private readonly diretorioAtual: string,
-        private readonly caminhoModelos: string
-    ) // TODO - Adicionar suporte a tecnologias.
-    // private readonly tecnologia: string
-    {
-        this.importador = new Importador(
-            new Lexador(),
-            new AvaliadorSintatico(),
-            {},
-            {},
-            false
-        );
+    constructor(modelo: DeleguaClasse) {
+        this.modelo = modelo;
+
+        // Validações:
+        // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
+        // decorador @chave.
+        let possuiChavePrimaria = false;
+        for (const propriedade of this.modelo.propriedades) {
+            if (propriedade.nome.lexema === 'id') {
+                possuiChavePrimaria = true;
+                break;
+            }
+
+            for (const decorador of propriedade.decoradores) {
+                if (decorador.nome === 'chave') {
+                    possuiChavePrimaria = true;
+                    break;
+                }
+            }
+        }
+
+        if (!possuiChavePrimaria) {
+            throw new Error('Modelo não possui uma chave primária definida. ' + 
+                'Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, ' +
+                'ou declarar uma propriedade com o tipo número e decorá-la com `@chave`.');
+        }
     }
 
     /**
      * Obtém os nomes dos modelos de tabelas.
      * @returns Uma lista com os nomes dos arquivos.
      */
-    obterNomesModelos(): string[] {
-        const diretorio = `${this.diretorioAtual}/${this.caminhoModelos}`;
-        if (!sistemaArquivos.existsSync(diretorio)) {
-            return [];
-        }
+    // obterNomesModelos(): string[] {
+    //     const diretorio = `${this.diretorioAtual}/${this.caminhoModelos}`;
+    //     if (!sistemaArquivos.existsSync(diretorio)) {
+    //         return [];
+    //     }
 
-        return sistemaArquivos.readdirSync(diretorio);
-    }
+    //     return sistemaArquivos.readdirSync(diretorio);
+    // }
 
     /**
      * Traduz um tipo para o equivalente em SQL.
@@ -198,41 +208,41 @@ export class Entidades {
     /**
      * Carrega os modelos de tabelas.
      */
-    iniciar(): void {
-        this.arquivos = this.obterNomesModelos();
+    // iniciar(): void {
+    //     this.arquivos = this.obterNomesModelos();
 
-        const conteudosArquivos: RetornoImportador<
-            SimboloInterface,
-            Declaracao
-        >[] = this.arquivos.map((arquivo) => {
-            return this.importador.importar(
-                `${this.diretorioAtual}/${this.caminhoModelos}/${arquivo}`
-            );
-        });
+    //     const conteudosArquivos: RetornoImportador<
+    //         SimboloInterface,
+    //         Declaracao
+    //     >[] = this.arquivos.map((arquivo) => {
+    //         return this.importador.importar(
+    //             `${this.diretorioAtual}/${this.caminhoModelos}/${arquivo}`
+    //         );
+    //     });
 
-        const classes: Classe[] = conteudosArquivos
-            .map(
-                (conteudo) =>
-                    conteudo.retornoAvaliadorSintatico.declaracoes.filter(
-                        (declaracao) => declaracao instanceof Classe
-                    ) as Classe[]
-            )
-            .flat();
+    //     const classes: Classe[] = conteudosArquivos
+    //         .map(
+    //             (conteudo) =>
+    //                 conteudo.retornoAvaliadorSintatico.declaracoes.filter(
+    //                     (declaracao) => declaracao instanceof Classe
+    //                 ) as Classe[]
+    //         )
+    //         .flat();
 
-        classes.forEach((classe) => {
-            const tabela: TabelaInterface = {
-                nomeTabela: pluralizar(classe.simbolo.lexema),
-                atributos: [],
-            };
+    //     classes.forEach((classe) => {
+    //         const tabela: TabelaInterface = {
+    //             nomeTabela: pluralizar(classe.simbolo.lexema),
+    //             atributos: [],
+    //         };
 
-            classe.propriedades.forEach((propriedade) => {
-                tabela.atributos.push({
-                    nome: propriedade.nome.lexema,
-                    tipo: propriedade.tipo,
-                });
-            });
+    //         classe.propriedades.forEach((propriedade) => {
+    //             tabela.atributos.push({
+    //                 nome: propriedade.nome.lexema,
+    //                 tipo: propriedade.tipo,
+    //             });
+    //         });
 
-            this.tabelas.push(tabela);
-        });
-    }
+    //         this.tabelas.push(tabela);
+    //     });
+    // }
 }

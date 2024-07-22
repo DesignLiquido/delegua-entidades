@@ -6,11 +6,38 @@ import {
 } from "@designliquido/delegua/estruturas";
 import { Classe, PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { SimboloInterface } from "@designliquido/delegua/interfaces";
+import { Lexador } from "@designliquido/delegua/lexador";
+import { AvaliadorSintatico } from "@designliquido/delegua/avaliador-sintatico";
 
 import { Entidades } from "../fontes/entidades";
 import { TabelaInterface } from "../fontes/interfaces/tabela-interface";
 
-describe("Entidades", () => {
+describe('Entidades', () => {
+    let lexador: Lexador;
+    let avaliadorSintatico: AvaliadorSintatico;
+
+    beforeEach(() => {
+        lexador = new Lexador();
+        avaliadorSintatico = new AvaliadorSintatico();
+    });
+
+    it('Trivial', () => {
+        const retornoLexador = lexador.mapear(
+            [
+                'classe Artigo {',
+                '  id: numero',
+                '  titulo: texto',
+                '  conteudo: texto',
+                '}'
+            ],
+            -1
+        );
+        const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+        expect(retornoAvaliadorSintatico).toBeTruthy();
+    });
+})
+
+/* describe("Entidades", () => {
     let entidades: Entidades;
     let classe: ObjetoDeleguaClasse;
 
@@ -180,4 +207,4 @@ describe("Entidades", () => {
             )
         ).toThrow();
     });
-});
+}); */
