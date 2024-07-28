@@ -3,7 +3,7 @@
 <p align="center">
   <h3 align="center">Delégua Entidades</h3>
   <p align="center">
-    Biblioteca Node.js com o intuito de processar SQL ANSI com base nas instruções da <a href="https://github.com/DesignLiquido/delegua">Linguagem Delégua</a>, junto com o framework <a href="https://github.com/DesignLiquido/liquido">Liquido</a>.
+    Biblioteca Node.js com o intuito de processar SQL ANSI e <a href="https://github.com/DesignLiquido/delegua" target="_blank">LinConEs</a> com base nas instruções da <a href="https://github.com/DesignLiquido/delegua" target="_blank">Linguagem Delégua</a>, junto com o framework <a href="https://github.com/DesignLiquido/liquido" target="_blank">Liquido</a>.
   </p>
 </p>
 
@@ -46,3 +46,15 @@ const entidades = importar('entidades')
 const artigos = entidades.modelo(Artigo).todos()
 escreva(artigos) // Imprime a lista de todos os artigos encontrados.
 ```
+
+### Comandos
+
+Entidades conta com alguns comandos de seleção e manipulação de dados:
+
+- `entidades.modelo(Modelo).todos()`
+- `entidades.modelo(Modelo).obterPorId()`
+- `entidades.modelo(Modelo).obterPorCondicao()`
+
+Há também comandos de geração de SQL, se for interessante obter a consulta gerada antes da execução:
+
+- `entidades.modelo(Modelo).gerarSQLSelecionar()`

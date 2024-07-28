@@ -2,17 +2,17 @@ import * as sistemaArquivos from "fs";
 
 import {
     ObjetoDeleguaClasse,
-    DeleguaClasse,
+    DescritorTipoClasse,
 } from "@designliquido/delegua/estruturas";
 import { Classe, PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { SimboloInterface } from "@designliquido/delegua/interfaces";
 import { Lexador } from "@designliquido/delegua/lexador";
 import { AvaliadorSintatico } from "@designliquido/delegua/avaliador-sintatico";
 
-import { Entidades } from "../fontes/entidades";
+import { Entidade } from "../fontes/entidade";
 import { TabelaInterface } from "../fontes/interfaces/tabela-interface";
 
-describe('Entidades', () => {
+describe('Entidade', () => {
     let lexador: Lexador;
     let avaliadorSintatico: AvaliadorSintatico;
 
@@ -21,28 +21,115 @@ describe('Entidades', () => {
         avaliadorSintatico = new AvaliadorSintatico();
     });
 
-    it('Trivial', () => {
-        const retornoLexador = lexador.mapear(
-            [
-                'classe Artigo {',
-                '  id: numero',
-                '  titulo: texto',
-                '  conteudo: texto',
-                '}'
-            ],
-            -1
-        );
-        const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
-        expect(retornoAvaliadorSintatico).toBeTruthy();
+    describe('Inicialização por classe', () => {
+        it('Classe com id', () => {
+            const retornoLexador = lexador.mapear(
+                [
+                    'classe Artigo {',
+                    '  id: numero',
+                    '  titulo: texto',
+                    '  conteudo: texto',
+                    '}'
+                ],
+                -1
+            );
+            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            expect(retornoAvaliadorSintatico).toBeTruthy();
+            expect(retornoAvaliadorSintatico.declaracoes).toHaveLength(1);
+    
+            const classe = retornoAvaliadorSintatico.declaracoes[0] as Classe;
+    
+            let entidade: Entidade;
+            expect(() => {
+                entidade = new Entidade(classe);
+            }).not.toThrow();
+            expect(entidade.modelo).toBeInstanceOf(DescritorTipoClasse);
+            expect(entidade.modelo.propriedades).toHaveLength(3);
+        });
+
+        it('Classe com decorador de chave', () => {
+            const retornoLexador = lexador.mapear(
+                [
+                    'classe Artigo {',
+                    '  @chave',
+                    '  artigoId: numero',
+                    '  titulo: texto',
+                    '  conteudo: texto',
+                    '}'
+                ],
+                -1
+            );
+            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            expect(retornoAvaliadorSintatico).toBeTruthy();
+            expect(retornoAvaliadorSintatico.declaracoes).toHaveLength(1);
+    
+            const classe = retornoAvaliadorSintatico.declaracoes[0] as Classe;
+            let entidade: Entidade;
+            expect(() => {
+                entidade = new Entidade(classe);
+            }).not.toThrow();
+            expect(entidade.modelo).toBeInstanceOf(DescritorTipoClasse);
+            expect(entidade.modelo.propriedades).toHaveLength(3);
+        });
+    });
+
+    describe('Gerar código SQL', () => {
+        describe('Selecionar', () => {
+            lexador = new Lexador();
+            avaliadorSintatico = new AvaliadorSintatico();
+
+            const retornoLexador = lexador.mapear(
+                [
+                    'classe Artigo {',
+                    '  @chave',
+                    '  artigoId: numero',
+                    '  titulo: texto',
+                    '  conteudo: texto',
+                    '}'
+                ],
+                -1
+            );
+            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            const classe = retornoAvaliadorSintatico.declaracoes[0] as Classe;
+            const entidades = new Entidade(classe);
+
+            it('Selecionar tudo', () => {
+                const consultaSql = entidades.gerarSQLSelecionar();
+                expect(consultaSql).toBe('SELECT artigoId, titulo, conteudo FROM Artigo;');
+            });
+        });
+    });
+
+    describe('Métodos de seleção', () => {
+        it('obterPorCondicao', () => {
+            lexador = new Lexador();
+            avaliadorSintatico = new AvaliadorSintatico();
+
+            const retornoLexador = lexador.mapear(
+                [
+                    'classe Artigo {',
+                    '  @chave',
+                    '  artigoId: numero',
+                    '  titulo: texto',
+                    '  conteudo: texto',
+                    '}',
+                    `const entidades = importar('entidades')`,
+                    'const artigos = entidades.modelo(Artigo).todos()'
+                ],
+                -1
+            );
+            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            expect(retornoAvaliadorSintatico).toBeTruthy();
+        });
     });
 })
 
-/* describe("Entidades", () => {
-    let entidades: Entidades;
+/* describe("Entidade", () => {
+    let entidades: Entidade;
     let classe: ObjetoDeleguaClasse;
 
     beforeEach(() => {
-        entidades = new Entidades(process.cwd(), "dados");
+        entidades = new Entidade(process.cwd(), "dados");
         entidades.iniciar();
 
         let propriedadeClasse = new PropriedadeClasse(
@@ -91,7 +178,7 @@ describe('Entidades', () => {
 
         it("Esperado que retorne um array vazio", () => {
             const expected = [];
-            const actual = new Entidades(
+            const actual = new Entidade(
                 process.cwd(),
                 "dados/nenhum_modelo"
             ).obterNomesModelos();

@@ -8,15 +8,15 @@ import { pluralizar } from "@designliquido/flexoes";
 
 import { ErroTabelaNaoEncontrada } from "./erros";
 import { TabelaInterface } from "./interfaces/tabela-interface";
-import { DeleguaClasse } from "@designliquido/delegua/estruturas";
+import { DescritorTipoClasse, DeleguaFuncao } from "@designliquido/delegua/estruturas";
+import { Classe } from "@designliquido/delegua/declaracoes";
+import { EntidadeInterface } from "./interfaces/entidade-interface";
 
 /**
  * Classe responsável por gerar código SQL com base em modelos de tabelas.
  */
-export class Entidades {
-    modelo: DeleguaClasse;
-    arquivos: string[] = [];
-    tabelas: TabelaInterface[] = [];
+export class Entidade implements EntidadeInterface{
+    modelo: DescritorTipoClasse;
 
     /**
      * Construtor da classe Entidades.
@@ -24,14 +24,66 @@ export class Entidades {
      * @param caminhoModelos O caminho dos modelos de tabelas.
      * @param tecnologia A tecnologia utilizada.
      */
-    constructor(modelo: DeleguaClasse) {
-        this.modelo = modelo;
+    constructor(modelo: DescritorTipoClasse | Classe) {
+        if (modelo instanceof DescritorTipoClasse) {
+            this.validarModeloTipo(modelo);
+            this.modelo = modelo;
+        }
+        
+        if (modelo instanceof Classe) {
+            const descritorClasse = this.validarModeloClasse(modelo);
+            this.modelo = descritorClasse;
+        }
+    }
 
+    private validarModeloClasse(modelo: Classe) {
         // Validações:
         // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
         // decorador @chave.
         let possuiChavePrimaria = false;
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of modelo.propriedades) {
+            if (propriedade.nome.lexema === 'id') {
+                possuiChavePrimaria = true;
+                break;
+            }
+
+            for (const decorador of propriedade.decoradores) {
+                if (decorador.nome === '@chave') {
+                    possuiChavePrimaria = true;
+                    break;
+                }
+            }
+        }
+
+        return this.construirDescritorTipoClasse(modelo);
+    }
+
+    private construirDescritorTipoClasse(modelo: Classe): DescritorTipoClasse {
+        const metodos = {};
+        const definirMetodos = modelo.metodos;
+        for (let i = 0; i < modelo.metodos.length; i++) {
+            const metodoAtual = definirMetodos[i];
+            const eInicializador = metodoAtual.simbolo.lexema === 'construtor';
+            const funcao = new DeleguaFuncao(metodoAtual.simbolo.lexema, metodoAtual.funcao, undefined, eInicializador);
+            metodos[metodoAtual.simbolo.lexema] = funcao;
+        }
+
+        const descritorTipoclasse: DescritorTipoClasse = new DescritorTipoClasse(
+            modelo.simbolo,
+            undefined, // Por enquanto não teremos herança.
+            metodos,
+            modelo.propriedades
+        );
+
+        return descritorTipoclasse;
+    }
+
+    private validarModeloTipo(modelo: DescritorTipoClasse): void {
+        // Validações:
+        // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
+        // decorador @chave.
+        let possuiChavePrimaria = false;
+        for (const propriedade of modelo.propriedades) {
             if (propriedade.nome.lexema === 'id') {
                 possuiChavePrimaria = true;
                 break;
@@ -52,18 +104,14 @@ export class Entidades {
         }
     }
 
-    /**
-     * Obtém os nomes dos modelos de tabelas.
-     * @returns Uma lista com os nomes dos arquivos.
-     */
-    // obterNomesModelos(): string[] {
-    //     const diretorio = `${this.diretorioAtual}/${this.caminhoModelos}`;
-    //     if (!sistemaArquivos.existsSync(diretorio)) {
-    //         return [];
-    //     }
+    private obterNomesColunas(): string[] {
+        let nomesColunas: string[] = [];
+        for (let propriedade of this.modelo.propriedades) {
+            nomesColunas.push(propriedade.nome.lexema);
+        }
 
-    //     return sistemaArquivos.readdirSync(diretorio);
-    // }
+        return nomesColunas;
+    }
 
     /**
      * Traduz um tipo para o equivalente em SQL.
@@ -89,13 +137,13 @@ export class Entidades {
      * @returns A tabela encontrada.
      * @throws {ErroTabelaNaoEncontrada} Se a tabela não for encontrada.
      */
-    procurarTabela(nomeTabela: string): TabelaInterface {
+    /* procurarTabela(nomeTabela: string): TabelaInterface {
         const tabela = this.tabelas.find(
             (tabela) => tabela.nomeTabela === nomeTabela
         );
         if (!tabela) throw new ErroTabelaNaoEncontrada(nomeTabela);
         return tabela;
-    }
+    } */
 
     obterValoresDasPropriedades(
         tabela: TabelaInterface,
@@ -116,7 +164,7 @@ export class Entidades {
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para criar a tabela.
      */
-    gerarCodigoSQLCriar(classe: ObjetoDeleguaClasse): string {
+    /* gerarSQLCriar(classe: ObjetoDeleguaClasse): string {
         const tabela = this.procurarTabela(
             classe.classe.simboloOriginal.lexema
         );
@@ -126,14 +174,14 @@ export class Entidades {
             })
             .join(", ");
         return `CREATE TABLE ${tabela.nomeTabela} (${atributosSQL});`;
-    }
+    } */
 
     /**
      * Gera o código SQL para inserir dados em uma tabela.
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para inserir dados na tabela.
      */
-    gerarCodigoSQLInserir(classe: ObjetoDeleguaClasse): string {
+    /* gerarSQLInserir(classe: ObjetoDeleguaClasse): string {
         const tabela = this.procurarTabela(
             classe.classe.simboloOriginal.lexema
         );
@@ -142,14 +190,14 @@ export class Entidades {
             .join(", ");
         const valoresSQL = this.obterValoresDasPropriedades(tabela, classe);
         return `INSERT INTO ${tabela.nomeTabela} (${atributosSQL}) VALUES (${valoresSQL});`;
-    }
+    } */
 
     /**
      * Gera o código SQL para atualizar dados em uma tabela.
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para atualizar dados na tabela.
      */
-    gerarCodigoSQLAtualizar(classe: ObjetoDeleguaClasse): string {
+    /* gerarSQLAtualizar(classe: ObjetoDeleguaClasse): string {
         const tabela = this.procurarTabela(
             classe.classe.simboloOriginal.lexema
         );
@@ -165,31 +213,31 @@ export class Entidades {
             .join(", ");
         const id = classe.propriedades["id"];
         return `UPDATE ${tabela.nomeTabela} SET ${atributosSQL} WHERE id = ${id};`;
-    }
+    } */
 
     /**
      * Gera o código SQL para deletar dados de uma tabela.
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para deletar dados da tabela.
      */
-    gerarCodigoSQLExcluir(classe: ObjetoDeleguaClasse): string {
+    /* gerarSQLExcluir(classe: ObjetoDeleguaClasse): string {
         const tabela = this.procurarTabela(
             classe.classe.simboloOriginal.lexema
         );
         const id = classe.propriedades["id"];
         return `DELETE FROM ${tabela.nomeTabela} WHERE id = ${id};`;
-    }
+    } */
 
     /**
      * Gera o código SQL para selecionar dados de uma tabela.
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para selecionar dados da tabela.
      */
-    gerarCodigoSQLSelecionarTodos(classe: ObjetoDeleguaClasse): string {
-        const tabela = this.procurarTabela(
-            classe.classe.simboloOriginal.lexema
-        );
-        return `SELECT * FROM ${tabela.nomeTabela};`;
+    gerarSQLSelecionar(): string {
+        const colunas = this.obterNomesColunas();
+        let relacaoColunas = colunas.reduce((total, coluna) => total += coluna + ', ', '');
+        relacaoColunas = relacaoColunas.slice(0, -2);
+        return `SELECT ${relacaoColunas} FROM ${this.modelo.simboloOriginal.lexema};`;
     }
 
     /**
@@ -197,13 +245,13 @@ export class Entidades {
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para selecionar um dado da tabela.
      */
-    gerarCodigoSQLSelecionarUm(classe: ObjetoDeleguaClasse): string {
+    /* gerarCodigoSQLSelecionarUm(classe: ObjetoDeleguaClasse): string {
         const tabela = this.procurarTabela(
             classe.classe.simboloOriginal.lexema
         );
         const id = classe.propriedades["id"];
         return `SELECT * FROM ${tabela.nomeTabela} WHERE id = ${id};`;
-    }
+    } */
 
     /**
      * Carrega os modelos de tabelas.

@@ -16,7 +16,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@designliquido/delegua": "^0.35.3",
+    "@designliquido/delegua": "^0.36.0",
     "@designliquido/flexoes": "^0.1.0"
   }
 }
