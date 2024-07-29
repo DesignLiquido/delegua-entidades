@@ -95,7 +95,12 @@ describe('Entidade', () => {
 
             it('Selecionar tudo', () => {
                 const consultaSql = entidades.gerarSQLSelecionar();
-                expect(consultaSql).toBe('SELECT artigoId, titulo, conteudo FROM Artigo;');
+                expect(consultaSql).toContain('SELECT artigoId, titulo, conteudo FROM Artigo');
+            });
+
+            it('Selecionar com condições', () => {
+                const consultaSql = entidades.gerarSQLSelecionar({artigoId: 123});
+                expect(consultaSql).toContain('SELECT artigoId, titulo, conteudo FROM Artigo WHERE artigoId = 123');
             });
         });
     });

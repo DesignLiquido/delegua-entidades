@@ -58,3 +58,7 @@ Entidades conta com alguns comandos de seleção e manipulação de dados:
 Há também comandos de geração de SQL, se for interessante obter a consulta gerada antes da execução:
 
 - `entidades.modelo(Modelo).gerarSQLSelecionar()`
+
+## Execução por linha de comando
+
+Este pacote não funciona sozinho em modo por linha de comando. É necessário também instalar um dos pacotes específicos de tecnologia de LinConEs. 

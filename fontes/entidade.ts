@@ -233,11 +233,26 @@ export class Entidade implements EntidadeInterface{
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para selecionar dados da tabela.
      */
-    gerarSQLSelecionar(): string {
+    gerarSQLSelecionar(condicoes?: {[coluna: string]: any}): string {
         const colunas = this.obterNomesColunas();
         let relacaoColunas = colunas.reduce((total, coluna) => total += coluna + ', ', '');
         relacaoColunas = relacaoColunas.slice(0, -2);
-        return `SELECT ${relacaoColunas} FROM ${this.modelo.simboloOriginal.lexema};`;
+
+        let relacaoCondicoes = '';
+        let operadorAnd = '';
+        if (condicoes) {
+            relacaoCondicoes = 'WHERE ';
+            for (const [coluna, valor] of Object.entries(condicoes)) {
+                if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
+                    throw new Error(`Coluna ${coluna} não existe no modelo ${this.modelo.simboloOriginal.lexema}.`);
+                }
+
+                relacaoCondicoes += operadorAnd + coluna + ' = ' + valor + ' ';
+                operadorAnd = 'AND ';
+            }
+        }
+
+        return `SELECT ${relacaoColunas} FROM ${this.modelo.simboloOriginal.lexema} ${relacaoCondicoes}`;
     }
 
     /**
