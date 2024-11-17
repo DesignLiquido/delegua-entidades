@@ -8,15 +8,20 @@ import { pluralizar } from "@designliquido/flexoes";
 
 import { ErroTabelaNaoEncontrada } from "./erros";
 import { TabelaInterface } from "./interfaces/tabela-interface";
-import { DescritorTipoClasse, DeleguaFuncao } from "@designliquido/delegua/estruturas";
+import {
+    DescritorTipoClasse,
+    DeleguaFuncao,
+} from "@designliquido/delegua/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
 import { EntidadeInterface } from "./interfaces/entidade-interface";
+import { Selecionar } from "@designliquido/lincones-js";
 
 /**
  * Classe responsável por gerar código SQL com base em modelos de tabelas.
  */
-export class Entidade implements EntidadeInterface{
+export class Entidade implements EntidadeInterface {
     modelo: DescritorTipoClasse;
+    nomePropriedadeChavePrimaria: string;
 
     /**
      * Construtor da classe Entidades.
@@ -29,7 +34,7 @@ export class Entidade implements EntidadeInterface{
             this.validarModeloTipo(modelo);
             this.modelo = modelo;
         }
-        
+
         if (modelo instanceof Classe) {
             const descritorClasse = this.validarModeloClasse(modelo);
             this.modelo = descritorClasse;
@@ -40,16 +45,15 @@ export class Entidade implements EntidadeInterface{
         // Validações:
         // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
         // decorador @chave.
-        let possuiChavePrimaria = false;
         for (const propriedade of modelo.propriedades) {
-            if (propriedade.nome.lexema === 'id') {
-                possuiChavePrimaria = true;
+            if (propriedade.nome.lexema === "id") {
+                this.nomePropriedadeChavePrimaria = "id";
                 break;
             }
 
             for (const decorador of propriedade.decoradores) {
-                if (decorador.nome === '@chave') {
-                    possuiChavePrimaria = true;
+                if (decorador.nome === "@chave") {
+                    this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
                     break;
                 }
             }
@@ -63,17 +67,23 @@ export class Entidade implements EntidadeInterface{
         const definirMetodos = modelo.metodos;
         for (let i = 0; i < modelo.metodos.length; i++) {
             const metodoAtual = definirMetodos[i];
-            const eInicializador = metodoAtual.simbolo.lexema === 'construtor';
-            const funcao = new DeleguaFuncao(metodoAtual.simbolo.lexema, metodoAtual.funcao, undefined, eInicializador);
+            const eInicializador = metodoAtual.simbolo.lexema === "construtor";
+            const funcao = new DeleguaFuncao(
+                metodoAtual.simbolo.lexema,
+                metodoAtual.funcao,
+                undefined,
+                eInicializador
+            );
             metodos[metodoAtual.simbolo.lexema] = funcao;
         }
 
-        const descritorTipoclasse: DescritorTipoClasse = new DescritorTipoClasse(
-            modelo.simbolo,
-            undefined, // Por enquanto não teremos herança.
-            metodos,
-            modelo.propriedades
-        );
+        const descritorTipoclasse: DescritorTipoClasse =
+            new DescritorTipoClasse(
+                modelo.simbolo,
+                undefined, // Por enquanto não teremos herança.
+                metodos,
+                modelo.propriedades
+            );
 
         return descritorTipoclasse;
     }
@@ -84,13 +94,13 @@ export class Entidade implements EntidadeInterface{
         // decorador @chave.
         let possuiChavePrimaria = false;
         for (const propriedade of modelo.propriedades) {
-            if (propriedade.nome.lexema === 'id') {
+            if (propriedade.nome.lexema === "id") {
                 possuiChavePrimaria = true;
                 break;
             }
 
             for (const decorador of propriedade.decoradores) {
-                if (decorador.nome === 'chave') {
+                if (decorador.nome === "chave") {
                     possuiChavePrimaria = true;
                     break;
                 }
@@ -98,10 +108,20 @@ export class Entidade implements EntidadeInterface{
         }
 
         if (!possuiChavePrimaria) {
-            throw new Error('Modelo não possui uma chave primária definida. ' + 
-                'Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, ' +
-                'ou declarar uma propriedade com o tipo número e decorá-la com `@chave`.');
+            throw new Error(
+                "Modelo não possui uma chave primária definida. " +
+                    "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
+                    "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
+            );
         }
+    }
+
+    obterNome(): string {
+        return this.modelo.simboloOriginal.lexema;
+    }
+
+    obterNomeChavePrimaria(): string {
+        return this.nomePropriedadeChavePrimaria;
     }
 
     private obterNomesColunas(): string[] {
@@ -157,6 +177,10 @@ export class Entidade implements EntidadeInterface{
                 return propriedade ? propriedade[1] : null;
             })
             .join(", ");
+    }
+
+    gerarConstrutoSelecionar(): Selecionar {
+        return new Selecionar(-1, "", [], []);
     }
 
     /**
@@ -233,22 +257,31 @@ export class Entidade implements EntidadeInterface{
      * @param tabela A tabela para a qual o código SQL será gerado.
      * @returns O código SQL para selecionar dados da tabela.
      */
-    gerarSQLSelecionar(condicoes?: {[coluna: string]: any}): string {
+    gerarSQLSelecionar(condicoes?: { [coluna: string]: any }): string {
         const colunas = this.obterNomesColunas();
-        let relacaoColunas = colunas.reduce((total, coluna) => total += coluna + ', ', '');
+        let relacaoColunas = colunas.reduce(
+            (total, coluna) => (total += coluna + ", "),
+            ""
+        );
         relacaoColunas = relacaoColunas.slice(0, -2);
 
-        let relacaoCondicoes = '';
-        let operadorAnd = '';
+        let relacaoCondicoes = "";
+        let operadorAnd = "";
         if (condicoes) {
-            relacaoCondicoes = 'WHERE ';
+            relacaoCondicoes = "WHERE ";
             for (const [coluna, valor] of Object.entries(condicoes)) {
-                if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
-                    throw new Error(`Coluna ${coluna} não existe no modelo ${this.modelo.simboloOriginal.lexema}.`);
+                if (
+                    !this.modelo.propriedades.some(
+                        (p) => p.nome.lexema === coluna
+                    )
+                ) {
+                    throw new Error(
+                        `Coluna ${coluna} não existe no modelo ${this.modelo.simboloOriginal.lexema}.`
+                    );
                 }
 
-                relacaoCondicoes += operadorAnd + coluna + ' = ' + valor + ' ';
-                operadorAnd = 'AND ';
+                relacaoCondicoes += operadorAnd + coluna + " = " + valor + " ";
+                operadorAnd = "AND ";
             }
         }
 

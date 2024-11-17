@@ -304,10 +304,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@designliquido/delegua@^0.36.0":
-  version "0.36.0"
-  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-0.36.0.tgz#1d51e553fd7f11264e64f17674cbdbb7ed476ec0"
-  integrity sha512-0DRSOshV27pX79vS5YiWDP41M4IgDG+vIlbp2ddzho0gLcrfbe/LUCYNXNHur24BGtSTujr6nT3AK4Izd5n39g==
+"@designliquido/delegua@^0.36.2":
+  version "0.36.2"
+  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-0.36.2.tgz#4df79e74006d1409a3b3210680b14206b0b91d19"
+  integrity sha512-T61bEqHchNhNMuyL1dtAx7KLUJ3hA05x/Hsid0Rio1v030W0/V4edF3ddLe5H4K370oWlJk8oa90rS0hgaiSyg==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
     browser-process-hrtime "^1.0.0"
@@ -318,6 +318,13 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
+
+"@designliquido/lincones-js@^0.0.0":
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.0.0.tgz#0828de63ab8cb300a822d676897166ffa884a5fb"
+  integrity sha512-jnsaJyq05RQS7m+lywmwVfnMkb1AAREaD4hD8XR/VgE70YekwLssPkW6fvWpkOx88y6tuCEvIawuI8TYBw1CBw==
+  dependencies:
+    prettier "^2.8.0"
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
@@ -1962,6 +1969,11 @@ pkg-dir@^4.2.0:
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
   dependencies:
     find-up "^4.0.0"
+
+prettier@^2.8.0:
+  version "2.8.8"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
+  integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
 pretty-format@^29.0.0, pretty-format@^29.7.0:
   version "29.7.0"
