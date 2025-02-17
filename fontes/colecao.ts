@@ -1,4 +1,5 @@
-import { Selecionar } from "@designliquido/lincones-js";
+import { Selecionar, Condicao } from "@designliquido/lincones-js";
+
 import { EntidadeInterface } from "./interfaces/entidade-interface";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
@@ -9,12 +10,22 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     }
 
     todos(): Selecionar {
-        return new Selecionar(-1, this.tipoEntidade.obterNome(), [], [], true);
+        return new Selecionar(
+            -1, 
+            this.tipoEntidade.obterNome(), 
+            this.tipoEntidade.obterNomesColunas(), 
+            [], 
+            true
+        );
     }
 
     obterPorId(): Selecionar {
-        return new Selecionar(-1, this.tipoEntidade.obterNome(), [], [
-            
-        ], false);
+        return new Selecionar(
+            -1, 
+            this.tipoEntidade.obterNome(), 
+            this.tipoEntidade.obterNomesColunas(),
+            [], 
+            false
+        );
     }
 }

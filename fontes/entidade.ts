@@ -124,7 +124,7 @@ export class Entidade implements EntidadeInterface {
         return this.nomePropriedadeChavePrimaria;
     }
 
-    private obterNomesColunas(): string[] {
+    obterNomesColunas(): string[] {
         let nomesColunas: string[] = [];
         for (let propriedade of this.modelo.propriedades) {
             nomesColunas.push(propriedade.nome.lexema);

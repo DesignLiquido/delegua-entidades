@@ -5,10 +5,17 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "command": "yarn test",
-        "name": "Run npm test",
+        "name": "Testes unitários",
+        "type": "node",
         "request": "launch",
-        "type": "node-terminal"
+        "runtimeArgs": [
+            "--inspect-brk",
+            "${workspaceRoot}/node_modules/jest/bin/jest.js",
+            "--runInBand"
+        ],
+        "skipFiles": ["<node_internals>/**", "node_modules/**"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
       }
     ]
 }
