@@ -19,6 +19,6 @@
   "dependencies": {
     "@designliquido/delegua": "^0.38.3",
     "@designliquido/flexoes": "^0.1.0",
-    "@designliquido/lincones-js": "^0.0.3"
+    "@designliquido/lincones-js": "^0.0.4"
   }
 }

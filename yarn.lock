@@ -509,10 +509,10 @@
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
 
-"@designliquido/lincones-js@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.0.3.tgz#a1b160d8e6d09b9be792879140de03ce5c739998"
-  integrity sha512-YeS5zOqySOvLfSq33Q9RAiLoZswSfDsjlET05xjzk9ExoOMCdl79kVyg55mbF8e8FiSPU/8bxrADG/xevxipig==
+"@designliquido/lincones-js@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.0.4.tgz#32dd2d7d5d69cd9ff3e640adff6a85dbcb3897d0"
+  integrity sha512-4lFGDOQLOvVf6LgxAzM+31h/zGMdTYFdFAW3oLjSDQgUAQlPmkqKvwOEeXOcHrFmcE2wGUJejGv3rwdmmDqqNw==
   dependencies:
     prettier "^2.8.0"
 
