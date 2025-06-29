@@ -1,6 +1,6 @@
 import {
     DescritorTipoClasse,
-} from "@designliquido/delegua/estruturas";
+} from "@designliquido/delegua/interpretador/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
 import { Lexador } from "@designliquido/delegua/lexador";
 import { AvaliadorSintatico } from "@designliquido/delegua/avaliador-sintatico";

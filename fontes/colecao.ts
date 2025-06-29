@@ -1,7 +1,7 @@
 import { Selecionar, Condicao, ReferenciaColuna, Literal, Inserir, Atualizar, Excluir } from "@designliquido/lincones-js";
+import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 
 import { EntidadeInterface } from "./interfaces/entidade-interface";
-import { ObjetoDeleguaClasse } from "@designliquido/delegua/estruturas";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
     tipoEntidade: TEntidade;
@@ -41,8 +41,14 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         return new Inserir(-1, "Tabela", nomesColunas, valoresColunas);
     }
 
-    atualizar(registro: ObjetoDeleguaClasse): Atualizar {
-        return new Atualizar(-1, "Tabela", [], []);
+    atualizar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Atualizar {
+        let colunasAtualizacao = colunas;
+        if (colunasAtualizacao.length === 0) {
+            colunasAtualizacao = this.tipoEntidade.obterNomesColunas();
+        }
+
+        const colunasEValores = this.tipoEntidade.resolverColunasEValores(registro, colunas);
+        return new Atualizar(-1, "Tabela", colunasEValores, []);
     }
 
     excluir(registro: ObjetoDeleguaClasse): Excluir {

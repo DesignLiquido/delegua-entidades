@@ -1,7 +1,7 @@
 import {
     ObjetoDeleguaClasse,
     DescritorTipoClasse,
-} from "@designliquido/delegua/estruturas";
+} from "@designliquido/delegua/interpretador/estruturas";
 import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 
@@ -42,6 +42,14 @@ describe('Coleção', () => {
             expect(resultadoSelecionar.tabela).toBe('Artigo');
             expect(resultadoSelecionar.colunas).toHaveLength(3);
             expect(resultadoSelecionar.condicoes).toHaveLength(0);
+        });
+
+        it('obterPorId()', () => {
+            const resultadoSelecionarPorId = colecao.obterPorId(1);
+            expect(resultadoSelecionarPorId).toBeTruthy();
+            expect(resultadoSelecionarPorId.tabela).toBe('Artigo');
+            expect(resultadoSelecionarPorId.colunas).toHaveLength(3);
+            expect(resultadoSelecionarPorId.condicoes).toHaveLength(1);
         });
     });
 

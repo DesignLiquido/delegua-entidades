@@ -1,4 +1,4 @@
-import { DescritorTipoClasse } from "@designliquido/delegua/estruturas";
+import { DescritorTipoClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { Colecao } from "./colecao";
 import { EntidadeInterface } from "./interfaces/entidade-interface";
 

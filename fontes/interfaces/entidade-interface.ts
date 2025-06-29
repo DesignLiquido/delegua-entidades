@@ -1,4 +1,5 @@
 import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua/estruturas";
+import { ColunaEValor } from "@designliquido/lincones-js";
 
 export interface EntidadeInterface {
     modelo: DescritorTipoClasse;
@@ -6,4 +7,5 @@ export interface EntidadeInterface {
     obterNomeChavePrimaria(): string;
     obterNomesColunas(): string[];
     resolverValoresParaColunas(registro: ObjetoDeleguaClasse, colunas: string[]): any[];
+    resolverColunasEValores(registro: ObjetoDeleguaClasse, colunas: string[]): ColunaEValor[];
 }

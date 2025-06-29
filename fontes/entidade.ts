@@ -1,9 +1,10 @@
-import { ObjetoDeleguaClasse } from "@designliquido/delegua/estruturas/objeto-delegua-classe";
 import {
     DescritorTipoClasse,
     DeleguaFuncao,
-} from "@designliquido/delegua/estruturas";
+    ObjetoDeleguaClasse
+} from "@designliquido/delegua/interpretador/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
+import { ColunaEValor, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
 import { pluralizar } from "@designliquido/flexoes";
 
 import { TabelaInterface } from "./interfaces/tabela-interface";
@@ -171,5 +172,27 @@ export class Entidade implements EntidadeInterface {
         }
 
         return valores;
+    }
+
+    resolverColunasEValores(registro: ObjetoDeleguaClasse, colunas: string[]): ColunaEValor[] {
+        const colunasEValores: ColunaEValor[] = [];
+        for (const coluna of colunas) {
+            if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
+                throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo.simboloOriginal.lexema}.`);
+            }
+
+            colunasEValores.push(
+                new ColunaEValor(
+                    new ReferenciaColuna(coluna), 
+                    new Literal(registro.propriedades[coluna])
+                )
+            );
+        }
+
+        return colunasEValores;
+    }
+
+    resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse) {
+        
     }
 }
