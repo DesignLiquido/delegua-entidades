@@ -1,5 +1,6 @@
 import { DescritorTipoClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { Colecao } from "./colecao";
+import { Entidade } from "./entidade";
 import { EntidadeInterface } from "./interfaces/entidade-interface";
 
 /**
@@ -13,7 +14,20 @@ export class ContextoEntidades {
         this.colecoes = {};
     }
 
+    registrarColecao(entidade: EntidadeInterface): Colecao<EntidadeInterface> {
+        const nome = entidade.obterNome();
+        const colecao = new Colecao(entidade);
+        this.colecoes[nome] = colecao;
+        return colecao;
+    }
+
     colecao(tipoModelo: DescritorTipoClasse): Colecao<EntidadeInterface> {
-        return this.colecoes[tipoModelo.simboloOriginal.lexema];
+        const nome = tipoModelo.simboloOriginal.lexema;
+        if (!this.colecoes[nome]) {
+            const entidade = new Entidade(tipoModelo);
+            this.registrarColecao(entidade);
+        }
+
+        return this.colecoes[nome];
     }
 }

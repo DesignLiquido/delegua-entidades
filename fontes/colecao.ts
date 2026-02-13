@@ -38,7 +38,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     inserir(registro: ObjetoDeleguaClasse): Inserir {
         const nomesColunas = this.tipoEntidade.obterNomesColunas();
         const valoresColunas = this.tipoEntidade.resolverValoresParaColunas(registro, nomesColunas);
-        return new Inserir(-1, "Tabela", nomesColunas, valoresColunas);
+        return new Inserir(-1, this.tipoEntidade.obterNome(), nomesColunas, valoresColunas);
     }
 
     atualizar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Atualizar {
@@ -47,11 +47,13 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             colunasAtualizacao = this.tipoEntidade.obterNomesColunas();
         }
 
-        const colunasEValores = this.tipoEntidade.resolverColunasEValores(registro, colunas);
-        return new Atualizar(-1, "Tabela", colunasEValores, []);
+        const colunasEValores = this.tipoEntidade.resolverColunasEValores(registro, colunasAtualizacao);
+        const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
+        return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
     }
 
     excluir(registro: ObjetoDeleguaClasse): Excluir {
-        return new Excluir(-1, "Tabela", []);
+        const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
+        return new Excluir(-1, this.tipoEntidade.obterNome(), [condicao]);
     }
 }

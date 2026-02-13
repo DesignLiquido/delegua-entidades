@@ -61,10 +61,54 @@ describe('Coleção', () => {
             classeArtigoObjetoDeleguaClasse.propriedades["conteudo"] = "Este é um parágrafo do meu artigo.";
 
             const resultadoInserir = colecao.inserir(classeArtigoObjetoDeleguaClasse);
-            
+
             expect(resultadoInserir).toBeTruthy();
+            expect(resultadoInserir.tabela).toBe('Artigo');
             expect(resultadoInserir.colunas).toHaveLength(3);
             expect(resultadoInserir.valores).toHaveLength(3);
+        });
+    });
+
+    describe('Métodos de atualização', () => {
+        it('atualizar() com todas as colunas', () => {
+            const classeArtigoObjetoDeleguaClasse = new ObjetoDeleguaClasse(descritorTipoClasse);
+            classeArtigoObjetoDeleguaClasse.propriedades["id"] = 1;
+            classeArtigoObjetoDeleguaClasse.propriedades["titulo"] = "Título atualizado";
+            classeArtigoObjetoDeleguaClasse.propriedades["conteudo"] = "Conteúdo atualizado.";
+
+            const resultadoAtualizar = colecao.atualizar(classeArtigoObjetoDeleguaClasse);
+
+            expect(resultadoAtualizar).toBeTruthy();
+            expect(resultadoAtualizar.tabela).toBe('Artigo');
+            expect(resultadoAtualizar.colunasEValores).toHaveLength(3);
+            expect(resultadoAtualizar.condicoes).toHaveLength(1);
+        });
+
+        it('atualizar() com colunas específicas', () => {
+            const classeArtigoObjetoDeleguaClasse = new ObjetoDeleguaClasse(descritorTipoClasse);
+            classeArtigoObjetoDeleguaClasse.propriedades["id"] = 1;
+            classeArtigoObjetoDeleguaClasse.propriedades["titulo"] = "Só o título";
+            classeArtigoObjetoDeleguaClasse.propriedades["conteudo"] = "Conteúdo original.";
+
+            const resultadoAtualizar = colecao.atualizar(classeArtigoObjetoDeleguaClasse, ["titulo"]);
+
+            expect(resultadoAtualizar).toBeTruthy();
+            expect(resultadoAtualizar.tabela).toBe('Artigo');
+            expect(resultadoAtualizar.colunasEValores).toHaveLength(1);
+            expect(resultadoAtualizar.condicoes).toHaveLength(1);
+        });
+    });
+
+    describe('Métodos de exclusão', () => {
+        it('excluir()', () => {
+            const classeArtigoObjetoDeleguaClasse = new ObjetoDeleguaClasse(descritorTipoClasse);
+            classeArtigoObjetoDeleguaClasse.propriedades["id"] = 5;
+
+            const resultadoExcluir = colecao.excluir(classeArtigoObjetoDeleguaClasse);
+
+            expect(resultadoExcluir).toBeTruthy();
+            expect(resultadoExcluir.tabela).toBe('Artigo');
+            expect(resultadoExcluir.condicoes).toHaveLength(1);
         });
     });
 });

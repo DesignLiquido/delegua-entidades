@@ -17,7 +17,7 @@ describe('Entidade', () => {
     });
 
     describe('Inicialização por classe', () => {
-        it('Classe com id', () => {
+        it('Classe com id', async () => {
             const retornoLexador = lexador.mapear(
                 [
                     'classe Artigo {',
@@ -28,12 +28,12 @@ describe('Entidade', () => {
                 ],
                 -1
             );
-            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            const retornoAvaliadorSintatico = await avaliadorSintatico.analisar(retornoLexador, -1);
             expect(retornoAvaliadorSintatico).toBeTruthy();
             expect(retornoAvaliadorSintatico.declaracoes).toHaveLength(1);
-    
+
             const classe = retornoAvaliadorSintatico.declaracoes[0] as Classe;
-    
+
             let entidade: Entidade;
             expect(() => {
                 entidade = new Entidade(classe);
@@ -42,7 +42,7 @@ describe('Entidade', () => {
             expect(entidade.modelo.propriedades).toHaveLength(3);
         });
 
-        it('Classe com decorador de chave', () => {
+        it('Classe com decorador de chave', async () => {
             const retornoLexador = lexador.mapear(
                 [
                     'classe Artigo {',
@@ -54,10 +54,10 @@ describe('Entidade', () => {
                 ],
                 -1
             );
-            const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador, -1);
+            const retornoAvaliadorSintatico = await avaliadorSintatico.analisar(retornoLexador, -1);
             expect(retornoAvaliadorSintatico).toBeTruthy();
             expect(retornoAvaliadorSintatico.declaracoes).toHaveLength(1);
-    
+
             const classe = retornoAvaliadorSintatico.declaracoes[0] as Classe;
             let entidade: Entidade;
             expect(() => {

@@ -4,7 +4,7 @@ import {
     ObjetoDeleguaClasse
 } from "@designliquido/delegua/interpretador/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
-import { ColunaEValor, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
+import { ColunaEValor, Condicao, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
 import { pluralizar } from "@designliquido/flexoes";
 
 import { TabelaInterface } from "./interfaces/tabela-interface";
@@ -192,7 +192,13 @@ export class Entidade implements EntidadeInterface {
         return colunasEValores;
     }
 
-    resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse) {
-        
+    resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao {
+        const chave = this.nomePropriedadeChavePrimaria;
+        const valor = registro.propriedades[chave];
+        return new Condicao(
+            new ReferenciaColuna(chave),
+            'IGUAL',
+            new Literal(valor, typeof valor === 'number' ? "INTEIRO" : "TEXTO")
+        );
     }
 }
