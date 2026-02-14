@@ -1,0 +1,23 @@
+import { RelacionamentoInterface, TipoRelacionamento } from "./interfaces-tipos/relacionamento-interface";
+
+export class Relacionamento implements RelacionamentoInterface {
+    tipo: TipoRelacionamento;
+    nomePropriedade: string;
+    entidadeDestino: string;
+    colunaOrigem: string;
+    colunaDestino: string;
+
+    constructor(
+        tipo: TipoRelacionamento,
+        nomePropriedade: string,
+        entidadeDestino: string,
+        colunaOrigem: string,
+        colunaDestino: string
+    ) {
+        this.tipo = tipo;
+        this.nomePropriedade = nomePropriedade;
+        this.entidadeDestino = entidadeDestino;
+        this.colunaOrigem = colunaOrigem;
+        this.colunaDestino = colunaDestino;
+    }
+}

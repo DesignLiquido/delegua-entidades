@@ -374,10 +374,10 @@
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
 
-"@designliquido/lincones-js@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.1.0.tgz#f2f9a357ceb95f3e291b929f045122d3b2f9f4e4"
-  integrity sha512-SWt4Klpfyrrp8H9D+IVH62LwwFXJ8gbU8/eZnTm/RJwImr0t6GAqUei8qO1PVetwOcJznUgCCmn5L9AplKI8pg==
+"@designliquido/lincones-js@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.2.0.tgz#43ed291d8044d7995730dde3b4b56074ec1b0795"
+  integrity sha512-gcFRHWBuT0K/74uu/TZpqnFHqZdraFkm6Ll7Y0WdJP3dWRwh+yx7PXv0zdBtYS4etu8WSvetSVbD6WwGbXA2oA==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"

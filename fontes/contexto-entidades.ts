@@ -3,7 +3,7 @@ import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 
 import { Colecao } from "./colecao";
 import { Entidade } from "./entidade";
-import { EntidadeInterface } from "./interfaces/entidade-interface";
+import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 
 /**
  * O contexto de entidades é usado para manter todas as entidades e seus relacionamentos

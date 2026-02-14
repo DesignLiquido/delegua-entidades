@@ -7,8 +7,10 @@ import { Classe } from "@designliquido/delegua/declaracoes";
 import { Coluna, ColunaEValor, Condicao, Criar, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
 import { pluralizar } from "@designliquido/flexoes";
 
-import { TabelaInterface } from "./interfaces/tabela-interface";
-import { EntidadeInterface } from "./interfaces/entidade-interface";
+import { TabelaInterface } from "./interfaces-tipos/tabela-interface";
+import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
+import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-interface";
+import { Relacionamento } from "./relacionamento";
 
 /**
  * Classe responsável por intermediar um registro (normalmente um `ObjetoDeleguaClasse`)
@@ -113,8 +115,53 @@ export class Entidade implements EntidadeInterface {
         return this.modelo.simboloOriginal.lexema;
     }
 
+    possuiCriadoEm(): boolean {
+        return this.modelo.propriedades.some(p => p.nome.lexema === 'criado_em');
+    }
+
+    possuiAtualizadoEm(): boolean {
+        return this.modelo.propriedades.some(p => p.nome.lexema === 'atualizado_em');
+    }
+
     obterNomeChavePrimaria(): string {
         return this.nomePropriedadeChavePrimaria;
+    }
+
+    obterRelacionamentos(): RelacionamentoInterface[] {
+        const relacionamentos: RelacionamentoInterface[] = [];
+        const nomeEntidade = this.obterNome();
+
+        for (const propriedade of this.modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                const nomeDecorador = decorador.nome.replace(/^@/, '');
+
+                if (nomeDecorador === 'temUm' || nomeDecorador === 'temMuitos' || nomeDecorador === 'pertenceA') {
+                    const entidadeDestino = decorador.atributos?.entidade;
+                    if (!entidadeDestino) continue;
+
+                    let colunaOrigem: string;
+                    let colunaDestino: string;
+
+                    if (nomeDecorador === 'pertenceA') {
+                        colunaOrigem = decorador.atributos?.chaveEstrangeira || `${entidadeDestino.toLowerCase()}_id`;
+                        colunaDestino = 'id';
+                    } else {
+                        colunaOrigem = 'id';
+                        colunaDestino = decorador.atributos?.chaveEstrangeira || `${nomeEntidade.toLowerCase()}_id`;
+                    }
+
+                    relacionamentos.push(new Relacionamento(
+                        nomeDecorador as any,
+                        propriedade.nome.lexema,
+                        entidadeDestino,
+                        colunaOrigem,
+                        colunaDestino
+                    ));
+                }
+            }
+        }
+
+        return relacionamentos;
     }
 
     obterNomesColunas(): string[] {
