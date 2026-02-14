@@ -9,7 +9,7 @@ import { Decorador } from "@designliquido/delegua/construtos";
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
 import { ConstrutorConsulta } from "../fontes/construtor-consulta";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('ConstrutorConsulta', () => {
     const descritorTipoClasse = new DescritorTipoClasse(
@@ -41,11 +41,11 @@ describe('ConstrutorConsulta', () => {
     );
 
     const entidade = new Entidade(descritorTipoClasse);
-    let tecnologiaMock: TecnologiaMock;
+    let tecnologiaMock: BonecoTecnologia;
     let colecao: Colecao<Entidade>;
 
     beforeEach(() => {
-        tecnologiaMock = new TecnologiaMock();
+        tecnologiaMock = new BonecoTecnologia();
         tecnologiaMock.dadosEmMemoria['Usuario'] = [];
         colecao = new Colecao(entidade, tecnologiaMock);
     });

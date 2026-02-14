@@ -2,10 +2,10 @@ import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 import { RetornoComandoInterface } from "@designliquido/lincones-js/interfaces/retorno-comando-interface";
 
 /**
- * Implementação mock de TecnologiaLinconesInterface para testes.
+ * Implementação de boneco (_mock_) de `TecnologiaLinconesInterface` para testes.
  * Armazena dados em memória e rastreia comandos executados.
  */
-export class TecnologiaMock implements TecnologiaLinconesInterface {
+export class BonecoTecnologia implements TecnologiaLinconesInterface {
     iniciada: boolean = false;
     comandosExecutados: any[] = [];
     dadosEmMemoria: { [tabela: string]: any[] } = {};

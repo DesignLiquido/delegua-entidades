@@ -10,7 +10,7 @@ import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
 import { Validador } from "../fontes/validacoes/validador";
 import { ErroDeValidacao } from "../fontes/erros/erro-validacao";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('Validações', () => {
     describe('Validador', () => {
@@ -258,7 +258,7 @@ describe('Validações', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             tecnologiaMock.dadosEmMemoria['Pessoa'] = [];
             const colecao = new Colecao(entidade, tecnologiaMock);
 
@@ -289,7 +289,7 @@ describe('Validações', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             tecnologiaMock.dadosEmMemoria['Pessoa'] = [];
             const colecao = new Colecao(entidade, tecnologiaMock);
 
@@ -320,7 +320,7 @@ describe('Validações', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             tecnologiaMock.dadosEmMemoria['Pessoa'] = [];
             const colecao = new Colecao(entidade, tecnologiaMock);
 

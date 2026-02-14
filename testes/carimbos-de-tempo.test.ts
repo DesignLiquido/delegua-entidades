@@ -7,10 +7,10 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
-describe('Timestamps automáticos', () => {
-    const descritorComTimestamps = new DescritorTipoClasse(
+describe('Carimbos de tempo automáticos', () => {
+    const descritorComCarimbosDeTempo = new DescritorTipoClasse(
         new Simbolo("IDENTIFICADOR", "Artigo", "Artigo", 1, -1),
         null,
         {},
@@ -38,7 +38,7 @@ describe('Timestamps automáticos', () => {
         ]
     );
 
-    const descritorSemTimestamps = new DescritorTipoClasse(
+    const descritorSemCarimbosDeTempo = new DescritorTipoClasse(
         new Simbolo("IDENTIFICADOR", "Tag", "Tag", 1, -1),
         null,
         {},
@@ -56,42 +56,42 @@ describe('Timestamps automáticos', () => {
         ]
     );
 
-    describe('Detecção de timestamps', () => {
+    describe('Detecção de carimbos de tempo', () => {
         it('detecta criado_em', () => {
-            const entidade = new Entidade(descritorComTimestamps);
+            const entidade = new Entidade(descritorComCarimbosDeTempo);
             expect(entidade.possuiCriadoEm()).toBe(true);
         });
 
         it('detecta atualizado_em', () => {
-            const entidade = new Entidade(descritorComTimestamps);
+            const entidade = new Entidade(descritorComCarimbosDeTempo);
             expect(entidade.possuiAtualizadoEm()).toBe(true);
         });
 
         it('retorna false quando não possui criado_em', () => {
-            const entidade = new Entidade(descritorSemTimestamps);
+            const entidade = new Entidade(descritorSemCarimbosDeTempo);
             expect(entidade.possuiCriadoEm()).toBe(false);
         });
 
         it('retorna false quando não possui atualizado_em', () => {
-            const entidade = new Entidade(descritorSemTimestamps);
+            const entidade = new Entidade(descritorSemCarimbosDeTempo);
             expect(entidade.possuiAtualizadoEm()).toBe(false);
         });
     });
 
     describe('Preenchimento automático', () => {
-        let tecnologiaMock: TecnologiaMock;
+        let tecnologiaMock: BonecoTecnologia;
 
         beforeEach(() => {
-            tecnologiaMock = new TecnologiaMock();
+            tecnologiaMock = new BonecoTecnologia();
             tecnologiaMock.dadosEmMemoria['Artigo'] = [];
             tecnologiaMock.dadosEmMemoria['Tag'] = [];
         });
 
         it('preenche criado_em e atualizado_em ao salvar', async () => {
-            const entidade = new Entidade(descritorComTimestamps);
+            const entidade = new Entidade(descritorComCarimbosDeTempo);
             const colecao = new Colecao(entidade, tecnologiaMock);
 
-            const registro = new ObjetoDeleguaClasse(descritorComTimestamps);
+            const registro = new ObjetoDeleguaClasse(descritorComCarimbosDeTempo);
             registro.propriedades['id'] = 1;
             registro.propriedades['titulo'] = 'Meu Artigo';
             registro.propriedades['criado_em'] = null;
@@ -105,10 +105,10 @@ describe('Timestamps automáticos', () => {
         });
 
         it('preenche atualizado_em ao modificar', async () => {
-            const entidade = new Entidade(descritorComTimestamps);
+            const entidade = new Entidade(descritorComCarimbosDeTempo);
             const colecao = new Colecao(entidade, tecnologiaMock);
 
-            const registro = new ObjetoDeleguaClasse(descritorComTimestamps);
+            const registro = new ObjetoDeleguaClasse(descritorComCarimbosDeTempo);
             registro.propriedades['id'] = 1;
             registro.propriedades['titulo'] = 'Meu Artigo';
             registro.propriedades['criado_em'] = '2024-01-01T00:00:00.000Z';
@@ -118,7 +118,7 @@ describe('Timestamps automáticos', () => {
 
             const atualizadoEmAnterior = registro.propriedades['atualizado_em'];
 
-            // Pequeno delay para garantir timestamp diferente
+            // Pequeno delay para garantir carimbo de tempo diferente
             await new Promise(resolve => setTimeout(resolve, 10));
 
             registro.propriedades['titulo'] = 'Artigo Atualizado';
@@ -127,11 +127,11 @@ describe('Timestamps automáticos', () => {
             expect(registro.propriedades['atualizado_em']).not.toBe(atualizadoEmAnterior);
         });
 
-        it('não preenche timestamps em entidades sem os campos', async () => {
-            const entidade = new Entidade(descritorSemTimestamps);
+        it('não preenche carimbos de tempo em entidades sem os campos', async () => {
+            const entidade = new Entidade(descritorSemCarimbosDeTempo);
             const colecao = new Colecao(entidade, tecnologiaMock);
 
-            const registro = new ObjetoDeleguaClasse(descritorSemTimestamps);
+            const registro = new ObjetoDeleguaClasse(descritorSemCarimbosDeTempo);
             registro.propriedades['id'] = 1;
             registro.propriedades['nome'] = 'Tag 1';
 

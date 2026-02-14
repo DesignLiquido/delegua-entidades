@@ -7,7 +7,7 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('Hooks', () => {
     const descritorTipoClasse = new DescritorTipoClasse(
@@ -34,11 +34,11 @@ describe('Hooks', () => {
     );
 
     const entidade = new Entidade(descritorTipoClasse);
-    let tecnologiaMock: TecnologiaMock;
+    let tecnologiaMock: BonecoTecnologia;
     let colecao: Colecao<Entidade>;
 
     beforeEach(() => {
-        tecnologiaMock = new TecnologiaMock();
+        tecnologiaMock = new BonecoTecnologia();
         tecnologiaMock.dadosEmMemoria['Produto'] = [];
         colecao = new Colecao(entidade, tecnologiaMock);
     });
@@ -55,7 +55,7 @@ describe('Hooks', () => {
         it('permite registrar um hook antesDeInserir', () => {
             const hook = jest.fn();
             colecao.adicionarHook('antesDeInserir', hook);
-            expect(colecao.hooks.antesDeInserir).toContain(hook);
+            expect(colecao.ganchos.antesDeInserir).toContain(hook);
         });
 
         it('permite registrar múltiplos hooks para o mesmo evento', () => {
@@ -63,7 +63,7 @@ describe('Hooks', () => {
             const hook2 = jest.fn();
             colecao.adicionarHook('antesDeInserir', hook1);
             colecao.adicionarHook('antesDeInserir', hook2);
-            expect(colecao.hooks.antesDeInserir).toHaveLength(2);
+            expect(colecao.ganchos.antesDeInserir).toHaveLength(2);
         });
     });
 

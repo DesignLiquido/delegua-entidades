@@ -7,16 +7,19 @@ import { EventoGancho, FuncaoGancho, GanchosInterface } from "./interfaces-tipos
 import { ConstrutorConsulta } from "./construtor-consulta";
 import { Validador } from "./validacoes/validador";
 import { ErroDeValidacao } from "./erros/erro-validacao";
+import { Taquigrafo } from "./taquigrafia";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
     tipoEntidade: TEntidade;
     tecnologia: TecnologiaLinconesInterface;
-    hooks: GanchosInterface;
+    ganchos: GanchosInterface;
+    taquigrafo?: Taquigrafo;
 
-    constructor(tipoEntidade: TEntidade, tecnologia?: TecnologiaLinconesInterface) {
+    constructor(tipoEntidade: TEntidade, tecnologia?: TecnologiaLinconesInterface, taquigrafo?: Taquigrafo) {
         this.tipoEntidade = tipoEntidade;
         this.tecnologia = tecnologia;
-        this.hooks = {
+        this.taquigrafo = taquigrafo;
+        this.ganchos = {
             antesDeInserir: [],
             aposInserir: [],
             antesDeAtualizar: [],
@@ -25,10 +28,10 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             aposExcluir: []
         };
 
-        this.registrarHooksTimestamps();
+        this.registrarGanchosCarimboTempo();
     }
 
-    private registrarHooksTimestamps(): void {
+    private registrarGanchosCarimboTempo(): void {
         const possuiCriadoEm = this.tipoEntidade.possuiCriadoEm();
         const possuiAtualizadoEm = this.tipoEntidade.possuiAtualizadoEm();
 
@@ -52,11 +55,11 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     }
 
     adicionarHook(evento: EventoGancho, funcao: FuncaoGancho): void {
-        this.hooks[evento].push(funcao);
+        this.ganchos[evento].push(funcao);
     }
 
     private async executarHooks(evento: EventoGancho, registro: ObjetoDeleguaClasse): Promise<void> {
-        for (const hook of this.hooks[evento]) {
+        for (const hook of this.ganchos[evento]) {
             await hook(registro);
         }
     }
@@ -131,10 +134,26 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
     }
 
+    private async executarComandoComLog(comando: any, operacao: string): Promise<RetornoComandoInterface[]> {
+        const tabela = this.tipoEntidade.obterNome();
+        this.taquigrafo?.depuracao(`${operacao} em ${tabela}`, { comando: comando.constructor.name });
+        const inicio = Date.now();
+        try {
+            const resultado = await this.tecnologia.executarComando(comando);
+            const duracao = Date.now() - inicio;
+            this.taquigrafo?.info(`${operacao} em ${tabela} concluído em ${duracao}ms`);
+            return resultado;
+        } catch (erro) {
+            const duracao = Date.now() - inicio;
+            this.taquigrafo?.erro(`${operacao} em ${tabela} falhou após ${duracao}ms`, erro);
+            throw erro;
+        }
+    }
+
     async buscarTodos(): Promise<ObjetoDeleguaClasse[]> {
         this.verificarTecnologia();
         const comando = this.todos();
-        const resultados = await this.tecnologia.executarComando(comando);
+        const resultados = await this.executarComandoComLog(comando, 'SELECT *');
         if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
             return [];
         }
@@ -144,7 +163,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     async buscarPorId(valorId: any): Promise<ObjetoDeleguaClasse | null> {
         this.verificarTecnologia();
         const comando = this.obterPorId(valorId);
-        const resultados = await this.tecnologia.executarComando(comando);
+        const resultados = await this.executarComandoComLog(comando, 'SELECT WHERE id');
         if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
             return null;
         }
@@ -156,7 +175,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.validarRegistro(registro);
         await this.executarHooks('antesDeInserir', registro);
         const comando = this.inserir(registro);
-        const resultado = await this.tecnologia.executarComando(comando);
+        const resultado = await this.executarComandoComLog(comando, 'INSERT');
         await this.executarHooks('aposInserir', registro);
         return resultado;
     }
@@ -166,7 +185,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.validarRegistro(registro);
         await this.executarHooks('antesDeAtualizar', registro);
         const comando = this.atualizar(registro, colunas);
-        const resultado = await this.tecnologia.executarComando(comando);
+        const resultado = await this.executarComandoComLog(comando, 'UPDATE');
         await this.executarHooks('aposAtualizar', registro);
         return resultado;
     }
@@ -175,7 +194,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.verificarTecnologia();
         await this.executarHooks('antesDeExcluir', registro);
         const comando = this.excluir(registro);
-        const resultado = await this.tecnologia.executarComando(comando);
+        const resultado = await this.executarComandoComLog(comando, 'DELETE');
         await this.executarHooks('aposExcluir', registro);
         return resultado;
     }

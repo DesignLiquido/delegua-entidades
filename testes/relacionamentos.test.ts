@@ -8,7 +8,7 @@ import { Decorador } from "@designliquido/delegua/construtos";
 
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('Relacionamentos', () => {
     describe('Detecção de relacionamentos via decoradores', () => {
@@ -207,7 +207,7 @@ describe('Relacionamentos', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             const colecao = new Colecao(entidade, tecnologiaMock);
 
             const consulta = colecao.consulta().incluir('pedidos');
@@ -242,7 +242,7 @@ describe('Relacionamentos', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             const colecao = new Colecao(entidade, tecnologiaMock);
 
             const consulta = colecao.consulta().incluir('usuario');
@@ -272,7 +272,7 @@ describe('Relacionamentos', () => {
             );
 
             const entidade = new Entidade(descritor);
-            const tecnologiaMock = new TecnologiaMock();
+            const tecnologiaMock = new BonecoTecnologia();
             const colecao = new Colecao(entidade, tecnologiaMock);
 
             expect(() => colecao.consulta().incluir('inexistente'))

@@ -7,7 +7,7 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 
 import { Entidade } from "../fontes/entidade";
 import { ContextoEntidades } from "../fontes/contexto-entidades";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('ContextoEntidades', () => {
     const descritorArtigo = new DescritorTipoClasse(
@@ -46,10 +46,10 @@ describe('ContextoEntidades', () => {
         ]
     );
 
-    let tecnologiaMock: TecnologiaMock;
+    let tecnologiaMock: BonecoTecnologia;
 
     beforeEach(() => {
-        tecnologiaMock = new TecnologiaMock();
+        tecnologiaMock = new BonecoTecnologia();
     });
 
     it('registrarColecao() registra e retorna coleção', () => {

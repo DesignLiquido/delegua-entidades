@@ -12,6 +12,12 @@ export { EntidadeInterface } from './fontes/interfaces-tipos/entidade-interface'
 export { GanchosInterface as HooksInterface, FuncaoGancho as FuncaoHook, EventoGancho as EventoHook } from './fontes/interfaces-tipos/ganchos';
 export { RelacionamentoInterface, TipoRelacionamento } from './fontes/interfaces-tipos/relacionamento-interface';
 
+export { Taquigrafo as Logger, NivelDetalhamentoTaquigrafia as NivelLog, FuncaoTaquigrafia as FuncaoLog } from './fontes/taquigrafia';
+export { RastreadorMudancas, EstadoEntidade, RegistroRastreado } from './fontes/rastreador-mudancas';
+export { Migracao, OperacaoMigracao } from './fontes/migracoes/migracao';
+export { ExecutorMigracoes } from './fontes/migracoes/executor-migracoes';
+export { GeradorMigracoes, SchemaInfo } from './fontes/migracoes/gerador-migracoes';
+
 /**
  * Essa função inicializa uma instância de `Entidade` com um modelo carregado.
  * Este modelo é o ponto de partida para quaisquer operações de banco de dados,

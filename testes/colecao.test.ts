@@ -7,7 +7,7 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
-import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
+import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
 describe('Coleção', () => {
     const descritorTipoClasse = new DescritorTipoClasse(
@@ -114,11 +114,11 @@ describe('Coleção', () => {
     });
 
     describe('Métodos de execução', () => {
-        let tecnologiaMock: TecnologiaMock;
+        let tecnologiaMock: BonecoTecnologia;
         let colecaoComTecnologia: Colecao<Entidade>;
 
         beforeEach(() => {
-            tecnologiaMock = new TecnologiaMock();
+            tecnologiaMock = new BonecoTecnologia();
             tecnologiaMock.dadosEmMemoria['Artigo'] = [];
             colecaoComTecnologia = new Colecao(entidade, tecnologiaMock);
         });
