@@ -4,3 +4,5 @@ dist/
 
 .claude/
 CLAUDE.md
+
+package-lock.json

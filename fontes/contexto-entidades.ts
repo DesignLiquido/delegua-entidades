@@ -1,4 +1,6 @@
 import { DescritorTipoClasse } from "@designliquido/delegua/interpretador/estruturas";
+import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
+
 import { Colecao } from "./colecao";
 import { Entidade } from "./entidade";
 import { EntidadeInterface } from "./interfaces/entidade-interface";
@@ -8,15 +10,17 @@ import { EntidadeInterface } from "./interfaces/entidade-interface";
  * em um só lugar.
  */
 export class ContextoEntidades {
+    tecnologia: TecnologiaLinconesInterface;
     colecoes: {[key: string]: Colecao<EntidadeInterface>};
 
-    constructor() {
+    constructor(tecnologia: TecnologiaLinconesInterface) {
+        this.tecnologia = tecnologia;
         this.colecoes = {};
     }
 
     registrarColecao(entidade: EntidadeInterface): Colecao<EntidadeInterface> {
         const nome = entidade.obterNome();
-        const colecao = new Colecao(entidade);
+        const colecao = new Colecao(entidade, this.tecnologia);
         this.colecoes[nome] = colecao;
         return colecao;
     }
@@ -29,5 +33,13 @@ export class ContextoEntidades {
         }
 
         return this.colecoes[nome];
+    }
+
+    async iniciar(caminho: string): Promise<void> {
+        await this.tecnologia.iniciar(caminho);
+        for (const nome in this.colecoes) {
+            const criar = this.colecoes[nome].tipoEntidade.gerarComandoCriarTabela();
+            await this.tecnologia.executarComando(criar);
+        }
     }
 }

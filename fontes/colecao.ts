@@ -1,13 +1,16 @@
-import { Selecionar, Condicao, ReferenciaColuna, Literal, Inserir, Atualizar, Excluir } from "@designliquido/lincones-js";
+import { Selecionar, Condicao, ReferenciaColuna, Literal, Inserir, Atualizar, Excluir, TecnologiaLinconesInterface } from "@designliquido/lincones-js";
+import { RetornoComandoInterface } from "@designliquido/lincones-js/interfaces/retorno-comando-interface";
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 
 import { EntidadeInterface } from "./interfaces/entidade-interface";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
     tipoEntidade: TEntidade;
+    tecnologia: TecnologiaLinconesInterface;
 
-    constructor(tipoEntidade: TEntidade) {
+    constructor(tipoEntidade: TEntidade, tecnologia?: TecnologiaLinconesInterface) {
         this.tipoEntidade = tipoEntidade;
+        this.tecnologia = tecnologia;
     }
 
     todos(): Selecionar {
@@ -55,5 +58,54 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     excluir(registro: ObjetoDeleguaClasse): Excluir {
         const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
         return new Excluir(-1, this.tipoEntidade.obterNome(), [condicao]);
+    }
+
+    // --- Métodos de execução (requerem tecnologia configurada) ---
+
+    private verificarTecnologia(): void {
+        if (!this.tecnologia) {
+            throw new Error(
+                "Nenhuma tecnologia de banco de dados configurada. " +
+                "Use ContextoEntidades para gerenciar coleções com uma tecnologia."
+            );
+        }
+    }
+
+    async buscarTodos(): Promise<ObjetoDeleguaClasse[]> {
+        this.verificarTecnologia();
+        const comando = this.todos();
+        const resultados = await this.tecnologia.executarComando(comando);
+        if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
+            return [];
+        }
+        return this.tipoEntidade.hidratarRegistros(resultados[0].linhasRetornadas);
+    }
+
+    async buscarPorId(valorId: any): Promise<ObjetoDeleguaClasse | null> {
+        this.verificarTecnologia();
+        const comando = this.obterPorId(valorId);
+        const resultados = await this.tecnologia.executarComando(comando);
+        if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
+            return null;
+        }
+        return this.tipoEntidade.hidratarRegistro(resultados[0].linhasRetornadas[0]);
+    }
+
+    async salvar(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
+        this.verificarTecnologia();
+        const comando = this.inserir(registro);
+        return this.tecnologia.executarComando(comando);
+    }
+
+    async modificar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Promise<RetornoComandoInterface[]> {
+        this.verificarTecnologia();
+        const comando = this.atualizar(registro, colunas);
+        return this.tecnologia.executarComando(comando);
+    }
+
+    async remover(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
+        this.verificarTecnologia();
+        const comando = this.excluir(registro);
+        return this.tecnologia.executarComando(comando);
     }
 }

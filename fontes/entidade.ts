@@ -4,7 +4,7 @@ import {
     ObjetoDeleguaClasse
 } from "@designliquido/delegua/interpretador/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
-import { ColunaEValor, Condicao, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
+import { Coluna, ColunaEValor, Condicao, Criar, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
 import { pluralizar } from "@designliquido/flexoes";
 
 import { TabelaInterface } from "./interfaces/tabela-interface";
@@ -88,28 +88,25 @@ export class Entidade implements EntidadeInterface {
         // Validações:
         // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
         // decorador @chave.
-        let possuiChavePrimaria = false;
         for (const propriedade of modelo.propriedades) {
             if (propriedade.nome.lexema === "id") {
-                possuiChavePrimaria = true;
-                break;
+                this.nomePropriedadeChavePrimaria = "id";
+                return;
             }
 
             for (const decorador of propriedade.decoradores) {
                 if (decorador.nome === "chave") {
-                    possuiChavePrimaria = true;
-                    break;
+                    this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
+                    return;
                 }
             }
         }
 
-        if (!possuiChavePrimaria) {
-            throw new Error(
-                "Modelo não possui uma chave primária definida. " +
-                    "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
-                    "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
-            );
-        }
+        throw new Error(
+            "Modelo não possui uma chave primária definida. " +
+                "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
+                "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
+        );
     }
 
     obterNome(): string {
@@ -130,19 +127,29 @@ export class Entidade implements EntidadeInterface {
     }
 
     /**
-     * Traduz um tipo para o equivalente em SQL.
-     * @param tipo O tipo a ser traduzido.
-     * @returns O tipo traduzido em SQL.
+     * Traduz um tipo Delégua para o equivalente em lincones-js.
+     * @param tipo O tipo Delégua a ser traduzido.
+     * @returns O tipo no formato lincones-js.
      */
     traduzirTipo(tipo: string): string {
         switch (tipo) {
             case "numero":
-                return "int";
+            case "número":
+            case "inteiro":
+            case "longo":
+                return "INTEIRO";
+            case "decimal":
+                return "NUMERO";
             case "texto":
-                return "varchar";
+                return "TEXTO";
+            case "caracteres":
+                return "CARACTERES";
+            case "logico":
+            case "lógico":
+                return "LOGICO";
             default:
                 throw new Error(
-                    `EntidadesError: O tipo: ${tipo} não é valido.`
+                    `EntidadesError: O tipo: ${tipo} não é válido.`
                 );
         }
     }
@@ -190,6 +197,33 @@ export class Entidade implements EntidadeInterface {
         }
 
         return colunasEValores;
+    }
+
+    gerarComandoCriarTabela(): Criar {
+        const colunas: Coluna[] = [];
+        for (const propriedade of this.modelo.propriedades) {
+            const nome = propriedade.nome.lexema;
+            const tipo = propriedade.tipo ? this.traduzirTipo(propriedade.tipo) : "TEXTO";
+            const chavePrimaria = nome === this.nomePropriedadeChavePrimaria;
+            colunas.push(new Coluna(nome, tipo, undefined, !chavePrimaria, chavePrimaria, false, chavePrimaria));
+        }
+
+        return new Criar(-1, this.obterNome(), colunas, true);
+    }
+
+    hidratarRegistro(linha: { [coluna: string]: any }): ObjetoDeleguaClasse {
+        const objeto = new ObjetoDeleguaClasse(this.modelo);
+        for (const propriedade of this.modelo.propriedades) {
+            const nome = propriedade.nome.lexema;
+            if (nome in linha) {
+                objeto.propriedades[nome] = linha[nome];
+            }
+        }
+        return objeto;
+    }
+
+    hidratarRegistros(linhas: any[]): ObjetoDeleguaClasse[] {
+        return linhas.map(linha => this.hidratarRegistro(linha));
     }
 
     resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao {

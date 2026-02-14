@@ -7,26 +7,27 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 
 import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
+import { TecnologiaMock } from "./auxiliar/tecnologia-mock";
 
 describe('Coleção', () => {
     const descritorTipoClasse = new DescritorTipoClasse(
         new Simbolo("IDENTIFICADOR", "Artigo", "Artigo", 1, -1),
-        null, 
+        null,
         {},
         [
             new PropriedadeClasse(
-                new Simbolo("IDENTIFICADOR", "id", "id", 3, -1), 
-                'número', 
+                new Simbolo("IDENTIFICADOR", "id", "id", 3, -1),
+                'número',
                 []
             ),
             new PropriedadeClasse(
-                new Simbolo("IDENTIFICADOR", "titulo", "titulo", 4, -1), 
-                'texto', 
+                new Simbolo("IDENTIFICADOR", "titulo", "titulo", 4, -1),
+                'texto',
                 []
             ),
             new PropriedadeClasse(
-                new Simbolo("IDENTIFICADOR", "conteudo", "conteudo", 5, -1), 
-                'texto', 
+                new Simbolo("IDENTIFICADOR", "conteudo", "conteudo", 5, -1),
+                'texto',
                 []
             )
         ]
@@ -109,6 +110,99 @@ describe('Coleção', () => {
             expect(resultadoExcluir).toBeTruthy();
             expect(resultadoExcluir.tabela).toBe('Artigo');
             expect(resultadoExcluir.condicoes).toHaveLength(1);
+        });
+    });
+
+    describe('Métodos de execução', () => {
+        let tecnologiaMock: TecnologiaMock;
+        let colecaoComTecnologia: Colecao<Entidade>;
+
+        beforeEach(() => {
+            tecnologiaMock = new TecnologiaMock();
+            tecnologiaMock.dadosEmMemoria['Artigo'] = [];
+            colecaoComTecnologia = new Colecao(entidade, tecnologiaMock);
+        });
+
+        it('lança erro quando tecnologia não está configurada', async () => {
+            const colecaoSemTecnologia = new Colecao(entidade);
+            await expect(colecaoSemTecnologia.buscarTodos()).rejects.toThrow('Nenhuma tecnologia');
+        });
+
+        it('salvar() insere registro', async () => {
+            const registro = new ObjetoDeleguaClasse(descritorTipoClasse);
+            registro.propriedades["id"] = 1;
+            registro.propriedades["titulo"] = "Meu artigo";
+            registro.propriedades["conteudo"] = "Conteúdo";
+
+            const resultado = await colecaoComTecnologia.salvar(registro);
+
+            expect(resultado[0].linhasAfetadas).toBe(1);
+            expect(tecnologiaMock.dadosEmMemoria['Artigo']).toHaveLength(1);
+        });
+
+        it('buscarTodos() retorna registros hidratados', async () => {
+            const registro = new ObjetoDeleguaClasse(descritorTipoClasse);
+            registro.propriedades["id"] = 1;
+            registro.propriedades["titulo"] = "Artigo 1";
+            registro.propriedades["conteudo"] = "Conteúdo 1";
+            await colecaoComTecnologia.salvar(registro);
+
+            const resultados = await colecaoComTecnologia.buscarTodos();
+
+            expect(resultados).toHaveLength(1);
+            expect(resultados[0]).toBeInstanceOf(ObjetoDeleguaClasse);
+            expect(resultados[0].propriedades['titulo']).toBe('Artigo 1');
+        });
+
+        it('buscarTodos() retorna lista vazia quando não há registros', async () => {
+            const resultados = await colecaoComTecnologia.buscarTodos();
+            expect(resultados).toHaveLength(0);
+        });
+
+        it('buscarPorId() retorna registro hidratado', async () => {
+            const registro = new ObjetoDeleguaClasse(descritorTipoClasse);
+            registro.propriedades["id"] = 42;
+            registro.propriedades["titulo"] = "Específico";
+            registro.propriedades["conteudo"] = "Conteúdo específico";
+            await colecaoComTecnologia.salvar(registro);
+
+            const resultado = await colecaoComTecnologia.buscarPorId(42);
+
+            expect(resultado).toBeTruthy();
+            expect(resultado).toBeInstanceOf(ObjetoDeleguaClasse);
+            expect(resultado.propriedades['id']).toBe(42);
+            expect(resultado.propriedades['titulo']).toBe('Específico');
+        });
+
+        it('buscarPorId() retorna null quando não encontra', async () => {
+            const resultado = await colecaoComTecnologia.buscarPorId(999);
+            expect(resultado).toBeNull();
+        });
+
+        it('modificar() atualiza registro existente', async () => {
+            const registro = new ObjetoDeleguaClasse(descritorTipoClasse);
+            registro.propriedades["id"] = 1;
+            registro.propriedades["titulo"] = "Original";
+            registro.propriedades["conteudo"] = "Conteúdo original";
+            await colecaoComTecnologia.salvar(registro);
+
+            registro.propriedades["titulo"] = "Atualizado";
+            const resultado = await colecaoComTecnologia.modificar(registro, ["titulo"]);
+
+            expect(resultado[0].linhasAfetadas).toBe(1);
+        });
+
+        it('remover() exclui registro', async () => {
+            const registro = new ObjetoDeleguaClasse(descritorTipoClasse);
+            registro.propriedades["id"] = 1;
+            registro.propriedades["titulo"] = "Para excluir";
+            registro.propriedades["conteudo"] = "Será excluído";
+            await colecaoComTecnologia.salvar(registro);
+
+            const resultado = await colecaoComTecnologia.remover(registro);
+
+            expect(resultado[0].linhasAfetadas).toBe(1);
+            expect(tecnologiaMock.dadosEmMemoria['Artigo']).toHaveLength(0);
         });
     });
 });

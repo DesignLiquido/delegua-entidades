@@ -1,5 +1,5 @@
-import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua/estruturas";
-import { ColunaEValor, Condicao } from "@designliquido/lincones-js";
+import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
+import { ColunaEValor, Condicao, Criar } from "@designliquido/lincones-js";
 
 export interface EntidadeInterface {
     modelo: DescritorTipoClasse;
@@ -9,4 +9,7 @@ export interface EntidadeInterface {
     resolverValoresParaColunas(registro: ObjetoDeleguaClasse, colunas: string[]): any[];
     resolverColunasEValores(registro: ObjetoDeleguaClasse, colunas: string[]): ColunaEValor[];
     resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao;
+    gerarComandoCriarTabela(): Criar;
+    hidratarRegistro(linha: { [coluna: string]: any }): ObjetoDeleguaClasse;
+    hidratarRegistros(linhas: any[]): ObjetoDeleguaClasse[];
 }

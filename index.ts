@@ -1,5 +1,10 @@
 import { Entidade } from './fontes/entidade';
 
+export { Entidade } from './fontes/entidade';
+export { Colecao } from './fontes/colecao';
+export { ContextoEntidades } from './fontes/contexto-entidades';
+export { EntidadeInterface } from './fontes/interfaces/entidade-interface';
+
 /**
  * Essa função inicializa uma instância de `Entidade` com um modelo carregado.
  * Este modelo é o ponto de partida para quaisquer operações de banco de dados,
