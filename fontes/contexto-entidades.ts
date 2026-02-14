@@ -91,17 +91,133 @@ export class ContextoEntidades {
             switch (rastreado.estado) {
                 case 'novo':
                     await col.salvar(rastreado.registro);
+                    // Processar cascata de inserção
+                    await this.processarCascataInserir(rastreado.nomeEntidade, rastreado.registro);
                     break;
                 case 'modificado':
                     await col.modificar(rastreado.registro, rastreado.camposAlterados);
+                    // Processar cascata de atualização
+                    await this.processarCascataAtualizar(rastreado.nomeEntidade, rastreado.registro);
                     break;
                 case 'excluido':
+                    // Processar cascata de exclusão antes de remover
+                    await this.processarCascataExcluir(rastreado.nomeEntidade, rastreado.registro);
                     await col.remover(rastreado.registro);
                     break;
             }
         }
 
         this.rastreador.limpar();
+    }
+
+    /**
+     * Processa cascata de inserção para relacionamentos.
+     */
+    private async processarCascataInserir(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
+        const col = this.colecoes[nomeEntidade];
+        if (!col) return;
+
+        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        
+        for (const rel of relacionamentos) {
+            if (!rel.cascata || !rel.cascata.includes('inserir')) continue;
+            
+            const filhos = registro.propriedades[rel.nomePropriedade];
+            if (!filhos) continue;
+
+            const colFilha = this.colecoes[rel.entidadeDestino];
+            if (!colFilha) continue;
+
+            const listaFilhos = Array.isArray(filhos) ? filhos : [filhos];
+            
+            for (const filho of listaFilhos) {
+                if (filho && typeof filho === 'object') {
+                    // Definir a chave estrangeira no filho
+                    if (filho.propriedades) {
+                        // É um ObjetoDeleguaClasse
+                        filho.propriedades[rel.colunaDestino] = registro.propriedades[rel.colunaOrigem];
+                    } else {
+                        // É um objeto plain
+                        filho[rel.colunaDestino] = registro.propriedades[rel.colunaOrigem];
+                    }
+                    
+                    // Salvar o filho
+                    await colFilha.salvar(filho);
+                }
+            }
+        }
+    }
+
+    /**
+     * Processa cascata de atualização para relacionamentos.
+     */
+    private async processarCascataAtualizar(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
+        const col = this.colecoes[nomeEntidade];
+        if (!col) return;
+
+        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        
+        for (const rel of relacionamentos) {
+            if (!rel.cascata || !rel.cascata.includes('atualizar')) continue;
+            
+            const filhos = registro.propriedades[rel.nomePropriedade];
+            if (!filhos) continue;
+
+            const colFilha = this.colecoes[rel.entidadeDestino];
+            if (!colFilha) continue;
+
+            const listaFilhos = Array.isArray(filhos) ? filhos : [filhos];
+            
+            for (const filho of listaFilhos) {
+                if (filho && typeof filho === 'object') {
+                    const filhoId = filho.propriedades ? filho.propriedades.id : filho.id;
+                    if (filhoId) {
+                        // Atualizar o filho
+                        await colFilha.modificar(filho);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Processa cascata de exclusão para relacionamentos.
+     */
+    private async processarCascataExcluir(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
+        const col = this.colecoes[nomeEntidade];
+        if (!col) return;
+
+        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        
+        for (const rel of relacionamentos) {
+            if (!rel.cascata || !rel.cascata.includes('excluir')) continue;
+
+            const colFilha = this.colecoes[rel.entidadeDestino];
+            if (!colFilha) continue;
+
+            // Verificar se os filhos estão carregados
+            const filhos = registro.propriedades[rel.nomePropriedade];
+            
+            if (filhos) {
+                // Filhos estão carregados, excluí-los diretamente
+                const listaFilhos = Array.isArray(filhos) ? filhos : [filhos];
+                
+                for (const filho of listaFilhos) {
+                    if (filho && typeof filho === 'object') {
+                        await colFilha.remover(filho);
+                    }
+                }
+            } else {
+                // Filhos não estão carregados, executar DELETE WHERE
+                const valorId = registro.propriedades[rel.colunaOrigem];
+                if (valorId !== undefined && valorId !== null) {
+                    const sql = `DELETE FROM ${rel.entidadeDestino} WHERE ${rel.colunaDestino} = ${
+                        typeof valorId === 'string' ? `'${valorId}'` : valorId
+                    }`;
+                    await this.tecnologia.executar(null, sql, []);
+                }
+            }
+        }
     }
 
     async iniciar(caminho: string): Promise<void> {

@@ -15,6 +15,86 @@ export class BonecoTecnologia implements TecnologiaLinconesInterface {
     }
 
     async executar(_: any, _sentencaLincones: string, _parametros: any[]): Promise<RetornoComandoInterface[]> {
+        this.comandosExecutados.push(_sentencaLincones);
+        
+        // Parse basic SELECT queries for eager loading
+        if (_sentencaLincones.includes('SELECT')) {
+            const matchTable = _sentencaLincones.match(/FROM\s+(\w+)/i);
+            if (matchTable) {
+                const tabela = matchTable[1];
+                const dados = this.dadosEmMemoria[tabela] || [];
+                let resultados = [...dados];
+
+                // Parse WHERE conditions with OR
+                if (_sentencaLincones.includes('WHERE')) {
+                    const whereMatch = _sentencaLincones.match(/WHERE\s+(.+?)(?:ORDER|LIMIT|$)/i);
+                    if (whereMatch) {
+                        const whereClause = whereMatch[1].trim();
+                        // Simple OR parsing for IN-like queries
+                        const orConditions = whereClause.split(/\s+OR\s+/i);
+                        const matchedRecords = [];
+                        
+                        for (const condition of orConditions) {
+                            const condMatch = condition.match(/(\w+)\s*=\s*('?[\w]+'?)/);
+                            if (condMatch) {
+                                const coluna = condMatch[1];
+                                let valor: any = condMatch[2];
+                                if (valor.startsWith("'") && valor.endsWith("'")) {
+                                    valor = valor.slice(1, -1);
+                                } else {
+                                    valor = parseInt(valor, 10);
+                                }
+                                matchedRecords.push(...dados.filter((r: any) => r[coluna] === valor));
+                            }
+                        }
+                        resultados = matchedRecords;
+                    }
+                }
+
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: resultados,
+                    comandoExecutado: _sentencaLincones,
+                    mensagemExecucao: "OK"
+                }];
+            }
+        }
+
+        // Parse basic DELETE queries for cascade
+        if (_sentencaLincones.includes('DELETE')) {
+            const matchTable = _sentencaLincones.match(/FROM\s+(\w+)/i);
+            if (matchTable) {
+                const tabela = matchTable[1];
+                const dados = this.dadosEmMemoria[tabela] || [];
+                let excluidos = 0;
+
+                if (_sentencaLincones.includes('WHERE')) {
+                    const whereMatch = _sentencaLincones.match(/WHERE\s+(\w+)\s*=\s*('?[\w]+'?)/i);
+                    if (whereMatch) {
+                        const coluna = whereMatch[1];
+                        let valor: any = whereMatch[2];
+                        if (valor.startsWith("'") && valor.endsWith("'")) {
+                            valor = valor.slice(1, -1);
+                        } else {
+                            valor = parseInt(valor, 10);
+                        }
+                        const antes = dados.length;
+                        this.dadosEmMemoria[tabela] = dados.filter((r: any) => r[coluna] !== valor);
+                        excluidos = antes - this.dadosEmMemoria[tabela].length;
+                    }
+                }
+
+                return [{
+                    linhasAfetadas: excluidos,
+                    ultimoId: null,
+                    linhasRetornadas: [],
+                    comandoExecutado: _sentencaLincones,
+                    mensagemExecucao: "OK"
+                }];
+            }
+        }
+
         return [{
             linhasAfetadas: 0,
             ultimoId: null,

@@ -150,12 +150,15 @@ export class Entidade implements EntidadeInterface {
                         colunaDestino = decorador.atributos?.chaveEstrangeira || `${nomeEntidade.toLowerCase()}_id`;
                     }
 
+                    const cascata = decorador.atributos?.cascata;
+
                     relacionamentos.push(new Relacionamento(
                         nomeDecorador as any,
                         propriedade.nome.lexema,
                         entidadeDestino,
                         colunaOrigem,
-                        colunaDestino
+                        colunaDestino,
+                        cascata
                     ));
                 }
             }

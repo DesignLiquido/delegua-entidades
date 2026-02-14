@@ -28,6 +28,7 @@ export class ConstrutorConsulta {
     private _deslocamento: number | null;
     private _juncoes: Juncao[];
     private _colunasPersonalizadas: boolean;
+    private _relacionadosParaCarregar: string[];
 
     constructor(entidade: EntidadeInterface, tecnologia: TecnologiaLinconesInterface) {
         this.entidade = entidade;
@@ -43,6 +44,7 @@ export class ConstrutorConsulta {
         this._deslocamento = null;
         this._juncoes = [];
         this._colunasPersonalizadas = false;
+        this._relacionadosParaCarregar = [];
     }
 
     /**
@@ -138,6 +140,15 @@ export class ConstrutorConsulta {
     }
 
     /**
+     * Marca relacionamentos para carregamento antecipado (eager loading).
+     * Os dados relacionados serão carregados em consultas separadas e anexados aos registros pai.
+     */
+    incluirRelacionados(...nomes: string[]): ConstrutorConsulta {
+        this._relacionadosParaCarregar.push(...nomes);
+        return this;
+    }
+
+    /**
      * Executa a consulta e retorna todos os registros encontrados.
      */
     async todos(): Promise<ObjetoDeleguaClasse[]> {
@@ -146,7 +157,14 @@ export class ConstrutorConsulta {
         if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
             return [];
         }
-        return this.entidade.hidratarRegistros(resultados[0].linhasRetornadas);
+        const registros = this.entidade.hidratarRegistros(resultados[0].linhasRetornadas);
+
+        // Carregamento antecipado de relacionamentos
+        if (this._relacionadosParaCarregar.length > 0) {
+            await this.carregarRelacionados(registros);
+        }
+
+        return registros;
     }
 
     /**
@@ -252,5 +270,79 @@ export class ConstrutorConsulta {
         const valorFormatado = typeof direita === 'string' ? `'${direita}'` : direita;
 
         return `${esquerda} ${operador} ${valorFormatado}`;
+    }
+
+    /**
+     * Carrega relacionamentos de forma antecipada usando consultas separadas.
+     */
+    private async carregarRelacionados(registros: ObjetoDeleguaClasse[]): Promise<void> {
+        if (registros.length === 0) return;
+
+        const relacionamentos = this.entidade.obterRelacionamentos();
+
+        for (const nomeRelacionamento of this._relacionadosParaCarregar) {
+            const rel = relacionamentos.find(r => r.nomePropriedade === nomeRelacionamento);
+            if (!rel) {
+                throw new Error(
+                    `Relacionamento '${nomeRelacionamento}' não encontrado na entidade '${this.entidade.obterNome()}'.`
+                );
+            }
+
+            // Coletar valores da coluna de origem dos registros pai
+            const valoresOrigem = registros
+                .map(r => r.propriedades[rel.colunaOrigem])
+                .filter(v => v !== undefined && v !== null);
+
+            if (valoresOrigem.length === 0) continue;
+
+            // Construir consulta para entidades relacionadas
+            // Como lincones não tem operador IN, usamos múltiplos OR
+            const valoresUnicos = Array.from(new Set(valoresOrigem));
+            let sqlRelacionados = `SELECT * FROM ${rel.entidadeDestino} WHERE `;
+            
+            const condicoes = valoresUnicos.map(valor => {
+                const valorFormatado = typeof valor === 'string' ? `'${valor}'` : valor;
+                return `${rel.colunaDestino} = ${valorFormatado}`;
+            });
+            sqlRelacionados += condicoes.join(' OR ');
+
+            const resultadosRelacionados = await this.tecnologia.executar(null, sqlRelacionados, []);
+            
+            if (resultadosRelacionados.length === 0 || resultadosRelacionados[0].linhasRetornadas.length === 0) {
+                // Nenhum relacionado encontrado, inicializar vazios
+                for (const registro of registros) {
+                    if (rel.tipo === 'temMuitos') {
+                        registro.propriedades[rel.nomePropriedade] = [];
+                    } else {
+                        registro.propriedades[rel.nomePropriedade] = null;
+                    }
+                }
+                continue;
+            }
+
+            const linhasRelacionadas = resultadosRelacionados[0].linhasRetornadas;
+
+            // Agrupar relacionados por valor da coluna de destino
+            const relacionadosPorChave = new Map<any, any[]>();
+            for (const linha of linhasRelacionadas) {
+                const chave = linha[rel.colunaDestino];
+                if (!relacionadosPorChave.has(chave)) {
+                    relacionadosPorChave.set(chave, []);
+                }
+                relacionadosPorChave.get(chave)!.push(linha);
+            }
+
+            // Anexar aos registros pai
+            for (const registro of registros) {
+                const valorOrigem = registro.propriedades[rel.colunaOrigem];
+                const relacionados = relacionadosPorChave.get(valorOrigem) || [];
+
+                if (rel.tipo === 'temMuitos') {
+                    registro.propriedades[rel.nomePropriedade] = relacionados;
+                } else if (rel.tipo === 'temUm' || rel.tipo === 'pertenceA') {
+                    registro.propriedades[rel.nomePropriedade] = relacionados.length > 0 ? relacionados[0] : null;
+                }
+            }
+        }
     }
 }

@@ -142,7 +142,10 @@ describe('Migrações', () => {
             await executor.executar(migracao);
 
             // removerColuna usa tecnologia.executar() com SQL direto
-            expect(tecnologiaMock.comandosExecutados).toHaveLength(0);
+            // Agora rastreamos comandos SQL também
+            expect(tecnologiaMock.comandosExecutados).toHaveLength(1);
+            expect(typeof tecnologiaMock.comandosExecutados[0]).toBe('string');
+            expect(tecnologiaMock.comandosExecutados[0]).toContain('DROP COLUMN');
         });
 
         it('executarTodas executa múltiplas migrações em ordem', async () => {
