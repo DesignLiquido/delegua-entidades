@@ -17,11 +17,11 @@ const NIVEIS_PRIORIDADE_DETALHAMENTO: { [key: string]: number } = {
  */
 export class Taquigrafo {
     nivel: NivelDetalhamentoTaquigrafia;
-    funcaoLog: FuncaoTaquigrafia;
+    funcaoTaquigrafia: FuncaoTaquigrafia;
 
-    constructor(nivel: NivelDetalhamentoTaquigrafia = 'info', funcaoLog?: FuncaoTaquigrafia) {
+    constructor(nivel: NivelDetalhamentoTaquigrafia = 'info', funcaoTaquigrafia?: FuncaoTaquigrafia) {
         this.nivel = nivel;
-        this.funcaoLog = funcaoLog || ((mensagem: string, detalhes?: any) => {
+        this.funcaoTaquigrafia = funcaoTaquigrafia || ((mensagem: string, detalhes?: any) => {
             if (detalhes !== undefined) {
                 console.log(mensagem, detalhes);
             } else {
@@ -30,31 +30,31 @@ export class Taquigrafo {
         });
     }
 
-    private deveLogar(nivel: NivelDetalhamentoTaquigrafia): boolean {
+    private deveRegistrarOperacao(nivel: NivelDetalhamentoTaquigrafia): boolean {
         return NIVEIS_PRIORIDADE_DETALHAMENTO[nivel] <= NIVEIS_PRIORIDADE_DETALHAMENTO[this.nivel];
     }
 
     erro(mensagem: string, detalhes?: any): void {
-        if (this.deveLogar('erros')) {
-            this.funcaoLog(`[ERRO] ${mensagem}`, detalhes);
+        if (this.deveRegistrarOperacao('erros')) {
+            this.funcaoTaquigrafia(`[ERRO] ${mensagem}`, detalhes);
         }
     }
 
     aviso(mensagem: string, detalhes?: any): void {
-        if (this.deveLogar('avisos')) {
-            this.funcaoLog(`[AVISO] ${mensagem}`, detalhes);
+        if (this.deveRegistrarOperacao('avisos')) {
+            this.funcaoTaquigrafia(`[AVISO] ${mensagem}`, detalhes);
         }
     }
 
     info(mensagem: string, detalhes?: any): void {
-        if (this.deveLogar('info')) {
-            this.funcaoLog(`[INFO] ${mensagem}`, detalhes);
+        if (this.deveRegistrarOperacao('info')) {
+            this.funcaoTaquigrafia(`[INFO] ${mensagem}`, detalhes);
         }
     }
 
     depuracao(mensagem: string, detalhes?: any): void {
-        if (this.deveLogar('depuracao')) {
-            this.funcaoLog(`[DEPURAÇÃO] ${mensagem}`, detalhes);
+        if (this.deveRegistrarOperacao('depuracao')) {
+            this.funcaoTaquigrafia(`[DEPURAÇÃO] ${mensagem}`, detalhes);
         }
     }
 }

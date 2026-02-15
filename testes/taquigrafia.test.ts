@@ -89,6 +89,6 @@ describe('Taquigrafia', () => {
 
     it('usa console.log como padrão', () => {
         const taquigrafo = new Taquigrafo();
-        expect(taquigrafo.funcaoLog).toBeDefined();
+        expect(taquigrafo.funcaoTaquigrafia).toBeDefined();
     });
 });

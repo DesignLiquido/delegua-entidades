@@ -107,7 +107,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             colunasAtualizacao = this.tipoEntidade.obterNomesColunas();
         }
 
-        const colunasEValores = this.tipoEntidade.resolverColunasEValores(registro, colunasAtualizacao);
+        const colunasEValores: ColunaEValor[] = this.tipoEntidade.resolverColunasEValores(registro, colunasAtualizacao);
         const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
         return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
     }
@@ -121,7 +121,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             const dataExclusao = new Date().toISOString();
             registro.propriedades[colunaExclusao] = dataExclusao;
             
-            const colunasEValores = [
+            const colunasEValores: ColunaEValor[] = [
                 new ColunaEValor(
                     new ReferenciaColuna(colunaExclusao),
                     new Literal(dataExclusao)
@@ -152,7 +152,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
     }
 
-    private async executarComandoComLog(comando: any, operacao: string): Promise<RetornoComandoInterface[]> {
+    private async executarComandoComRegistroOperacao(comando: any, operacao: string): Promise<RetornoComandoInterface[]> {
         const tabela = this.tipoEntidade.obterNome();
         this.taquigrafo?.depuracao(`${operacao} em ${tabela}`, { comando: comando.constructor.name });
         const inicio = Date.now();
@@ -171,7 +171,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     async buscarTodos(): Promise<ObjetoDeleguaClasse[]> {
         this.verificarTecnologia();
         const comando = this.todos();
-        const resultados = await this.executarComandoComLog(comando, 'SELECT *');
+        const resultados = await this.executarComandoComRegistroOperacao(comando, 'SELECT *');
         if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
             return [];
         }
@@ -181,7 +181,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     async buscarPorId(valorId: any): Promise<ObjetoDeleguaClasse | null> {
         this.verificarTecnologia();
         const comando = this.obterPorId(valorId);
-        const resultados = await this.executarComandoComLog(comando, 'SELECT WHERE id');
+        const resultados = await this.executarComandoComRegistroOperacao(comando, 'SELECT WHERE id');
         if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
             return null;
         }
@@ -193,7 +193,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.validarRegistro(registro);
         await this.executarGanchos('antesDeInserir', registro);
         const comando = this.inserir(registro);
-        const resultado = await this.executarComandoComLog(comando, 'INSERT');
+        const resultado = await this.executarComandoComRegistroOperacao(comando, 'INSERT');
         await this.executarGanchos('aposInserir', registro);
         return resultado;
     }
@@ -203,7 +203,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.validarRegistro(registro);
         await this.executarGanchos('antesDeAtualizar', registro);
         const comando = this.atualizar(registro, colunas);
-        const resultado = await this.executarComandoComLog(comando, 'UPDATE');
+        const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE');
         await this.executarGanchos('aposAtualizar', registro);
         return resultado;
     }
@@ -212,7 +212,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.verificarTecnologia();
         await this.executarGanchos('antesDeExcluir', registro);
         const comando = this.excluir(registro);
-        const resultado = await this.executarComandoComLog(comando, 'DELETE');
+        const resultado = await this.executarComandoComRegistroOperacao(comando, 'DELETE');
         await this.executarGanchos('aposExcluir', registro);
         return resultado;
     }
@@ -234,7 +234,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             this.validarRegistro(registro);
             await this.executarGanchos('antesDeInserir', registro);
             const comando = this.inserir(registro);
-            const resultado = await this.executarComandoComLog(comando, 'INSERT LOTE');
+            const resultado = await this.executarComandoComRegistroOperacao(comando, 'INSERT LOTE');
             resultados.push(resultado);
             await this.executarGanchos('aposInserir', registro);
         }
@@ -259,7 +259,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             this.validarRegistro(registro);
             await this.executarGanchos('antesDeAtualizar', registro);
             const comando = this.atualizar(registro, colunas);
-            const resultado = await this.executarComandoComLog(comando, 'UPDATE LOTE');
+            const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE LOTE');
             resultados.push(resultado);
             await this.executarGanchos('aposAtualizar', registro);
         }
@@ -283,7 +283,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         for (const registro of registros) {
             await this.executarGanchos('antesDeExcluir', registro);
             const comando = this.excluir(registro);
-            const resultado = await this.executarComandoComLog(comando, 'DELETE LOTE');
+            const resultado = await this.executarComandoComRegistroOperacao(comando, 'DELETE LOTE');
             resultados.push(resultado);
             await this.executarGanchos('aposExcluir', registro);
         }
@@ -292,7 +292,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     }
 
     /**
-     * Restaura um registro excluído logicamente (soft delete).
+     * Restaura um registro excluído logicamente (_soft delete_).
      * Remove a marca de exclusão do registro.
      * Lança erro se a entidade não possui exclusão lógica habilitada.
      */
@@ -312,12 +312,12 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const colunasEValores: ColunaEValor[] = [
             new ColunaEValor(
                 new ReferenciaColuna(colunaExclusao),
-                new Literal(null)
+                new Literal(null, 'TEXTO')
             )
         ];
 
-        const comando = new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
-        const resultado = await this.executarComandoComLog(comando, 'RESTAURAR');
+        const comando = new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores as ColunaEValor[], [condicao]);
+        const resultado = await this.executarComandoComRegistroOperacao(comando, 'RESTAURAR');
 
         return resultado;
     }
