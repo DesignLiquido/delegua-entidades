@@ -3,7 +3,7 @@ import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estrut
 
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 
-type OperadorCondicao = 'IGUAL' | 'MAIOR' | 'MAIOR_IGUAL' | 'MENOR' | 'MENOR_IGUAL';
+type OperadorCondicao = 'IGUAL' | 'MAIOR' | 'MAIOR_IGUAL' | 'MENOR' | 'MENOR_IGUAL' | 'EM';
 
 interface Ordenacao {
     coluna: string;
@@ -23,12 +23,16 @@ export class ConstrutorConsulta {
     private _colunas: string[];
     private _condicoes: Condicao[];
     private _condicoesOu: Condicao[][];
+    private _condicoesSqlExtras: string[];
+    private _condicoesOuSqlExtras: string[];
     private _ordenacoes: Ordenacao[];
     private _limite: number | null;
     private _deslocamento: number | null;
     private _juncoes: Juncao[];
     private _colunasPersonalizadas: boolean;
     private _relacionadosParaCarregar: string[];
+    private _agrupamentos: string[];
+    private _condicoesTendo: Condicao[];
 
     constructor(entidade: EntidadeInterface, tecnologia: TecnologiaLinconesInterface) {
         this.entidade = entidade;
@@ -39,18 +43,27 @@ export class ConstrutorConsulta {
         this._colunas = entidade.obterNomesColunas();
         this._condicoes = [];
         this._condicoesOu = [];
+        this._condicoesSqlExtras = [];
+        this._condicoesOuSqlExtras = [];
         this._ordenacoes = [];
         this._limite = null;
         this._deslocamento = null;
         this._juncoes = [];
         this._colunasPersonalizadas = false;
         this._relacionadosParaCarregar = [];
+        this._agrupamentos = [];
+        this._condicoesTendo = [];
     }
 
     /**
      * Adiciona uma condição WHERE (AND).
      */
     onde(coluna: string, operador: OperadorCondicao, valor: any): ConstrutorConsulta {
+        if (operador === 'EM' && valor instanceof ConstrutorConsulta) {
+            this._condicoesSqlExtras.push(`${coluna} IN (${valor.gerarSql()})`);
+            return this;
+        }
+
         this._condicoes.push(this.criarCondicao(coluna, operador, valor));
         return this;
     }
@@ -66,6 +79,11 @@ export class ConstrutorConsulta {
      * Adiciona uma condição OR. Internamente cria um grupo separado de condições.
      */
     ou(coluna: string, operador: OperadorCondicao, valor: any): ConstrutorConsulta {
+        if (operador === 'EM' && valor instanceof ConstrutorConsulta) {
+            this._condicoesOuSqlExtras.push(`${coluna} IN (${valor.gerarSql()})`);
+            return this;
+        }
+
         this._condicoesOu.push([this.criarCondicao(coluna, operador, valor)]);
         return this;
     }
@@ -104,6 +122,22 @@ export class ConstrutorConsulta {
     }
 
     /**
+     * Define colunas para agrupamento (GROUP BY).
+     */
+    agruparPor(...colunas: string[]): ConstrutorConsulta {
+        this._agrupamentos.push(...colunas);
+        return this;
+    }
+
+    /**
+     * Adiciona condição HAVING (AND).
+     */
+    tendo(coluna: string, operador: OperadorCondicao, valor: any): ConstrutorConsulta {
+        this._condicoesTendo.push(this.criarCondicao(coluna, operador, valor));
+        return this;
+    }
+
+    /**
      * Adiciona uma junção (JOIN) a partir do nome de um relacionamento definido na entidade.
      * Os relacionamentos são detectados pelos decoradores @temUm, @temMuitos e @pertenceA.
      */
@@ -136,6 +170,14 @@ export class ConstrutorConsulta {
      */
     incluirJuncao(juncao: Juncao): ConstrutorConsulta {
         this._juncoes.push(juncao);
+        return this;
+    }
+
+    /**
+     * Usa uma subconsulta como fonte (FROM).
+     */
+    deSubconsulta(subconsulta: ConstrutorConsulta, alias: string): ConstrutorConsulta {
+        this._tabela = `(${subconsulta.gerarSql()}) AS ${alias}`;
         return this;
     }
 
@@ -179,17 +221,36 @@ export class ConstrutorConsulta {
     /**
      * Executa a consulta e retorna a contagem de registros.
      */
-    async contar(): Promise<number> {
-        const colunasOriginais = this._colunas;
-        this._colunas = ['COUNT(*) as contagem'];
-        const sql = this.gerarSql();
-        this._colunas = colunasOriginais;
+    async contar(): Promise<any> {
+        return this.executarAgregacao('COUNT', null, 'contagem');
+    }
 
-        const resultados = await this.tecnologia.executar(null, sql, []);
-        if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
-            return 0;
-        }
-        return resultados[0].linhasRetornadas[0].contagem || 0;
+    /**
+     * Executa agregacao SUM.
+     */
+    async somar(coluna: string): Promise<any> {
+        return this.executarAgregacao('SUM', coluna, 'soma');
+    }
+
+    /**
+     * Executa agregacao AVG.
+     */
+    async media(coluna: string): Promise<any> {
+        return this.executarAgregacao('AVG', coluna, 'media');
+    }
+
+    /**
+     * Executa agregacao MIN.
+     */
+    async minimo(coluna: string): Promise<any> {
+        return this.executarAgregacao('MIN', coluna, 'minimo');
+    }
+
+    /**
+     * Executa agregacao MAX.
+     */
+    async maximo(coluna: string): Promise<any> {
+        return this.executarAgregacao('MAX', coluna, 'maximo');
     }
 
     /**
@@ -209,6 +270,16 @@ export class ConstrutorConsulta {
 
         let sql = this.tradutor.traduzir([comandoSelecionar]);
 
+        // Adicionar condições extras (AND) para subqueries
+        if (this._condicoesSqlExtras.length > 0) {
+            const extras = this._condicoesSqlExtras.join(' AND ');
+            if (sql.includes('WHERE')) {
+                sql += `\nAND ${extras}`;
+            } else {
+                sql += `\nWHERE ${extras}`;
+            }
+        }
+
         // Adicionar condições OR manualmente
         if (this._condicoesOu.length > 0) {
             const partesOu = this._condicoesOu.map(grupo => {
@@ -225,6 +296,29 @@ export class ConstrutorConsulta {
                     sql += '\nOR ' + partesOu.join('\nOR ');
                 }
             }
+        }
+
+        if (this._condicoesOuSqlExtras.length > 0) {
+            const partesOuExtras = this._condicoesOuSqlExtras.join(' OR ');
+            if (sql.includes('WHERE')) {
+                sql += `\nOR ${partesOuExtras}`;
+            } else {
+                sql += `\nWHERE ${partesOuExtras}`;
+            }
+        }
+
+        // Adicionar GROUP BY
+        if (this._agrupamentos.length > 0) {
+            const colunasAgrupadas = this._agrupamentos.join(', ');
+            sql += `\nGROUP BY ${colunasAgrupadas}`;
+        }
+
+        // Adicionar HAVING
+        if (this._condicoesTendo.length > 0) {
+            const condicoesTendo = this._condicoesTendo
+                .map(c => this.traduzirCondicaoParaSql(c))
+                .join(' AND ');
+            sql += `\nHAVING ${condicoesTendo}`;
         }
 
         // Adicionar ORDER BY
@@ -250,7 +344,7 @@ export class ConstrutorConsulta {
         const tipoLiteral = typeof valor === 'number' ? 'INTEIRO' : 'TEXTO';
         return new Condicao(
             new ReferenciaColuna(coluna),
-            operador,
+            operador as any,
             new Literal(valor, tipoLiteral)
         );
     }
@@ -261,15 +355,51 @@ export class ConstrutorConsulta {
             'MAIOR': '>',
             'MAIOR_IGUAL': '>=',
             'MENOR': '<',
-            'MENOR_IGUAL': '<='
+            'MENOR_IGUAL': '<=',
+            'EM': 'IN'
         };
 
         const esquerda = (condicao.esquerda as ReferenciaColuna).nomeColuna;
         const operador = operadores[condicao.operador] || '=';
         const direita = (condicao.direita as Literal).valor;
+
+        if (String(condicao.operador) === 'EM' && direita instanceof ConstrutorConsulta) {
+            return `${esquerda} IN (${direita.gerarSql()})`;
+        }
+
         const valorFormatado = typeof direita === 'string' ? `'${direita}'` : direita;
 
         return `${esquerda} ${operador} ${valorFormatado}`;
+    }
+
+    private async executarAgregacao(funcao: string, coluna: string | null, alias: string): Promise<any> {
+        const colunasOriginais = this._colunas;
+        const colunasPersonalizadasOriginais = this._colunasPersonalizadas;
+        const colunasAgregadas: string[] = [];
+
+        if (this._agrupamentos.length > 0) {
+            colunasAgregadas.push(...this._agrupamentos);
+        }
+
+        const alvo = coluna ? `${funcao}(${coluna})` : `${funcao}(*)`;
+        colunasAgregadas.push(`${alvo} as ${alias}`);
+
+        this._colunas = colunasAgregadas;
+        this._colunasPersonalizadas = true;
+        const sql = this.gerarSql();
+        this._colunas = colunasOriginais;
+        this._colunasPersonalizadas = colunasPersonalizadasOriginais;
+
+        const resultados = await this.tecnologia.executar(null, sql, []);
+        if (resultados.length === 0 || resultados[0].linhasRetornadas.length === 0) {
+            return this._agrupamentos.length > 0 ? [] : 0;
+        }
+
+        if (this._agrupamentos.length > 0) {
+            return resultados[0].linhasRetornadas;
+        }
+
+        return resultados[0].linhasRetornadas[0][alias] || 0;
     }
 
     /**

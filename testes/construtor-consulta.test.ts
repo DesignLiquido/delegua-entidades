@@ -41,13 +41,13 @@ describe('ConstrutorConsulta', () => {
     );
 
     const entidade = new Entidade(descritorTipoClasse);
-    let tecnologiaMock: BonecoTecnologia;
+    let bonecoTecnologia: BonecoTecnologia;
     let colecao: Colecao<Entidade>;
 
     beforeEach(() => {
-        tecnologiaMock = new BonecoTecnologia();
-        tecnologiaMock.dadosEmMemoria['Usuario'] = [];
-        colecao = new Colecao(entidade, tecnologiaMock);
+        bonecoTecnologia = new BonecoTecnologia();
+        bonecoTecnologia.dadosEmMemoria['Usuario'] = [];
+        colecao = new Colecao(entidade, bonecoTecnologia);
     });
 
     describe('Geração de SQL', () => {
@@ -115,6 +115,42 @@ describe('ConstrutorConsulta', () => {
             expect(sql).toContain('OFFSET 20');
         });
 
+        it('gera SELECT com GROUP BY', () => {
+            const consulta = colecao.consulta().agruparPor('idade');
+            const sql = consulta.gerarSql();
+            expect(sql).toContain('GROUP BY idade');
+        });
+
+        it('gera SELECT com HAVING', () => {
+            const consulta = colecao.consulta()
+                .agruparPor('idade')
+                .tendo('idade', 'MAIOR', 18);
+            const sql = consulta.gerarSql();
+            expect(sql).toContain('GROUP BY idade');
+            expect(sql).toContain('HAVING');
+            expect(sql).toContain('idade > 18');
+        });
+
+        it('gera SELECT com subquery no WHERE (EM)', () => {
+            const subconsulta = colecao.consulta()
+                .selecionar('id')
+                .onde('idade', 'MAIOR', 18);
+            const consulta = colecao.consulta().onde('id', 'EM', subconsulta);
+            const sql = consulta.gerarSql();
+            expect(sql).toContain('id IN');
+            expect(sql).toContain('SELECT');
+        });
+
+        it('gera SELECT com subquery no FROM', () => {
+            const subconsulta = colecao.consulta()
+                .selecionar('id')
+                .onde('idade', 'MAIOR', 18);
+            const consulta = colecao.consulta().deSubconsulta(subconsulta, 'sub');
+            const sql = consulta.gerarSql();
+            expect(sql).toContain('FROM (');
+            expect(sql).toContain(') AS sub');
+        });
+
         it('gera SELECT com colunas específicas', () => {
             const consulta = colecao.consulta().selecionar('nome', 'idade');
             const sql = consulta.gerarSql();
@@ -151,17 +187,17 @@ describe('ConstrutorConsulta', () => {
 
     describe('Execução', () => {
         it('todos() retorna registros hidratados', async () => {
-            tecnologiaMock.dadosEmMemoria['Usuario'] = [
+            bonecoTecnologia.dadosEmMemoria['Usuario'] = [
                 { id: 1, nome: 'Maria', idade: 25, ativo: true },
                 { id: 2, nome: 'João', idade: 30, ativo: true }
             ];
 
             // Mock executar to return the in-memory data
-            tecnologiaMock.executar = async (_: any, sql: string, _params: any[]) => {
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
                 return [{
                     linhasAfetadas: 0,
                     ultimoId: null,
-                    linhasRetornadas: tecnologiaMock.dadosEmMemoria['Usuario'],
+                    linhasRetornadas: bonecoTecnologia.dadosEmMemoria['Usuario'],
                     comandoExecutado: sql,
                     mensagemExecucao: "OK"
                 }];
@@ -174,7 +210,7 @@ describe('ConstrutorConsulta', () => {
         });
 
         it('primeiro() retorna apenas o primeiro registro', async () => {
-            tecnologiaMock.executar = async (_: any, sql: string, _params: any[]) => {
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
                 return [{
                     linhasAfetadas: 0,
                     ultimoId: null,
@@ -191,7 +227,7 @@ describe('ConstrutorConsulta', () => {
         });
 
         it('primeiro() retorna null quando não há resultados', async () => {
-            tecnologiaMock.executar = async (_: any, sql: string, _params: any[]) => {
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
                 return [{
                     linhasAfetadas: 0,
                     ultimoId: null,
@@ -206,7 +242,7 @@ describe('ConstrutorConsulta', () => {
         });
 
         it('contar() retorna a contagem de registros', async () => {
-            tecnologiaMock.executar = async (_: any, sql: string, _params: any[]) => {
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
                 return [{
                     linhasAfetadas: 0,
                     ultimoId: null,
@@ -218,6 +254,97 @@ describe('ConstrutorConsulta', () => {
 
             const contagem = await colecao.consulta().contar();
             expect(contagem).toBe(5);
+        });
+
+        it('contar() com GROUP BY retorna linhas agregadas', async () => {
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: [
+                        { ativo: true, contagem: 2 },
+                        { ativo: false, contagem: 1 }
+                    ],
+                    comandoExecutado: sql,
+                    mensagemExecucao: "OK"
+                }];
+            };
+
+            const contagens = await colecao.consulta().agruparPor('ativo').contar();
+            expect(contagens).toHaveLength(2);
+            expect(contagens[0].contagem).toBeDefined();
+        });
+
+        it('somar() retorna o valor agregado', async () => {
+            let sqlGerado = '';
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
+                sqlGerado = sql;
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: [{ soma: 10 }],
+                    comandoExecutado: sql,
+                    mensagemExecucao: "OK"
+                }];
+            };
+
+            const soma = await colecao.consulta().somar('idade');
+            expect(soma).toBe(10);
+            expect(sqlGerado).toContain('SUM(idade) as soma');
+        });
+
+        it('media() retorna o valor agregado', async () => {
+            let sqlGerado = '';
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
+                sqlGerado = sql;
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: [{ media: 20 }],
+                    comandoExecutado: sql,
+                    mensagemExecucao: "OK"
+                }];
+            };
+
+            const media = await colecao.consulta().media('idade');
+            expect(media).toBe(20);
+            expect(sqlGerado).toContain('AVG(idade) as media');
+        });
+
+        it('minimo() retorna o valor agregado', async () => {
+            let sqlGerado = '';
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
+                sqlGerado = sql;
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: [{ minimo: 2 }],
+                    comandoExecutado: sql,
+                    mensagemExecucao: "OK"
+                }];
+            };
+
+            const minimo = await colecao.consulta().minimo('idade');
+            expect(minimo).toBe(2);
+            expect(sqlGerado).toContain('MIN(idade) as minimo');
+        });
+
+        it('maximo() retorna o valor agregado', async () => {
+            let sqlGerado = '';
+            bonecoTecnologia.executar = async (_: any, sql: string, _params: any[]) => {
+                sqlGerado = sql;
+                return [{
+                    linhasAfetadas: 0,
+                    ultimoId: null,
+                    linhasRetornadas: [{ maximo: 99 }],
+                    comandoExecutado: sql,
+                    mensagemExecucao: "OK"
+                }];
+            };
+
+            const maximo = await colecao.consulta().maximo('idade');
+            expect(maximo).toBe(99);
+            expect(sqlGerado).toContain('MAX(idade) as maximo');
         });
 
         it('lança erro quando tecnologia não está configurada', () => {
@@ -250,6 +377,12 @@ describe('ConstrutorConsulta', () => {
         it('suporta MENOR_IGUAL', () => {
             const sql = colecao.consulta().onde('idade', 'MENOR_IGUAL', 65).gerarSql();
             expect(sql).toContain('<=');
+        });
+
+        it('suporta EM', () => {
+            const subconsulta = colecao.consulta().selecionar('id');
+            const sql = colecao.consulta().onde('id', 'EM', subconsulta).gerarSql();
+            expect(sql).toContain('IN');
         });
     });
 });
