@@ -9,6 +9,7 @@ export interface EntidadeInterface {
     obterNomeChavePrimaria(): string;
     obterNomesColunas(): string[];
     obterRelacionamentos(): RelacionamentoInterface[];
+    obterNomeBancoDados(): string;
     possuiCriadoEm(): boolean;
     possuiAtualizadoEm(): boolean;
     resolverValoresParaColunas(registro: ObjetoDeleguaClasse, colunas: string[]): any[];

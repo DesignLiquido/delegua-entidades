@@ -20,6 +20,8 @@ export { GeradorMigracoes, SchemaInfo } from './fontes/migracoes/gerador-migraco
 export { CarregadorPreguicoso } from './fontes/carregador-preguicoso';
 export { Transacao } from './fontes/transacao';
 export { TransacaoInterface } from './fontes/interfaces-tipos/transacao-interface';
+export { RoteadorBancos } from './fontes/roteador-bancos';
+export { ConfiguracaoBancoDados, ConfiguracoesBancos } from './fontes/interfaces-tipos/configuracao-banco-dados-interface';
 
 /**
  * Essa função inicializa uma instância de `Entidade` com um modelo carregado.

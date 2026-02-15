@@ -127,6 +127,25 @@ export class Entidade implements EntidadeInterface {
         return this.nomePropriedadeChavePrimaria;
     }
 
+    /**
+     * Obtém o nome do banco de dados ao qual a entidade pertence.
+     * Busca por decorador @banco, senão retorna "padrão".
+     */
+    obterNomeBancoDados(): string {
+        for (const propriedade of this.modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                const nomeDecorador = decorador.nome.replace(/^@/, '');
+                if (nomeDecorador === 'banco') {
+                    return decorador.atributos?.nome || 'padrão';
+                }
+            }
+        }
+        
+        // Se nenhum decorador @banco foi encontrado, verificar em uma localização padrão
+        // (idealmente seria no nível da classe, mas estamos limitados às propriedades)
+        return 'padrão';
+    }
+
     obterRelacionamentos(): RelacionamentoInterface[] {
         const relacionamentos: RelacionamentoInterface[] = [];
         const nomeEntidade = this.obterNome();

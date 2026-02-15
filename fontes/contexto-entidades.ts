@@ -8,10 +8,12 @@ import { Taquigrafo } from "./taquigrafia";
 import { RastreadorMudancas } from "./rastreador-mudancas";
 import { Transacao } from "./transacao";
 import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
+import { RoteadorBancos } from "./roteador-bancos";
+import { ConfiguracaoBancoDados, ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
 
 /**
  * O contexto de entidades é usado para manter todas as entidades e seus relacionamentos
- * em um só lugar.
+ * em um só lugar. Suporta múltiplos bancos de dados com roteamento automático.
  */
 export class ContextoEntidades {
     tecnologia: TecnologiaLinconesInterface;
@@ -19,17 +21,24 @@ export class ContextoEntidades {
     logger?: Taquigrafo;
     rastreador: RastreadorMudancas;
     private transacao: Transacao | null = null;
+    private roteador: RoteadorBancos;
 
     constructor(tecnologia: TecnologiaLinconesInterface, logger?: Taquigrafo) {
         this.tecnologia = tecnologia;
         this.colecoes = {};
         this.logger = logger;
         this.rastreador = new RastreadorMudancas();
+        
+        // Inicializar roteador com o banco padrão
+        this.roteador = new RoteadorBancos();
+        this.roteador.registrarBanco('padrão', tecnologia, true);
     }
 
     registrarColecao(entidade: EntidadeInterface): Colecao<EntidadeInterface> {
         const nome = entidade.obterNome();
-        const colecao = new Colecao(entidade, this.tecnologia, this.logger);
+        // Obter a tecnologia para o banco da entidade
+        const tecnologiaEntidade = this.roteador.obterTecnologiaParaEntidade(entidade);
+        const colecao = new Colecao(entidade, tecnologiaEntidade, this.logger);
         this.colecoes[nome] = colecao;
         return colecao;
     }
@@ -283,5 +292,43 @@ export class ContextoEntidades {
         await this.transacao.reverter();
         this.logger?.info('Transação revertida');
         this.transacao = null;
+    }
+
+    /**
+     * Registra um novo banco de dados.
+     */
+    registrarBanco(nome: string, tecnologia: TecnologiaLinconesInterface, ehPadrao: boolean = false): void {
+        this.roteador.registrarBanco(nome, tecnologia, ehPadrao);
+        if (ehPadrao) {
+            this.tecnologia = tecnologia;
+        }
+    }
+
+    /**
+     * Registra múltiplos bancos a partir de configurações.
+     */
+    registrarBancos(configuracoes: ConfiguracoesBancos, tecnologias: { [nome: string]: TecnologiaLinconesInterface }): void {
+        this.roteador.registrarBancos(configuracoes, tecnologias);
+    }
+
+    /**
+     * Obtém a tecnologia para um banco específico.
+     */
+    obterTecnologia(nomeBanco: string = 'padrão'): TecnologiaLinconesInterface {
+        return this.roteador.obterTecnologia(nomeBanco);
+    }
+
+    /**
+     * Obtém a tecnologia padrão.
+     */
+    obterTecnologiaPadrao(): TecnologiaLinconesInterface {
+        return this.roteador.obterTecnologiaPadrao();
+    }
+
+    /**
+     * Obtém o roteador de bancos para acesso avançado.
+     */
+    obterRoteador(): RoteadorBancos {
+        return this.roteador;
     }
 }
