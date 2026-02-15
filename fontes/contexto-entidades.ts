@@ -6,6 +6,8 @@ import { Entidade } from "./entidade";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 import { Taquigrafo } from "./taquigrafia";
 import { RastreadorMudancas } from "./rastreador-mudancas";
+import { Transacao } from "./transacao";
+import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
 
 /**
  * O contexto de entidades é usado para manter todas as entidades e seus relacionamentos
@@ -16,6 +18,7 @@ export class ContextoEntidades {
     colecoes: {[key: string]: Colecao<EntidadeInterface>};
     logger?: Taquigrafo;
     rastreador: RastreadorMudancas;
+    private transacao: Transacao | null = null;
 
     constructor(tecnologia: TecnologiaLinconesInterface, logger?: Taquigrafo) {
         this.tecnologia = tecnologia;
@@ -226,5 +229,59 @@ export class ContextoEntidades {
             const criar = this.colecoes[nome].tipoEntidade.gerarComandoCriarTabela();
             await this.tecnologia.executarComando(criar);
         }
+    }
+
+    /**
+     * Inicia uma nova transação.
+     * Retorna a transação criada.
+     */
+    iniciarTransacao(): TransacaoInterface {
+        if (this.transacao && this.transacao.estaAtiva()) {
+            throw new Error('Já existe uma transação ativa neste contexto');
+        }
+        
+        this.transacao = new Transacao(this.tecnologia);
+        this.logger?.info('Transação iniciada');
+        return this.transacao;
+    }
+
+    /**
+     * Obtém a transação atual, se houver.
+     */
+    obterTransacao(): TransacaoInterface | null {
+        return this.transacao;
+    }
+
+    /**
+     * Indica se existe uma transação ativa.
+     */
+    possuiTransacao(): boolean {
+        return this.transacao !== null && this.transacao.estaAtiva();
+    }
+
+    /**
+     * Confirma a transação atual.
+     */
+    async confirmarTransacao(): Promise<void> {
+        if (!this.transacao) {
+            throw new Error('Nenhuma transação ativa');
+        }
+
+        await this.transacao.confirmar();
+        this.logger?.info('Transação confirmada');
+        this.transacao = null;
+    }
+
+    /**
+     * Reverte a transação atual.
+     */
+    async reverterTransacao(): Promise<void> {
+        if (!this.transacao) {
+            throw new Error('Nenhuma transação ativa');
+        }
+
+        await this.transacao.reverter();
+        this.logger?.info('Transação revertida');
+        this.transacao = null;
     }
 }
