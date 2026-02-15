@@ -198,4 +198,78 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         await this.executarHooks('aposExcluir', registro);
         return resultado;
     }
+
+    /**
+     * Insere múltiplos registros em uma operação.
+     * Executa hooks de inserção para cada registro.
+     */
+    async inserirVarios(registros: ObjetoDeleguaClasse[]): Promise<RetornoComandoInterface[][]> {
+        this.verificarTecnologia();
+        
+        if (registros.length === 0) {
+            return [];
+        }
+
+        const resultados: RetornoComandoInterface[][] = [];
+
+        for (const registro of registros) {
+            this.validarRegistro(registro);
+            await this.executarHooks('antesDeInserir', registro);
+            const comando = this.inserir(registro);
+            const resultado = await this.executarComandoComLog(comando, 'INSERT LOTE');
+            resultados.push(resultado);
+            await this.executarHooks('aposInserir', registro);
+        }
+
+        return resultados;
+    }
+
+    /**
+     * Atualiza múltiplos registros em uma operação.
+     * Executa hooks de atualização para cada registro.
+     */
+    async atualizarVarios(registros: ObjetoDeleguaClasse[], colunas: string[] = []): Promise<RetornoComandoInterface[][]> {
+        this.verificarTecnologia();
+        
+        if (registros.length === 0) {
+            return [];
+        }
+
+        const resultados: RetornoComandoInterface[][] = [];
+
+        for (const registro of registros) {
+            this.validarRegistro(registro);
+            await this.executarHooks('antesDeAtualizar', registro);
+            const comando = this.atualizar(registro, colunas);
+            const resultado = await this.executarComandoComLog(comando, 'UPDATE LOTE');
+            resultados.push(resultado);
+            await this.executarHooks('aposAtualizar', registro);
+        }
+
+        return resultados;
+    }
+
+    /**
+     * Exclui múltiplos registros em uma operação.
+     * Executa hooks de exclusão para cada registro.
+     */
+    async excluirVarios(registros: ObjetoDeleguaClasse[]): Promise<RetornoComandoInterface[][]> {
+        this.verificarTecnologia();
+        
+        if (registros.length === 0) {
+            return [];
+        }
+
+        const resultados: RetornoComandoInterface[][] = [];
+
+        for (const registro of registros) {
+            await this.executarHooks('antesDeExcluir', registro);
+            const comando = this.excluir(registro);
+            const resultado = await this.executarComandoComLog(comando, 'DELETE LOTE');
+            resultados.push(resultado);
+            await this.executarHooks('aposExcluir', registro);
+        }
+
+        return resultados;
+    }
 }
