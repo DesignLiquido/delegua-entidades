@@ -72,9 +72,9 @@ describe('Operações em Lote (Batch Operations)', () => {
             expect(resultados).toHaveLength(0);
         });
 
-        it('executa hook antesDeInserir para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('antesDeInserir', hookMock);
+        it('executa gancho antesDeInserir para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('antesDeInserir', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -88,12 +88,12 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.inserirVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(3);
+            expect(bonecoGancho).toHaveBeenCalledTimes(3);
         });
 
-        it('executa hook aposInserir para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('aposInserir', hookMock);
+        it('executa gancho aposInserir para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('aposInserir', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -105,7 +105,7 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.inserirVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(2);
+            expect(bonecoGancho).toHaveBeenCalledTimes(2);
         });
 
         it('valida registros antes de inserir', async () => {
@@ -181,9 +181,9 @@ describe('Operações em Lote (Batch Operations)', () => {
             expect(resultados).toHaveLength(0);
         });
 
-        it('executa hook antesDeAtualizar para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('antesDeAtualizar', hookMock);
+        it('executa gancho antesDeAtualizar para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('antesDeAtualizar', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -195,12 +195,12 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.atualizarVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(2);
+            expect(bonecoGancho).toHaveBeenCalledTimes(2);
         });
 
-        it('executa hook aposAtualizar para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('aposAtualizar', hookMock);
+        it('executa gancho aposAtualizar para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('aposAtualizar', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -212,7 +212,7 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.atualizarVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(2);
+            expect(bonecoGancho).toHaveBeenCalledTimes(2);
         });
 
         it('atualiza colunas específicas se fornecidas', async () => {
@@ -256,9 +256,9 @@ describe('Operações em Lote (Batch Operations)', () => {
             expect(resultados).toHaveLength(0);
         });
 
-        it('executa hook antesDeExcluir para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('antesDeExcluir', hookMock);
+        it('executa gancho antesDeExcluir para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('antesDeExcluir', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -270,12 +270,12 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.excluirVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(2);
+            expect(bonecoGancho).toHaveBeenCalledTimes(2);
         });
 
-        it('executa hook aposExcluir para cada registro', async () => {
-            const hookMock = jest.fn();
-            colecao.adicionarHook('aposExcluir', hookMock);
+        it('executa gancho aposExcluir para cada registro', async () => {
+            const bonecoGancho = jest.fn();
+            colecao.adicionarGancho('aposExcluir', bonecoGancho);
 
             const registros = [
                 new ObjetoDeleguaClasse(descritor),
@@ -287,7 +287,7 @@ describe('Operações em Lote (Batch Operations)', () => {
 
             await colecao.excluirVarios(registros);
 
-            expect(hookMock).toHaveBeenCalledTimes(2);
+            expect(bonecoGancho).toHaveBeenCalledTimes(2);
         });
 
         it('registra operações de exclusão em lote', async () => {

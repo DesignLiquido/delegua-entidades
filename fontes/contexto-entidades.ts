@@ -10,10 +10,12 @@ import { Transacao } from "./transacao";
 import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
 import { RoteadorBancos } from "./roteador-bancos";
 import { ConfiguracaoBancoDados, ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
+import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
 
 /**
  * O contexto de entidades é usado para manter todas as entidades e seus relacionamentos
  * em um só lugar. Suporta múltiplos bancos de dados com roteamento automático.
+ * Também gerencia cache L1 (identity map) e L2 (cache persistente).
  */
 export class ContextoEntidades {
     tecnologia: TecnologiaLinconesInterface;
@@ -22,12 +24,14 @@ export class ContextoEntidades {
     rastreador: RastreadorMudancas;
     private transacao: Transacao | null = null;
     private roteador: RoteadorBancos;
+    private cache: GerenciadorCache;
 
-    constructor(tecnologia: TecnologiaLinconesInterface, logger?: Taquigrafo) {
+    constructor(tecnologia: TecnologiaLinconesInterface, logger?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
         this.tecnologia = tecnologia;
         this.colecoes = {};
         this.logger = logger;
         this.rastreador = new RastreadorMudancas();
+        this.cache = new GerenciadorCache(opcoesCacheL2);
         
         // Inicializar roteador com o banco padrão
         this.roteador = new RoteadorBancos();
@@ -330,5 +334,49 @@ export class ContextoEntidades {
      */
     obterRoteador(): RoteadorBancos {
         return this.roteador;
+    }
+
+    // --- Métodos de Cache ---
+
+    /**
+     * Obtém um registro do cache.
+     */
+    obterDoCache(nomeEntidade: string, id: any): ObjetoDeleguaClasse | undefined {
+        return this.cache.obterNivel1(nomeEntidade, id);
+    }
+
+    /**
+     * Armazena um registro no cache.
+     */
+    armazenarenCache(nomeEntidade: string, id: any, registro: ObjetoDeleguaClasse): void {
+        this.cache.armazenarNivel1(nomeEntidade, id, registro);
+    }
+
+    /**
+     * Remove um registro do cache.
+     */
+    removerDoCache(nomeEntidade: string, id: any): void {
+        this.cache.remover(nomeEntidade, id);
+    }
+
+    /**
+     * Limpa o cache de uma entidade.
+     */
+    limparCacheEntidade(nomeEntidade?: string): void {
+        this.cache.limparEntidade(nomeEntidade);
+    }
+
+    /**
+     * Limpa todo o cache.
+     */
+    limparCacheTudo(): void {
+        this.cache.limparTudo();
+    }
+
+    /**
+     * Obtém estatísticas do cache.
+     */
+    obterEstatisticasCache(): { nivel1: number; nivel2: number; total: number } {
+        return this.cache.obterEstatisticas();
     }
 }

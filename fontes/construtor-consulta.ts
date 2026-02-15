@@ -33,6 +33,7 @@ export class ConstrutorConsulta {
     private _relacionadosParaCarregar: string[];
     private _agrupamentos: string[];
     private _condicoesTendo: Condicao[];
+    private _incluirExcluidos: boolean;
 
     constructor(entidade: EntidadeInterface, tecnologia: TecnologiaLinconesInterface) {
         this.entidade = entidade;
@@ -53,6 +54,7 @@ export class ConstrutorConsulta {
         this._relacionadosParaCarregar = [];
         this._agrupamentos = [];
         this._condicoesTendo = [];
+        this._incluirExcluidos = false;
     }
 
     /**
@@ -191,6 +193,15 @@ export class ConstrutorConsulta {
     }
 
     /**
+     * Inclui registros com exclusão lógica (soft-deleted) na consulta.
+     * Por padrão, registros com exclusão lógica são filtrados automaticamente.
+     */
+    incluirExcluidos(): ConstrutorConsulta {
+        this._incluirExcluidos = true;
+        return this;
+    }
+
+    /**
      * Executa a consulta e retorna todos os registros encontrados.
      */
     async todos(): Promise<ObjetoDeleguaClasse[]> {
@@ -304,6 +315,16 @@ export class ConstrutorConsulta {
                 sql += `\nOR ${partesOuExtras}`;
             } else {
                 sql += `\nWHERE ${partesOuExtras}`;
+            }
+        }
+
+        // Adicionar filtro de exclusão lógica
+        if (this.entidade.possuiExclusaoLogica() && !this._incluirExcluidos) {
+            const colunaExclusao = this.entidade.obterNomeColunaExclusaoLogica();
+            if (sql.includes('WHERE')) {
+                sql += `\nAND ${colunaExclusao} IS NULL`;
+            } else {
+                sql += `\nWHERE ${colunaExclusao} IS NULL`;
             }
         }
 

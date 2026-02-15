@@ -146,6 +146,47 @@ export class Entidade implements EntidadeInterface {
         return 'padrão';
     }
 
+    /**
+     * Verifica se a entidade possui exclusão lógica (soft delete) habilitada.
+     * Busca por propriedade com decorador @exclusaoLogica ou coluna "excluido_em".
+     */
+    possuiExclusaoLogica(): boolean {
+        // Procurar por decorador @exclusaoLogica
+        for (const propriedade of this.modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                const nomeDecorador = decorador.nome.replace(/^@/, '');
+                if (nomeDecorador === 'exclusaoLogica') {
+                    return true;
+                }
+            }
+        }
+        
+        // Procurar por coluna "excluido_em"
+        return this.modelo.propriedades.some(p => p.nome.lexema === 'excluido_em');
+    }
+
+    /**
+     * Obtém o nome da coluna de exclusão lógica.
+     * Retorna "excluido_em" como padrão.
+     */
+    obterNomeColunaExclusaoLogica(): string {
+        for (const propriedade of this.modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                const nomeDecorador = decorador.nome.replace(/^@/, '');
+                if (nomeDecorador === 'exclusaoLogica') {
+                    return decorador.atributos?.coluna || 'excluido_em';
+                }
+            }
+        }
+        
+        // Se houver uma propriedade "excluido_em", usá-la
+        if (this.modelo.propriedades.some(p => p.nome.lexema === 'excluido_em')) {
+            return 'excluido_em';
+        }
+        
+        return 'excluido_em';
+    }
+
     obterRelacionamentos(): RelacionamentoInterface[] {
         const relacionamentos: RelacionamentoInterface[] = [];
         const nomeEntidade = this.obterNome();

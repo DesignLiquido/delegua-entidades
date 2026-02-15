@@ -10,8 +10,10 @@ export interface EntidadeInterface {
     obterNomesColunas(): string[];
     obterRelacionamentos(): RelacionamentoInterface[];
     obterNomeBancoDados(): string;
+    obterNomeColunaExclusaoLogica(): string;
     possuiCriadoEm(): boolean;
     possuiAtualizadoEm(): boolean;
+    possuiExclusaoLogica(): boolean;
     resolverValoresParaColunas(registro: ObjetoDeleguaClasse, colunas: string[]): any[];
     resolverColunasEValores(registro: ObjetoDeleguaClasse, colunas: string[]): ColunaEValor[];
     resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao;

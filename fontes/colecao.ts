@@ -1,4 +1,4 @@
-import { Selecionar, Condicao, ReferenciaColuna, Literal, Inserir, Atualizar, Excluir, TecnologiaLinconesInterface } from "@designliquido/lincones-js";
+import { Selecionar, Condicao, ReferenciaColuna, Literal, Inserir, Atualizar, Excluir, TecnologiaLinconesInterface, ColunaEValor } from "@designliquido/lincones-js";
 import { RetornoComandoInterface } from "@designliquido/lincones-js/interfaces/retorno-comando-interface";
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 
@@ -8,6 +8,7 @@ import { ConstrutorConsulta } from "./construtor-consulta";
 import { Validador } from "./validacoes/validador";
 import { ErroDeValidacao } from "./erros/erro-validacao";
 import { Taquigrafo } from "./taquigrafia";
+import { Serializador, OpcoesSerializacao } from "./serializador";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
     tipoEntidade: TEntidade;
@@ -36,7 +37,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const possuiAtualizadoEm = this.tipoEntidade.possuiAtualizadoEm();
 
         if (possuiCriadoEm || possuiAtualizadoEm) {
-            this.adicionarHook('antesDeInserir', (registro: ObjetoDeleguaClasse) => {
+            this.adicionarGancho('antesDeInserir', (registro: ObjetoDeleguaClasse) => {
                 const agora = new Date().toISOString();
                 if (possuiCriadoEm) {
                     registro.propriedades['criado_em'] = agora;
@@ -48,19 +49,19 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
 
         if (possuiAtualizadoEm) {
-            this.adicionarHook('antesDeAtualizar', (registro: ObjetoDeleguaClasse) => {
+            this.adicionarGancho('antesDeAtualizar', (registro: ObjetoDeleguaClasse) => {
                 registro.propriedades['atualizado_em'] = new Date().toISOString();
             });
         }
     }
 
-    adicionarHook(evento: EventoGancho, funcao: FuncaoGancho): void {
+    adicionarGancho(evento: EventoGancho, funcao: FuncaoGancho): void {
         this.ganchos[evento].push(funcao);
     }
 
-    private async executarHooks(evento: EventoGancho, registro: ObjetoDeleguaClasse): Promise<void> {
-        for (const hook of this.ganchos[evento]) {
-            await hook(registro);
+    private async executarGanchos(evento: EventoGancho, registro: ObjetoDeleguaClasse): Promise<void> {
+        for (const gancho of this.ganchos[evento]) {
+            await gancho(registro);
         }
     }
 
@@ -111,8 +112,25 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
     }
 
-    excluir(registro: ObjetoDeleguaClasse): Excluir {
+    excluir(registro: ObjetoDeleguaClasse): Excluir | Atualizar {
         const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
+        
+        // Se a entidade possui exclusão lógica, atualizar o campo de exclusão em vez de deletar
+        if (this.tipoEntidade.possuiExclusaoLogica()) {
+            const colunaExclusao = this.tipoEntidade.obterNomeColunaExclusaoLogica();
+            const dataExclusao = new Date().toISOString();
+            registro.propriedades[colunaExclusao] = dataExclusao;
+            
+            const colunasEValores = [
+                new ColunaEValor(
+                    new ReferenciaColuna(colunaExclusao),
+                    new Literal(dataExclusao)
+                )
+            ];
+            
+            return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
+        }
+        
         return new Excluir(-1, this.tipoEntidade.obterNome(), [condicao]);
     }
 
@@ -173,35 +191,35 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     async salvar(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
         this.validarRegistro(registro);
-        await this.executarHooks('antesDeInserir', registro);
+        await this.executarGanchos('antesDeInserir', registro);
         const comando = this.inserir(registro);
         const resultado = await this.executarComandoComLog(comando, 'INSERT');
-        await this.executarHooks('aposInserir', registro);
+        await this.executarGanchos('aposInserir', registro);
         return resultado;
     }
 
     async modificar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
         this.validarRegistro(registro);
-        await this.executarHooks('antesDeAtualizar', registro);
+        await this.executarGanchos('antesDeAtualizar', registro);
         const comando = this.atualizar(registro, colunas);
         const resultado = await this.executarComandoComLog(comando, 'UPDATE');
-        await this.executarHooks('aposAtualizar', registro);
+        await this.executarGanchos('aposAtualizar', registro);
         return resultado;
     }
 
     async remover(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
-        await this.executarHooks('antesDeExcluir', registro);
+        await this.executarGanchos('antesDeExcluir', registro);
         const comando = this.excluir(registro);
         const resultado = await this.executarComandoComLog(comando, 'DELETE');
-        await this.executarHooks('aposExcluir', registro);
+        await this.executarGanchos('aposExcluir', registro);
         return resultado;
     }
 
     /**
      * Insere múltiplos registros em uma operação.
-     * Executa hooks de inserção para cada registro.
+     * Executa ganchos de inserção para cada registro.
      */
     async inserirVarios(registros: ObjetoDeleguaClasse[]): Promise<RetornoComandoInterface[][]> {
         this.verificarTecnologia();
@@ -214,11 +232,11 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
         for (const registro of registros) {
             this.validarRegistro(registro);
-            await this.executarHooks('antesDeInserir', registro);
+            await this.executarGanchos('antesDeInserir', registro);
             const comando = this.inserir(registro);
             const resultado = await this.executarComandoComLog(comando, 'INSERT LOTE');
             resultados.push(resultado);
-            await this.executarHooks('aposInserir', registro);
+            await this.executarGanchos('aposInserir', registro);
         }
 
         return resultados;
@@ -226,7 +244,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     /**
      * Atualiza múltiplos registros em uma operação.
-     * Executa hooks de atualização para cada registro.
+     * Executa ganchos de atualização para cada registro.
      */
     async atualizarVarios(registros: ObjetoDeleguaClasse[], colunas: string[] = []): Promise<RetornoComandoInterface[][]> {
         this.verificarTecnologia();
@@ -239,11 +257,11 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
         for (const registro of registros) {
             this.validarRegistro(registro);
-            await this.executarHooks('antesDeAtualizar', registro);
+            await this.executarGanchos('antesDeAtualizar', registro);
             const comando = this.atualizar(registro, colunas);
             const resultado = await this.executarComandoComLog(comando, 'UPDATE LOTE');
             resultados.push(resultado);
-            await this.executarHooks('aposAtualizar', registro);
+            await this.executarGanchos('aposAtualizar', registro);
         }
 
         return resultados;
@@ -251,7 +269,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     /**
      * Exclui múltiplos registros em uma operação.
-     * Executa hooks de exclusão para cada registro.
+     * Executa ganchos de exclusão para cada registro.
      */
     async excluirVarios(registros: ObjetoDeleguaClasse[]): Promise<RetornoComandoInterface[][]> {
         this.verificarTecnologia();
@@ -263,13 +281,86 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const resultados: RetornoComandoInterface[][] = [];
 
         for (const registro of registros) {
-            await this.executarHooks('antesDeExcluir', registro);
+            await this.executarGanchos('antesDeExcluir', registro);
             const comando = this.excluir(registro);
             const resultado = await this.executarComandoComLog(comando, 'DELETE LOTE');
             resultados.push(resultado);
-            await this.executarHooks('aposExcluir', registro);
+            await this.executarGanchos('aposExcluir', registro);
         }
 
         return resultados;
+    }
+
+    /**
+     * Restaura um registro excluído logicamente (soft delete).
+     * Remove a marca de exclusão do registro.
+     * Lança erro se a entidade não possui exclusão lógica habilitada.
+     */
+    async restaurar(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
+        this.verificarTecnologia();
+
+        if (!this.tipoEntidade.possuiExclusaoLogica()) {
+            throw new Error('Esta entidade não possui exclusão lógica habilitada');
+        }
+
+        const colunaExclusao = this.tipoEntidade.obterNomeColunaExclusaoLogica();
+        const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
+
+        // Limpar o campo de exclusão
+        registro.propriedades[colunaExclusao] = null;
+
+        const colunasEValores: ColunaEValor[] = [
+            new ColunaEValor(
+                new ReferenciaColuna(colunaExclusao),
+                new Literal(null)
+            )
+        ];
+
+        const comando = new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
+        const resultado = await this.executarComandoComLog(comando, 'RESTAURAR');
+
+        return resultado;
+    }
+
+    // --- Métodos de Serialização ---
+
+    /**
+     * Serializa um registro para dicionário (objeto JavaScript).
+     */
+    serializarParaDicionario(
+        registro: ObjetoDeleguaClasse,
+        opcoes?: OpcoesSerializacao
+    ): Record<string, any> {
+        return Serializador.paraDicionario(registro, this.tipoEntidade, opcoes);
+    }
+
+    /**
+     * Serializa um registro para JSON.
+     */
+    serializarParaJson(
+        registro: ObjetoDeleguaClasse,
+        opcoes?: OpcoesSerializacao
+    ): string {
+        return Serializador.paraJson(registro, this.tipoEntidade, opcoes);
+    }
+
+    /**
+     * Serializa múltiplos registros para array de dicionários.
+     */
+    serializarMuitosParaDicionario(
+        registros: ObjetoDeleguaClasse[],
+        opcoes?: OpcoesSerializacao
+    ): Record<string, any>[] {
+        return Serializador.muitosParaDicionario(registros, this.tipoEntidade, opcoes);
+    }
+
+    /**
+     * Serializa múltiplos registros para JSON com array.
+     */
+    serializarMuitosParaJson(
+        registros: ObjetoDeleguaClasse[],
+        opcoes?: OpcoesSerializacao
+    ): string {
+        return Serializador.muitosParaJson(registros, this.tipoEntidade, opcoes);
     }
 }

@@ -9,10 +9,10 @@ export { Validador } from './fontes/validacoes/validador';
 export { ErroDeValidacao, ErroValidacao } from './fontes/erros/erro-validacao';
 
 export { EntidadeInterface } from './fontes/interfaces-tipos/entidade-interface';
-export { GanchosInterface as HooksInterface, FuncaoGancho as FuncaoHook, EventoGancho as EventoHook } from './fontes/interfaces-tipos/ganchos';
+export { GanchosInterface, FuncaoGancho, EventoGancho } from './fontes/interfaces-tipos/ganchos';
 export { RelacionamentoInterface, TipoRelacionamento, AcaoCascata } from './fontes/interfaces-tipos/relacionamento-interface';
 
-export { Taquigrafo as Logger, NivelDetalhamentoTaquigrafia as NivelLog, FuncaoTaquigrafia as FuncaoLog } from './fontes/taquigrafia';
+export { Taquigrafo, NivelDetalhamentoTaquigrafia, FuncaoTaquigrafia } from './fontes/taquigrafia';
 export { RastreadorMudancas, EstadoEntidade, RegistroRastreado } from './fontes/rastreador-mudancas';
 export { Migracao, OperacaoMigracao } from './fontes/migracoes/migracao';
 export { ExecutorMigracoes } from './fontes/migracoes/executor-migracoes';
