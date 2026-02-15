@@ -12,7 +12,18 @@ const MAPEAMENTO_TIPOS: { [tipo: string]: string } = {
     'número': 'INTEIRO',
     'texto': 'TEXTO',
     'lógico': 'LOGICO',
+    'booleano': 'LOGICO',
     'decimal': 'NUMERO',
+    'real': 'NUMERO',
+    'flutuante': 'NUMERO',
+    'data': 'DATA',
+    'dataHora': 'DATA_HORA',
+    'horario': 'HORARIO',
+    'tempo': 'HORARIO',
+    'json': 'JSON',
+    'objeto': 'JSON',
+    'uuid': 'TEXTO', // UUID será armazenado como texto
+    'binario': 'BLOB',
 };
 
 export class GeradorMigracoes {

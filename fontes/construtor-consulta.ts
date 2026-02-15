@@ -3,7 +3,23 @@ import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estrut
 
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 
-type OperadorCondicao = 'IGUAL' | 'MAIOR' | 'MAIOR_IGUAL' | 'MENOR' | 'MENOR_IGUAL' | 'EM';
+type OperadorCondicao = 
+    'IGUAL' | 
+    'DIFERENTE' | 
+    'MAIOR' | 
+    'MAIOR_IGUAL' | 
+    'MENOR' | 
+    'MENOR_IGUAL' | 
+    'EM' | 
+    'NAO_EM' |
+    'COMO' | 
+    'NAO_COMO' |
+    'ENTRE' |
+    'COMECA_COM' |
+    'TERMINA_COM' |
+    'CONTEM' |
+    'NULO' |
+    'NAO_NULO';
 
 interface Ordenacao {
     coluna: string;
@@ -61,6 +77,15 @@ export class ConstrutorConsulta {
      * Adiciona uma condição WHERE (AND).
      */
     onde(coluna: string, operador: OperadorCondicao, valor: any): ConstrutorConsulta {
+        // Operadores que lincones-js não suporta - gerar SQL manualmente
+        const operadoresNovos = ['DIFERENTE', 'COMO', 'NAO_COMO', 'NAO_EM', 'COMECA_COM', 'TERMINA_COM', 'CONTEM', 'ENTRE', 'NULO', 'NAO_NULO'];
+        
+        if (operadoresNovos.includes(operador)) {
+            const condicao = this.criarCondicao(coluna, operador, valor);
+            this._condicoesSqlExtras.push(this.traduzirCondicaoParaSql(condicao));
+            return this;
+        }
+
         if (operador === 'EM' && valor instanceof ConstrutorConsulta) {
             this._condicoesSqlExtras.push(`${coluna} IN (${valor.gerarSql()})`);
             return this;
@@ -81,6 +106,15 @@ export class ConstrutorConsulta {
      * Adiciona uma condição OR. Internamente cria um grupo separado de condições.
      */
     ou(coluna: string, operador: OperadorCondicao, valor: any): ConstrutorConsulta {
+        // Operadores que lincones-js não suporta - gerar SQL manualmente
+        const operadoresNovos = ['DIFERENTE', 'COMO', 'NAO_COMO', 'NAO_EM', 'COMECA_COM', 'TERMINA_COM', 'CONTEM', 'ENTRE', 'NULO', 'NAO_NULO'];
+        
+        if (operadoresNovos.includes(operador)) {
+            const condicao = this.criarCondicao(coluna, operador, valor);
+            this._condicoesOuSqlExtras.push(this.traduzirCondicaoParaSql(condicao));
+            return this;
+        }
+
         if (operador === 'EM' && valor instanceof ConstrutorConsulta) {
             this._condicoesOuSqlExtras.push(`${coluna} IN (${valor.gerarSql()})`);
             return this;
@@ -362,6 +396,27 @@ export class ConstrutorConsulta {
     }
 
     private criarCondicao(coluna: string, operador: OperadorCondicao, valor: any): Condicao {
+        // Operadores especiais que não precisam de valor
+        if (operador === 'NULO' || operador === 'NAO_NULO') {
+            return new Condicao(
+                new ReferenciaColuna(coluna),
+                operador as any,
+                null as any
+            );
+        }
+
+        // Para operadores LIKE (COMO, COMECA_COM, TERMINA_COM, CONTEM)
+        if (operador === 'COMECA_COM') {
+            valor = `${valor}%`;
+            operador = 'COMO';
+        } else if (operador === 'TERMINA_COM') {
+            valor = `%${valor}`;
+            operador = 'COMO';
+        } else if (operador === 'CONTEM') {
+            valor = `%${valor}%`;
+            operador = 'COMO';
+        }
+
         const tipoLiteral = typeof valor === 'number' ? 'INTEIRO' : 'TEXTO';
         return new Condicao(
             new ReferenciaColuna(coluna),
@@ -373,19 +428,48 @@ export class ConstrutorConsulta {
     private traduzirCondicaoParaSql(condicao: Condicao): string {
         const operadores: { [key: string]: string } = {
             'IGUAL': '=',
+            'DIFERENTE': '<>',
             'MAIOR': '>',
             'MAIOR_IGUAL': '>=',
             'MENOR': '<',
             'MENOR_IGUAL': '<=',
-            'EM': 'IN'
+            'EM': 'IN',
+            'NAO_EM': 'NOT IN',
+            'COMO': 'LIKE',
+            'NAO_COMO': 'NOT LIKE',
+            'NULO': 'IS NULL',
+            'NAO_NULO': 'IS NOT NULL'
         };
 
         const esquerda = (condicao.esquerda as ReferenciaColuna).nomeColuna;
-        const operador = operadores[condicao.operador] || '=';
-        const direita = (condicao.direita as Literal).valor;
+        const operadorStr = String(condicao.operador);
+        const operador = operadores[operadorStr] || '=';
+        
+        // Operadores IS NULL e IS NOT NULL não têm parte direita
+        if (operadorStr === 'NULO' || operadorStr === 'NAO_NULO') {
+            return `${esquerda} ${operador}`;
+        }
 
-        if (String(condicao.operador) === 'EM' && direita instanceof ConstrutorConsulta) {
-            return `${esquerda} IN (${direita.gerarSql()})`;
+        const direita = (condicao.direita as Literal)?.valor;
+
+        // Tratamento especial para IN e subconsultas
+        if ((operadorStr === 'EM' || operadorStr === 'NAO_EM') && direita instanceof ConstrutorConsulta) {
+            return `${esquerda} ${operador} (${direita.gerarSql()})`;
+        }
+
+        // Tratamento para IN com array de valores
+        if ((operadorStr === 'EM' || operadorStr === 'NAO_EM') && Array.isArray(direita)) {
+            const valoresFormatados = direita.map(v => 
+                typeof v === 'string' ? `'${v}'` : v
+            ).join(', ');
+            return `${esquerda} ${operador} (${valoresFormatados})`;
+        }
+
+        // Para BETWEEN, espera-se um array [min, max]
+        if (operadorStr === 'ENTRE' && Array.isArray(direita) && direita.length === 2) {
+            const min = typeof direita[0] === 'string' ? `'${direita[0]}'` : direita[0];
+            const max = typeof direita[1] === 'string' ? `'${direita[1]}'` : direita[1];
+            return `${esquerda} BETWEEN ${min} AND ${max}`;
         }
 
         const valorFormatado = typeof direita === 'string' ? `'${direita}'` : direita;

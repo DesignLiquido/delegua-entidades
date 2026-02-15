@@ -145,8 +145,26 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
     }
 
-    private validarRegistro(registro: ObjetoDeleguaClasse): void {
-        const erros = Validador.validar(this.tipoEntidade, registro);
+    private async validarRegistro(registro: ObjetoDeleguaClasse): Promise<void> {
+        // Função para verificar unicidade no banco
+        const verificadorUnicidade = async (campo: string, valor: any, idExcluir?: any): Promise<boolean> => {
+            const chavePrimaria = this.tipoEntidade.obterNomeChavePrimaria();
+            const nomeTabela = this.tipoEntidade.obterNome();
+            
+            // Construir consulta para verificar se já existe outro registro com este valor
+            const construtor = this.consulta();
+            construtor.onde(campo, 'IGUAL', valor);
+            
+            // Se estiver atualizando, excluir o registro atual da verificação
+            if (idExcluir !== undefined && idExcluir !== null) {
+                construtor.e(chavePrimaria, 'DIFERENTE', idExcluir);
+            }
+            
+            const registros = await construtor.todos();
+            return registros.length > 0;
+        };
+
+        const erros = await Validador.validar(this.tipoEntidade, registro, verificadorUnicidade);
         if (erros.length > 0) {
             throw new ErroDeValidacao(erros);
         }
@@ -190,7 +208,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     async salvar(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
-        this.validarRegistro(registro);
+        await this.validarRegistro(registro);
         await this.executarGanchos('antesDeInserir', registro);
         const comando = this.inserir(registro);
         const resultado = await this.executarComandoComRegistroOperacao(comando, 'INSERT');
@@ -200,7 +218,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     async modificar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
-        this.validarRegistro(registro);
+        await this.validarRegistro(registro);
         await this.executarGanchos('antesDeAtualizar', registro);
         const comando = this.atualizar(registro, colunas);
         const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE');
@@ -231,7 +249,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const resultados: RetornoComandoInterface[][] = [];
 
         for (const registro of registros) {
-            this.validarRegistro(registro);
+            await this.validarRegistro(registro);
             await this.executarGanchos('antesDeInserir', registro);
             const comando = this.inserir(registro);
             const resultado = await this.executarComandoComRegistroOperacao(comando, 'INSERT LOTE');
@@ -256,7 +274,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const resultados: RetornoComandoInterface[][] = [];
 
         for (const registro of registros) {
-            this.validarRegistro(registro);
+            await this.validarRegistro(registro);
             await this.executarGanchos('antesDeAtualizar', registro);
             const comando = this.atualizar(registro, colunas);
             const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE LOTE');
