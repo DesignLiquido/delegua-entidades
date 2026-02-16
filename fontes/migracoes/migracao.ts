@@ -4,6 +4,7 @@ export interface OperacaoMigracao {
     tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna' | 'adicionarIndice' | 'removerIndice' | 'adicionarRestricao' | 'removerRestricao';
     tabela: string;
     coluna?: Coluna;
+    colunaAnterior?: Coluna;
     colunas?: Coluna[];
     nomeColuna?: string;
     nomeIndice?: string;
@@ -30,8 +31,8 @@ export class Migracao {
         return this;
     }
 
-    excluirTabela(nome: string): Migracao {
-        this.operacoes.push({ tipo: 'excluirTabela', tabela: nome });
+    excluirTabela(nome: string, colunas?: Coluna[]): Migracao {
+        this.operacoes.push({ tipo: 'excluirTabela', tabela: nome, colunas });
         return this;
     }
 
@@ -40,13 +41,13 @@ export class Migracao {
         return this;
     }
 
-    removerColuna(tabela: string, nomeColuna: string): Migracao {
-        this.operacoes.push({ tipo: 'removerColuna', tabela, nomeColuna });
+    removerColuna(tabela: string, nomeColuna: string, colunaAnterior?: Coluna): Migracao {
+        this.operacoes.push({ tipo: 'removerColuna', tabela, nomeColuna, colunaAnterior });
         return this;
     }
 
-    alterarColuna(tabela: string, coluna: Coluna): Migracao {
-        this.operacoes.push({ tipo: 'alterarColuna', tabela, coluna });
+    alterarColuna(tabela: string, coluna: Coluna, colunaAnterior?: Coluna): Migracao {
+        this.operacoes.push({ tipo: 'alterarColuna', tabela, coluna, colunaAnterior });
         return this;
     }
 

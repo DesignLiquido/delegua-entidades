@@ -1,4 +1,4 @@
-import { CarregadorLote, GerenciadorCarregadoresLote } from "../fontes/carregador-lotes";
+import { CarregadorLote, GerenciadorCarregadoresLote } from "../../fontes/carregador-lotes";
 
 describe("Carregador em Lote (DataLoader)", () => {
     describe("CarregadorLote", () => {

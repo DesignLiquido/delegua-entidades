@@ -65,8 +65,9 @@ export class GeradorMigracoes {
             }
         }
 
-        for (const [nomeTabela] of schemasMap) {
-            migracao.excluirTabela(nomeTabela);
+        for (const [nomeTabela, schema] of schemasMap) {
+            const colunas = schema.colunas.map((coluna) => new Coluna(coluna.nome, coluna.tipo));
+            migracao.excluirTabela(nomeTabela, colunas);
         }
 
         return migracao;
@@ -110,16 +111,19 @@ export class GeradorMigracoes {
                     new Coluna(nome, tipoEsperado, undefined, true, false, false, false)
                 );
             } else if (colunaExistente.tipo !== tipoEsperado) {
+                const colunaAnterior = new Coluna(nome, colunaExistente.tipo);
                 migracao.alterarColuna(
                     schemaExistente.nomeTabela,
-                    new Coluna(nome, tipoEsperado)
+                    new Coluna(nome, tipoEsperado),
+                    colunaAnterior
                 );
             }
         }
 
-        for (const [nomeColuna] of colunasExistentes) {
+        for (const [nomeColuna, colunaExistente] of colunasExistentes) {
             if (!nomesColunasEntidade.has(nomeColuna)) {
-                migracao.removerColuna(schemaExistente.nomeTabela, nomeColuna);
+                const colunaAnterior = new Coluna(nomeColuna, colunaExistente.tipo);
+                migracao.removerColuna(schemaExistente.nomeTabela, nomeColuna, colunaAnterior);
             }
         }
     }

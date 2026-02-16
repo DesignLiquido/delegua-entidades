@@ -221,6 +221,33 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
     }
 
+    private async existeRegistroPorChaves(registro: ObjetoDeleguaClasse): Promise<boolean> {
+        const chaves = this.tipoEntidade.obterNomesChavesPrimarias();
+        if (chaves.length === 0) {
+            return false;
+        }
+
+        const construtor = this.consulta();
+        let primeiraCondicao = true;
+
+        for (const chave of chaves) {
+            const valor = registro.propriedades[chave];
+            if (valor === undefined || valor === null) {
+                return false;
+            }
+
+            if (primeiraCondicao) {
+                construtor.onde(chave, 'IGUAL', valor);
+                primeiraCondicao = false;
+            } else {
+                construtor.e(chave, 'IGUAL', valor);
+            }
+        }
+
+        const registros = await construtor.todos();
+        return registros.length > 0;
+    }
+
     private async executarComandoComRegistroOperacao(comando: any, operacao: string): Promise<RetornoComandoInterface[]> {
         const tabela = this.tipoEntidade.obterNome();
         this.taquigrafo?.depuracao(`${operacao} em ${tabela}`, { comando: comando.constructor.name });
@@ -285,6 +312,21 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         
         await this.executarGanchos('aposAtualizar', registro);
         return resultado;
+    }
+
+    async salvarOuAtualizar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Promise<RetornoComandoInterface[]> {
+        this.verificarTecnologia();
+
+        const existe = await this.existeRegistroPorChaves(registro);
+        if (existe) {
+            return this.modificar(registro, colunas);
+        }
+
+        return this.salvar(registro);
+    }
+
+    async upsert(registro: ObjetoDeleguaClasse, colunas: string[] = []): Promise<RetornoComandoInterface[]> {
+        return this.salvarOuAtualizar(registro, colunas);
     }
 
     async remover(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {

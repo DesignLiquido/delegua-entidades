@@ -6,10 +6,10 @@ import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 import { Decorador } from "@designliquido/delegua/construtos";
 
-import { Entidade } from "../fontes/entidade";
-import { Colecao } from "../fontes/colecao";
-import { CarregadorPreguicoso } from "../fontes/carregador-preguicoso";
-import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
+import { Entidade } from "../../fontes/entidade";
+import { Colecao } from "../../fontes/colecao";
+import { CarregadorPreguicoso } from "../../fontes/carregador-preguicoso";
+import { BonecoTecnologia } from "../auxiliar/boneco-tecnologia";
 
 describe('Carregamento Preguiçoso (Lazy Loading)', () => {
     describe('Proxy com carregamento sob demanda', () => {

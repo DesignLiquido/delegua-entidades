@@ -148,6 +148,30 @@ describe('Migrações', () => {
             expect(tecnologiaMock.comandosExecutados[0]).toContain('DROP COLUMN');
         });
 
+        it('executa migração adicionarIndice via SQL direto', async () => {
+            const executor = new ExecutorMigracoes(tecnologiaMock);
+            const migracao = new Migracao('006', 'Adicionar índice')
+                .adicionarIndice('Artigo', 'idx_artigo_titulo', ['titulo'], false, 'BTREE');
+
+            await executor.executar(migracao);
+
+            expect(tecnologiaMock.comandosExecutados).toHaveLength(1);
+            expect(typeof tecnologiaMock.comandosExecutados[0]).toBe('string');
+            expect(tecnologiaMock.comandosExecutados[0]).toContain('CREATE INDEX');
+        });
+
+        it('executa migração adicionarRestricao via SQL direto', async () => {
+            const executor = new ExecutorMigracoes(tecnologiaMock);
+            const migracao = new Migracao('007', 'Adicionar restrição')
+                .adicionarRestricao('Artigo', 'ck_artigo_titulo', 'titulo <> ""');
+
+            await executor.executar(migracao);
+
+            expect(tecnologiaMock.comandosExecutados).toHaveLength(1);
+            expect(typeof tecnologiaMock.comandosExecutados[0]).toBe('string');
+            expect(tecnologiaMock.comandosExecutados[0]).toContain('ADD CONSTRAINT');
+        });
+
         it('executarTodas executa múltiplas migrações em ordem', async () => {
             const executor = new ExecutorMigracoes(tecnologiaMock);
             const migracoes = [
@@ -171,6 +195,21 @@ describe('Migrações', () => {
 
             expect(mensagens.length).toBeGreaterThan(0);
             expect(mensagens.some(m => m.includes('001'))).toBe(true);
+        });
+
+        it('reverte migração em ordem inversa', async () => {
+            const executor = new ExecutorMigracoes(tecnologiaMock);
+            const migracao = new Migracao('008', 'Reverter operações')
+                .adicionarColuna('Artigo', new Coluna('resumo', 'TEXTO'))
+                .adicionarIndice('Artigo', 'idx_artigo_resumo', ['resumo'])
+                .adicionarRestricao('Artigo', 'ck_artigo_resumo', 'resumo <> ""');
+
+            await executor.reverter(migracao);
+
+            expect(tecnologiaMock.comandosExecutados).toHaveLength(3);
+            expect(tecnologiaMock.comandosExecutados[0]).toContain('DROP CONSTRAINT');
+            expect(tecnologiaMock.comandosExecutados[1]).toContain('DROP INDEX');
+            expect(tecnologiaMock.comandosExecutados[2]).toContain('DROP COLUMN');
         });
     });
 

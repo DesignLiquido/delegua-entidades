@@ -6,9 +6,9 @@ import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 import { Decorador } from "@designliquido/delegua/construtos";
 
-import { Entidade } from "../fontes/entidade";
-import { ConstrutorConsulta } from "../fontes/construtor-consulta";
-import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
+import { Entidade } from "../../fontes/entidade";
+import { ConstrutorConsulta } from "../../fontes/construtor-consulta";
+import { BonecoTecnologia } from "../auxiliar/boneco-tecnologia";
 
 describe('Carregamento Antecipado (Eager Loading)', () => {
     let tecnologia: BonecoTecnologia;
