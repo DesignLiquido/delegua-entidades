@@ -62,6 +62,23 @@ const artigos = contexto.colecao(Artigo).todos()
 escreva(artigos) // Imprime a lista de todos os artigos encontrados.
 ```
 
+### Colunas computadas
+
+Colunas computadas podem ser declaradas com o decorador `@computada`, informando a expressao SQL e se a coluna e persistida:
+
+```js
+classe Pedido {
+  id: numero
+  quantidade: numero
+  preco: numero
+
+  @computada({ expressao: "quantidade * preco", persistida: verdadeiro })
+  total: numero
+}
+```
+
+Colunas computadas nao sao incluídas em inserts/updates, mas podem ser lidas normalmente nas consultas.
+
 ### Comandos
 
 Entidades conta com alguns comandos de seleção e manipulação de dados:

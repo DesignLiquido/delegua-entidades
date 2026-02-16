@@ -14,6 +14,7 @@ import { MuitoParaMuitoInterface } from "./interfaces-tipos/muito-para-muitos-in
 import { PolimorficInterface } from "./interfaces-tipos/polimorfico-interface";
 import { IndiceInterface } from "./interfaces-tipos/indice-interface";
 import { RestricaoInterface } from "./interfaces-tipos/restricao-interface";
+import { ColunaComputadaInterface } from "./interfaces-tipos/coluna-computada-interface";
 import { Relacionamento } from "./relacionamento";
 
 /**
@@ -27,6 +28,7 @@ export class Entidade implements EntidadeInterface {
     nomePropriedadesChavesPrimarias: string[] = [];
     indices: IndiceInterface[] = [];
     restricoes: RestricaoInterface[] = [];
+    colunasComputadas: ColunaComputadaInterface[] = [];
     muitosParaMuitos: MuitoParaMuitoInterface[] = [];
     polimorficos: PolimorficInterface[] = [];
     nomePropriedadeVersao: string;
@@ -82,6 +84,21 @@ export class Entidade implements EntidadeInterface {
                         nome: decorador.atributos?.nome || `constr_${propriedade.nome.lexema}`,
                         sql: decorador.atributos?.sql || decorador.atributos?.restricao || '',
                         tipo: 'CHECK'
+                    });
+                }
+
+                // Detectar colunas computadas
+                if (decorador.nome === "@computada") {
+                    const expressao = decorador.atributos?.expressao || decorador.atributos?.sql;
+                    if (!expressao) {
+                        throw new Error(`Coluna computada '${propriedade.nome.lexema}' precisa de expressao.`);
+                    }
+
+                    this.colunasComputadas.push({
+                        nome: propriedade.nome.lexema,
+                        tipo: this.traduzirTipo(propriedade.tipo || "texto"),
+                        expressao: expressao,
+                        persistida: decorador.atributos?.persistida
                     });
                 }
 
@@ -206,6 +223,21 @@ export class Entidade implements EntidadeInterface {
                     });
                 }
 
+                // Detectar colunas computadas
+                if (decorador.nome === "computada") {
+                    const expressao = decorador.atributos?.expressao || decorador.atributos?.sql;
+                    if (!expressao) {
+                        throw new Error(`Coluna computada '${propriedade.nome.lexema}' precisa de expressao.`);
+                    }
+
+                    this.colunasComputadas.push({
+                        nome: propriedade.nome.lexema,
+                        tipo: this.traduzirTipo(propriedade.tipo || "texto"),
+                        expressao: expressao,
+                        persistida: decorador.atributos?.persistida
+                    });
+                }
+
                 // Detectar relacionamentos muitos-para-muitos
                 if (decorador.nome === "temMuitosParaMuitos") {
                     const entidadeDestino = decorador.atributos?.entidade;
@@ -291,6 +323,10 @@ export class Entidade implements EntidadeInterface {
 
     obterRestricoes(): RestricaoInterface[] {
         return this.restricoes;
+    }
+
+    obterColunasComputadas(): ColunaComputadaInterface[] {
+        return this.colunasComputadas;
     }
 
     obterMuitosParaMuitos(): MuitoParaMuitoInterface[] {
@@ -414,6 +450,11 @@ export class Entidade implements EntidadeInterface {
         return nomesColunas;
     }
 
+    obterNomesColunasPersistentes(): string[] {
+        const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
+        return this.obterNomesColunas().filter((nome) => !nomesComputadas.has(nome));
+    }
+
     /**
      * Traduz um tipo Delégua para o equivalente em lincones-js.
      * @param tipo O tipo Delégua a ser traduzido.
@@ -458,9 +499,14 @@ export class Entidade implements EntidadeInterface {
 
     resolverValoresParaColunas(registro: ObjetoDeleguaClasse, colunas: string[]): any[] {
         const valores: any[] = [];
+        const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
             if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
                 throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo.simboloOriginal.lexema}.`);
+            }
+
+            if (nomesComputadas.has(coluna)) {
+                throw new Error(`Coluna computada ${coluna} nao pode receber valor manual.`);
             }
 
             valores.push(registro.propriedades[coluna]);
@@ -471,9 +517,14 @@ export class Entidade implements EntidadeInterface {
 
     resolverColunasEValores(registro: ObjetoDeleguaClasse, colunas: string[]): ColunaEValor[] {
         const colunasEValores: ColunaEValor[] = [];
+        const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
             if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
                 throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo.simboloOriginal.lexema}.`);
+            }
+
+            if (nomesComputadas.has(coluna)) {
+                throw new Error(`Coluna computada ${coluna} nao pode ser atualizada.`);
             }
 
             colunasEValores.push(
@@ -489,8 +540,12 @@ export class Entidade implements EntidadeInterface {
 
     gerarComandoCriarTabela(): Criar {
         const colunas: Coluna[] = [];
+        const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const propriedade of this.modelo.propriedades) {
             const nome = propriedade.nome.lexema;
+            if (nomesComputadas.has(nome)) {
+                continue;
+            }
             const tipo = propriedade.tipo ? this.traduzirTipo(propriedade.tipo) : "TEXTO";
             const chavePrimaria = nome === this.nomePropriedadeChavePrimaria;
             colunas.push(new Coluna(nome, tipo, undefined, !chavePrimaria, chavePrimaria, false, chavePrimaria));

@@ -1,6 +1,7 @@
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 
+import { CarregadorLote, GerenciadorCarregadoresLote } from "./carregador-lotes";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-interface";
 
@@ -11,6 +12,7 @@ import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-inter
 export class CarregadorPreguicoso {
     private tecnologia: TecnologiaLinconesInterface;
     private entidadesCache: Map<string, any> = new Map();
+    private gerenciadorCarregadoresLote: GerenciadorCarregadoresLote = new GerenciadorCarregadoresLote();
 
     constructor(tecnologia: TecnologiaLinconesInterface) {
         this.tecnologia = tecnologia;
@@ -103,18 +105,11 @@ export class CarregadorPreguicoso {
         }
 
         let resultado: any;
+        const valorChave = registro.propriedades[rel.colunaOrigem];
 
-        if (rel.tipo === 'pertenceA' || rel.tipo === 'temUm') {
-            // Um-para-um: carregar um único registro
-            const valorChave = registro.propriedades[rel.colunaOrigem];
-            resultado = await colecaoDestino.buscarPorId(valorChave);
-        } else if (rel.tipo === 'temMuitos') {
-            // Um-para-muitos: carregar múltiplos registros
-            const valorChaveOrigem = registro.propriedades[rel.colunaOrigem];
-            resultado = await colecaoDestino
-                .consulta()
-                .onde(rel.colunaDestino, 'IGUAL', valorChaveOrigem)
-                .todos();
+        if (rel.tipo === 'pertenceA' || rel.tipo === 'temUm' || rel.tipo === 'temMuitos') {
+            const carregador = this.obterCarregadorLote(rel, colecaoDestino);
+            resultado = await carregador.carregar(valorChave);
         }
 
         // Armazenar no cache
@@ -127,5 +122,92 @@ export class CarregadorPreguicoso {
      */
     limparCache(): void {
         this.entidadesCache.clear();
+        this.gerenciadorCarregadoresLote.limparTodos();
+    }
+
+    private obterCarregadorLote(
+        rel: RelacionamentoInterface,
+        colecaoDestino: any
+    ): CarregadorLote<any> {
+        const chaveCarregador = `${rel.entidadeDestino}:${rel.nomePropriedade}`;
+        const existente = this.gerenciadorCarregadoresLote.obterCarregador(chaveCarregador);
+        if (existente) {
+            return existente;
+        }
+
+        const carregador = this.gerenciadorCarregadoresLote.criarCarregador(
+            chaveCarregador,
+            async (ids: any[]) => this.carregarEmLote(rel, colecaoDestino, ids)
+        );
+
+        return carregador;
+    }
+
+    private async carregarEmLote(
+        rel: RelacionamentoInterface,
+        colecaoDestino: any,
+        ids: any[]
+    ): Promise<Map<any, any>> {
+        const valoresUnicos = Array.from(
+            new Set(ids.filter((valor) => valor !== undefined && valor !== null))
+        );
+
+        if (valoresUnicos.length === 0) {
+            return new Map();
+        }
+
+        const valoresSql = valoresUnicos.map((valor) => this.formatarValorSql(valor)).join(', ');
+        const sql = `SELECT * FROM ${rel.entidadeDestino} WHERE ${rel.colunaDestino} IN (${valoresSql})`;
+
+        const resultados = await this.tecnologia.executar(null, sql, []);
+        const linhas = resultados[0]?.linhasRetornadas || [];
+        const hidratados = colecaoDestino?.tipoEntidade?.hidratarRegistros
+            ? colecaoDestino.tipoEntidade.hidratarRegistros(linhas)
+            : linhas;
+
+        const agrupados = new Map<any, any[]>();
+        for (const valor of valoresUnicos) {
+            agrupados.set(valor, []);
+        }
+
+        for (const item of hidratados) {
+            const chave = this.obterValorColuna(item, rel.colunaDestino);
+            if (!agrupados.has(chave)) {
+                agrupados.set(chave, []);
+            }
+            agrupados.get(chave)!.push(item);
+        }
+
+        const resultado = new Map<any, any>();
+        for (const valor of valoresUnicos) {
+            const itens = agrupados.get(valor) || [];
+            if (rel.tipo === 'temMuitos') {
+                resultado.set(valor, itens);
+            } else {
+                resultado.set(valor, itens.length > 0 ? itens[0] : null);
+            }
+        }
+
+        return resultado;
+    }
+
+    private formatarValorSql(valor: any): string {
+        if (typeof valor === 'string') {
+            return `'${valor}'`;
+        }
+
+        if (typeof valor === 'boolean') {
+            return valor ? '1' : '0';
+        }
+
+        return String(valor);
+    }
+
+    private obterValorColuna(item: any, coluna: string): any {
+        if (item?.propriedades && coluna in item.propriedades) {
+            return item.propriedades[coluna];
+        }
+
+        return item?.[coluna];
     }
 }

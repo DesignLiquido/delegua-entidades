@@ -117,6 +117,18 @@ export class ExecutorMigracoes {
                 await this.tecnologia.executar(null, sql, []);
                 break;
             }
+            case 'adicionarColunaComputada': {
+                this.logger?.depuracao(`Adicionando coluna computada ${operacao.nomeColuna} em ${operacao.tabela}`);
+                if (!operacao.nomeColuna || !operacao.tipoColuna || !operacao.expressaoColuna) {
+                    throw new Error(`Coluna computada precisa de nome, tipo e expressao.`);
+                }
+                const sufixoPersistencia = operacao.persistida === true
+                    ? ' STORED'
+                    : (operacao.persistida === false ? ' VIRTUAL' : '');
+                const sql = `ALTER TABLE ${operacao.tabela} ADD COLUMN ${operacao.nomeColuna} ${operacao.tipoColuna} GENERATED ALWAYS AS (${operacao.expressaoColuna})${sufixoPersistencia}`;
+                await this.tecnologia.executar(null, sql, []);
+                break;
+            }
         }
     }
 
@@ -170,6 +182,8 @@ export class ExecutorMigracoes {
                     nomeRestricao: operacao.nomeRestricao,
                     sqlRestricao: operacao.sqlRestricao
                 };
+            case 'adicionarColunaComputada':
+                return { tipo: 'removerColuna', tabela: operacao.tabela, nomeColuna: operacao.nomeColuna };
             default:
                 throw new Error(`Tipo de operação de migração não suportado: ${operacao.tipo}`);
         }

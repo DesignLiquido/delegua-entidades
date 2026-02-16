@@ -6,6 +6,7 @@ import { MuitoParaMuitoInterface } from "./muito-para-muitos-interface";
 import { PolimorficInterface } from "./polimorfico-interface";
 import { IndiceInterface } from "./indice-interface";
 import { RestricaoInterface } from "./restricao-interface";
+import { ColunaComputadaInterface } from "./coluna-computada-interface";
 
 export interface EntidadeInterface {
     modelo: DescritorTipoClasse;
@@ -16,11 +17,13 @@ export interface EntidadeInterface {
     obterRelacionamentos(): RelacionamentoInterface[];
     obterIndices(): IndiceInterface[];
     obterRestricoes(): RestricaoInterface[];
+    obterColunasComputadas(): ColunaComputadaInterface[];
     obterMuitosParaMuitos(): MuitoParaMuitoInterface[];
     obterPolimorficos(): PolimorficInterface[];
     obterNomePropriedadeVersao(): string;
     obterNomeBancoDados(): string;
     obterNomeColunaExclusaoLogica(): string;
+    obterNomesColunasPersistentes(): string[];
     possuiCriadoEm(): boolean;
     possuiAtualizadoEm(): boolean;
     possuiExclusaoLogica(): boolean;

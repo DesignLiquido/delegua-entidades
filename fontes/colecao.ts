@@ -97,7 +97,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     }
 
     inserir(registro: ObjetoDeleguaClasse): Inserir {
-        const nomesColunas = this.tipoEntidade.obterNomesColunas();
+        const nomesColunas = this.tipoEntidade.obterNomesColunasPersistentes();
         const valoresColunas = this.tipoEntidade.resolverValoresParaColunas(registro, nomesColunas);
         return new Inserir(-1, this.tipoEntidade.obterNome(), nomesColunas, valoresColunas);
     }
@@ -105,7 +105,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     atualizar(registro: ObjetoDeleguaClasse, colunas: string[] = []): Atualizar {
         let colunasAtualizacao = colunas;
         if (colunasAtualizacao.length === 0) {
-            colunasAtualizacao = this.tipoEntidade.obterNomesColunas();
+            colunasAtualizacao = this.tipoEntidade.obterNomesColunasPersistentes();
         }
 
         const nomePropriedadeVersao = this.tipoEntidade.obterNomePropriedadeVersao?.() || "";

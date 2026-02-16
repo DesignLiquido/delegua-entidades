@@ -1,12 +1,15 @@
 import { Coluna } from "@designliquido/lincones-js";
 
 export interface OperacaoMigracao {
-    tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna' | 'adicionarIndice' | 'removerIndice' | 'adicionarRestricao' | 'removerRestricao';
+    tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna' | 'adicionarIndice' | 'removerIndice' | 'adicionarRestricao' | 'removerRestricao' | 'adicionarColunaComputada';
     tabela: string;
     coluna?: Coluna;
     colunaAnterior?: Coluna;
     colunas?: Coluna[];
     nomeColuna?: string;
+    tipoColuna?: string;
+    expressaoColuna?: string;
+    persistida?: boolean;
     nomeIndice?: string;
     nomeRestricao?: string;
     tipoIndice?: 'BTREE' | 'HASH' | 'GIST' | 'GIN';
@@ -70,6 +73,24 @@ export class Migracao {
 
     adicionarRestricao(tabela: string, nomeRestricao: string, sql: string): Migracao {
         this.operacoes.push({ tipo: 'adicionarRestricao', tabela, nomeRestricao, sqlRestricao: sql });
+        return this;
+    }
+
+    adicionarColunaComputada(
+        tabela: string,
+        nomeColuna: string,
+        tipoColuna: string,
+        expressaoColuna: string,
+        persistida?: boolean
+    ): Migracao {
+        this.operacoes.push({
+            tipo: 'adicionarColunaComputada',
+            tabela,
+            nomeColuna,
+            tipoColuna,
+            expressaoColuna,
+            persistida
+        });
         return this;
     }
 

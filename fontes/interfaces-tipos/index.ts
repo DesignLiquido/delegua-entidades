@@ -4,6 +4,7 @@ export * from './configuracao-banco-dados-interface';
 export * from './entidade-interface';
 export * from './ganchos';
 export * from './indice-interface';
+export * from './coluna-computada-interface';
 export * from './informacao-consulta-interface';
 export * from './muito-para-muitos-interface';
 export * from './polimorfico-interface';

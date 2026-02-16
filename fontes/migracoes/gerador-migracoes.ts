@@ -57,6 +57,17 @@ export class GeradorMigracoes {
                 for (const restricao of entidade.obterRestricoes()) {
                     migracao.adicionarRestricao(nomeTabela, restricao.nome, restricao.sql);
                 }
+
+                // Adicionar colunas computadas
+                for (const computada of entidade.obterColunasComputadas()) {
+                    migracao.adicionarColunaComputada(
+                        nomeTabela,
+                        computada.nome,
+                        computada.tipo,
+                        computada.expressao,
+                        computada.persistida
+                    );
+                }
             } else {
                 GeradorMigracoes.compararEGerarAlteracoes(
                     entidade, schemaExistente, migracao
@@ -76,9 +87,13 @@ export class GeradorMigracoes {
     private static gerarColunasParaEntidade(entidade: EntidadeInterface): Coluna[] {
         const colunas: Coluna[] = [];
         const chavePrimaria = entidade.obterNomeChavePrimaria();
+        const nomesComputadas = new Set(entidade.obterColunasComputadas().map((c) => c.nome));
 
         for (const propriedade of entidade.modelo.propriedades) {
             const nome = propriedade.nome.lexema;
+            if (nomesComputadas.has(nome)) {
+                continue;
+            }
             const tipo = MAPEAMENTO_TIPOS[propriedade.tipo] || 'TEXTO';
             const ehChavePrimaria = nome === chavePrimaria;
             colunas.push(new Coluna(nome, tipo, undefined, !ehChavePrimaria, ehChavePrimaria, false, ehChavePrimaria));
@@ -116,6 +131,18 @@ export class GeradorMigracoes {
                     schemaExistente.nomeTabela,
                     new Coluna(nome, tipoEsperado),
                     colunaAnterior
+                );
+            }
+        }
+
+        for (const computada of entidade.obterColunasComputadas()) {
+            if (!colunasExistentes.has(computada.nome)) {
+                migracao.adicionarColunaComputada(
+                    schemaExistente.nomeTabela,
+                    computada.nome,
+                    computada.tipo,
+                    computada.expressao,
+                    computada.persistida
                 );
             }
         }
