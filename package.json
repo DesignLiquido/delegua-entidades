@@ -5,7 +5,8 @@
   "scripts": {
     "testes-unitarios": "jest --coverage",
     "migracoes": "ts-node fontes/ilc/migracoes.ts",
-    "sementes": "ts-node fontes/ilc/semeadura.ts"
+    "sementes": "ts-node fontes/ilc/semeadura.ts",
+    "gerar-entidade": "ts-node fontes/ilc/gerador-entidades.ts"
   },
   "license": "MIT",
   "devDependencies": {
