@@ -17,7 +17,7 @@ export class BonecoTecnologia implements TecnologiaLinconesInterface {
     async executar(_: any, _sentencaLincones: string, _parametros: any[]): Promise<RetornoComandoInterface[]> {
         this.comandosExecutados.push(_sentencaLincones);
         
-        // Parse basic SELECT queries for eager loading
+        // Parse basic SELECT consultas for eager loading
         if (_sentencaLincones.includes('SELECT')) {
             const matchTable = _sentencaLincones.match(/FROM\s+(\w+)/i);
             if (matchTable) {
@@ -61,7 +61,7 @@ export class BonecoTecnologia implements TecnologiaLinconesInterface {
             }
         }
 
-        // Parse basic DELETE queries for cascade
+        // Parse basic DELETE consultas for cascade
         if (_sentencaLincones.includes('DELETE')) {
             const matchTable = _sentencaLincones.match(/FROM\s+(\w+)/i);
             if (matchTable) {

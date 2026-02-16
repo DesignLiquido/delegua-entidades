@@ -325,7 +325,7 @@ describe('Carregamento Preguiçoso (Lazy Loading)', () => {
             // Primeira carga
             await carregador.carregarRelacionamento(usuario, entidadeUsuario, 'perfil', colecoes);
 
-            // Segunda carga deve vir do cache (sem executar query novamente)
+            // Segunda carga deve vir do cache (sem executar consulta novamente)
             const resultado2 = await carregador.carregarRelacionamento(usuario, entidadeUsuario, 'perfil', colecoes);
 
             expect(resultado2).toBeDefined();
