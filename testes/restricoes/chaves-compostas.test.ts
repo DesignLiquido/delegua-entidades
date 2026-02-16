@@ -7,7 +7,7 @@ import { Decorador } from "@designliquido/delegua/construtos";
 
 import { Condicao } from "@designliquido/lincones-js";
 
-import { Entidade } from "../fontes/entidade";
+import { Entidade } from "../../fontes/entidade";
 
 describe('Chaves Compostas', () => {
     describe('Detecção de chaves primárias compostas', () => {

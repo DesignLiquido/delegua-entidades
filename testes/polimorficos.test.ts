@@ -8,7 +8,7 @@ import { Decorador } from "@designliquido/delegua/construtos";
 import { Entidade } from "../fontes/entidade";
 import { PolimorficInterface } from "../fontes/interfaces-tipos/polimorfico-interface";
 
-describe('Relacionamentos Polimórficos (Sprint 3)', () => {
+describe('Relacionamentos Polimórficos', () => {
     let descritarComentario: DescritorTipoClasse;
     let descritarPostagem: DescritorTipoClasse;
     let descritarVideo: DescritorTipoClasse;

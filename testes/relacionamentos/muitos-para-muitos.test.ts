@@ -5,10 +5,10 @@ import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 import { Decorador } from "@designliquido/delegua/construtos";
 
-import { Entidade } from "../fontes/entidade";
-import { MuitoParaMuitoInterface } from "../fontes/interfaces-tipos/muito-para-muitos-interface";
+import { Entidade } from "../../fontes/entidade";
+import { MuitoParaMuitoInterface } from "../../fontes/interfaces-tipos/muito-para-muitos-interface";
 
-describe('Relacionamentos Muitos-para-Muitos (Sprint 3)', () => {
+describe('Relacionamentos Muitos-para-Muitos', () => {
     let descritarUsuario: DescritorTipoClasse;
     let descritarPapel: DescritorTipoClasse;
     let entidadeUsuario: Entidade;

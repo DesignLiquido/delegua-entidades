@@ -5,9 +5,9 @@ import {
 import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 
-import { ContextoEntidades } from "../fontes/contexto-entidades";
-import { Entidade } from "../fontes/entidade";
-import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
+import { ContextoEntidades } from "../../fontes/contexto-entidades";
+import { Entidade } from "../../fontes/entidade";
+import { BonecoTecnologia } from "../auxiliar/boneco-tecnologia";
 
 describe('Transações', () => {
     describe('Gerenciamento de transações', () => {

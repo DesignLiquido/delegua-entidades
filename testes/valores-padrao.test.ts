@@ -10,7 +10,7 @@ import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
 import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
-describe('Valores Padrão - Sprint 2', () => {
+describe('Valores Padrão', () => {
     describe('Detecção de @padrao', () => {
         it('detecta decorador @padrao com valor numérico', () => {
             const descritor = new DescritorTipoClasse(
