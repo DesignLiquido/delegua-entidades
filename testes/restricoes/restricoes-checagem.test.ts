@@ -7,7 +7,7 @@ import { Decorador } from "@designliquido/delegua/construtos";
 
 import { Entidade } from "../../fontes/entidade";
 import { GeradorMigracoes } from "../../fontes/migracoes/gerador-migracoes";
-import { RestriacaoInterface } from "../../fontes/interfaces-tipos/restricao-interface";
+import { RestricaoInterface } from "../../fontes/interfaces-tipos/restricao-interface";
 
 describe('Restrições de checagem', () => {
     describe('Detecção de @restricao', () => {

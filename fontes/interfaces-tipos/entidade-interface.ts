@@ -2,8 +2,10 @@ import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua
 import { ColunaEValor, Condicao, Criar } from "@designliquido/lincones-js";
 
 import { RelacionamentoInterface } from "./relacionamento-interface";
+import { MuitoParaMuitoInterface } from "./muito-para-muitos-interface";
+import { PolimorficInterface } from "./polimorfico-interface";
 import { IndiceInterface } from "./indice-interface";
-import { RestriacaoInterface } from "./restricao-interface";
+import { RestricaoInterface } from "./restricao-interface";
 
 export interface EntidadeInterface {
     modelo: DescritorTipoClasse;
@@ -13,7 +15,9 @@ export interface EntidadeInterface {
     obterNomesColunas(): string[];
     obterRelacionamentos(): RelacionamentoInterface[];
     obterIndices(): IndiceInterface[];
-    obterRestricoes(): RestriacaoInterface[];
+    obterRestricoes(): RestricaoInterface[];
+    obterMuitosParaMuitos(): MuitoParaMuitoInterface[];
+    obterPolimorficos(): PolimorficInterface[];
     obterNomeBancoDados(): string;
     obterNomeColunaExclusaoLogica(): string;
     possuiCriadoEm(): boolean;

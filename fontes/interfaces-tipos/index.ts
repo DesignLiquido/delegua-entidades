@@ -6,4 +6,6 @@ export * from './configuracao-banco-dados-interface';
 export * from './transacao-interface';
 export * from './indice-interface';
 export * from './restricao-interface';
+export * from './muito-para-muitos-interface';
+export * from './polimorfico-interface';
 export * from './ganchos';

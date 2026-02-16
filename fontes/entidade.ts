@@ -10,8 +10,10 @@ import { pluralizar } from "@designliquido/flexoes";
 import { TabelaInterface } from "./interfaces-tipos/tabela-interface";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-interface";
+import { MuitoParaMuitoInterface } from "./interfaces-tipos/muito-para-muitos-interface";
+import { PolimorficInterface } from "./interfaces-tipos/polimorfico-interface";
 import { IndiceInterface } from "./interfaces-tipos/indice-interface";
-import { RestriacaoInterface } from "./interfaces-tipos/restricao-interface";
+import { RestricaoInterface } from "./interfaces-tipos/restricao-interface";
 import { Relacionamento } from "./relacionamento";
 
 /**
@@ -24,7 +26,9 @@ export class Entidade implements EntidadeInterface {
     nomePropriedadeChavePrimaria: string;
     nomePropriedadesChavesPrimarias: string[] = [];
     indices: IndiceInterface[] = [];
-    restricoes: RestriacaoInterface[] = [];
+    restricoes: RestricaoInterface[] = [];
+    muitosParaMuitos: MuitoParaMuitoInterface[] = [];
+    polimorficos: PolimorficInterface[] = [];
 
     /**
      * Construtor da classe Entidades.
@@ -77,6 +81,41 @@ export class Entidade implements EntidadeInterface {
                         nome: decorador.atributos?.nome || `constr_${propriedade.nome.lexema}`,
                         sql: decorador.atributos?.sql || decorador.atributos?.restricao || '',
                         tipo: 'CHECK'
+                    });
+                }
+
+                // Detectar relacionamentos muitos-para-muitos
+                if (decorador.nome === "@temMuitosParaMuitos") {
+                    const entidadeDestino = decorador.atributos?.entidade;
+                    if (!entidadeDestino) continue;
+
+                    const nomeEntidade = modelo.simbolo.lexema;
+                    const nomeEntidadeDestino = entidadeDestino;
+                    const tabelaIntermediaria = 
+                        decorador.atributos?.tabelaIntermediaria || 
+                        `${nomeEntidade.toLowerCase()}_${nomeEntidadeDestino.toLowerCase()}`;
+
+                    this.muitosParaMuitos.push({
+                        tipo: 'muitoParaMuitos',
+                        nomePropriedade: propriedade.nome.lexema,
+                        entidadeDestino: entidadeDestino,
+                        tabelaIntermediaria: tabelaIntermediaria,
+                        colunaOrigem: decorador.atributos?.colunaOrigem || `${nomeEntidade.toLowerCase()}_id`,
+                        colunaDestino: decorador.atributos?.colunaDestino || `${nomeEntidadeDestino.toLowerCase()}_id`,
+                        deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
+                    });
+                }
+
+                // Detectar relacionamentos polimórficos
+                if (decorador.nome === "@polimorfico") {
+                    const entidadesPossiveis = decorador.atributos?.entidades || [];
+                    this.polimorficos.push({
+                        tipo: 'polimorfico',
+                        nomePropriedade: propriedade.nome.lexema,
+                        colunaTipo: decorador.atributos?.colunaTipo || `${propriedade.nome.lexema}_tipo`,
+                        colunaId: decorador.atributos?.colunaId || `${propriedade.nome.lexema}_id`,
+                        entidadesPossiveis: entidadesPossiveis,
+                        deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
                     });
                 }
             }
@@ -155,6 +194,41 @@ export class Entidade implements EntidadeInterface {
                         tipo: 'CHECK'
                     });
                 }
+
+                // Detectar relacionamentos muitos-para-muitos
+                if (decorador.nome === "temMuitosParaMuitos") {
+                    const entidadeDestino = decorador.atributos?.entidade;
+                    if (!entidadeDestino) continue;
+
+                    const nomeEntidade = modelo.simboloOriginal.lexema;
+                    const nomeEntidadeDestino = entidadeDestino;
+                    const tabelaIntermediaria = 
+                        decorador.atributos?.tabelaIntermediaria || 
+                        `${nomeEntidade.toLowerCase()}_${nomeEntidadeDestino.toLowerCase()}`;
+
+                    this.muitosParaMuitos.push({
+                        tipo: 'muitoParaMuitos',
+                        nomePropriedade: propriedade.nome.lexema,
+                        entidadeDestino: entidadeDestino,
+                        tabelaIntermediaria: tabelaIntermediaria,
+                        colunaOrigem: decorador.atributos?.colunaOrigem || `${nomeEntidade.toLowerCase()}_id`,
+                        colunaDestino: decorador.atributos?.colunaDestino || `${nomeEntidadeDestino.toLowerCase()}_id`,
+                        deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
+                    });
+                }
+
+                // Detectar relacionamentos polimórficos
+                if (decorador.nome === "polimorfico") {
+                    const entidadesPossiveis = decorador.atributos?.entidades || [];
+                    this.polimorficos.push({
+                        tipo: 'polimorfico',
+                        nomePropriedade: propriedade.nome.lexema,
+                        colunaTipo: decorador.atributos?.colunaTipo || `${propriedade.nome.lexema}_tipo`,
+                        colunaId: decorador.atributos?.colunaId || `${propriedade.nome.lexema}_id`,
+                        entidadesPossiveis: entidadesPossiveis,
+                        deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
+                    });
+                }
             }
         }
 
@@ -194,8 +268,16 @@ export class Entidade implements EntidadeInterface {
         return this.indices;
     }
 
-    obterRestricoes(): RestriacaoInterface[] {
+    obterRestricoes(): RestricaoInterface[] {
         return this.restricoes;
+    }
+
+    obterMuitosParaMuitos(): MuitoParaMuitoInterface[] {
+        return this.muitosParaMuitos;
+    }
+
+    obterPolimorficos(): PolimorficInterface[] {
+        return this.polimorficos;
     }
 
     /**
