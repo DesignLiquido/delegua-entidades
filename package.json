@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "testes-unitarios": "jest --coverage",
-    "executar-semeadura": "ts-node fontes/ilc/semeadura.ts executar-semeadura"
+    "migracoes": "ts-node fontes/ilc/migracoes.ts",
+    "sementes": "ts-node fontes/ilc/semeadura.ts"
   },
   "license": "MIT",
   "devDependencies": {
