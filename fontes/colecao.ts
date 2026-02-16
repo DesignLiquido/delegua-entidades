@@ -145,6 +145,27 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
     }
 
+    private aplicarValoresPadrao(registro: ObjetoDeleguaClasse): void {
+        for (const propriedade of this.tipoEntidade.modelo.propriedades) {
+            const nomeCampo = propriedade.nome.lexema;
+            
+            // Aplicar valor padrão apenas se o campo não foi definido
+            if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null) {
+                for (const decorador of propriedade.decoradores) {
+                    const nomeDecorador = decorador.nome.replace(/^@/, '');
+                    
+                    if (nomeDecorador === 'padrao') {
+                        const valorPadrao = decorador.atributos?.valor || decorador.atributos?.padrao;
+                        if (valorPadrao !== undefined) {
+                            registro.propriedades[nomeCampo] = valorPadrao;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     private async validarRegistro(registro: ObjetoDeleguaClasse): Promise<void> {
         // Função para verificar unicidade no banco
         const verificadorUnicidade = async (campo: string, valor: any, idExcluir?: any): Promise<boolean> => {
@@ -208,6 +229,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     async salvar(registro: ObjetoDeleguaClasse): Promise<RetornoComandoInterface[]> {
         this.verificarTecnologia();
+        this.aplicarValoresPadrao(registro);
         await this.validarRegistro(registro);
         await this.executarGanchos('antesDeInserir', registro);
         const comando = this.inserir(registro);
@@ -249,6 +271,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         const resultados: RetornoComandoInterface[][] = [];
 
         for (const registro of registros) {
+            this.aplicarValoresPadrao(registro);
             await this.validarRegistro(registro);
             await this.executarGanchos('antesDeInserir', registro);
             const comando = this.inserir(registro);

@@ -1,11 +1,17 @@
 import { Coluna } from "@designliquido/lincones-js";
 
 export interface OperacaoMigracao {
-    tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna';
+    tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna' | 'adicionarIndice' | 'removerIndice' | 'adicionarRestricao' | 'removerRestricao';
     tabela: string;
     coluna?: Coluna;
     colunas?: Coluna[];
     nomeColuna?: string;
+    nomeIndice?: string;
+    nomeRestricao?: string;
+    tipoIndice?: 'BTREE' | 'HASH' | 'GIST' | 'GIN';
+    columnasIndice?: string[];
+    unico?: boolean;
+    sqlRestricao?: string;
 }
 
 export class Migracao {
@@ -41,6 +47,33 @@ export class Migracao {
 
     alterarColuna(tabela: string, coluna: Coluna): Migracao {
         this.operacoes.push({ tipo: 'alterarColuna', tabela, coluna });
+        return this;
+    }
+
+    adicionarIndice(tabela: string, nomeIndice: string, colunas: string[], eUnico: boolean = false, tipo?: 'BTREE' | 'HASH' | 'GIST' | 'GIN'): Migracao {
+        this.operacoes.push({ 
+            tipo: 'adicionarIndice', 
+            tabela, 
+            nomeIndice, 
+            columnasIndice: colunas, 
+            unico: eUnico,
+            tipoIndice: tipo
+        });
+        return this;
+    }
+
+    removerIndice(tabela: string, nomeIndice: string): Migracao {
+        this.operacoes.push({ tipo: 'removerIndice', tabela, nomeIndice });
+        return this;
+    }
+
+    adicionarRestricao(tabela: string, nomeRestricao: string, sql: string): Migracao {
+        this.operacoes.push({ tipo: 'adicionarRestricao', tabela, nomeRestricao, sqlRestricao: sql });
+        return this;
+    }
+
+    removerRestricao(tabela: string, nomeRestricao: string): Migracao {
+        this.operacoes.push({ tipo: 'removerRestricao', tabela, nomeRestricao });
         return this;
     }
 }

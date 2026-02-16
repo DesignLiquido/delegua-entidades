@@ -47,6 +47,16 @@ export class GeradorMigracoes {
             if (!schemaExistente) {
                 const colunas = GeradorMigracoes.gerarColunasParaEntidade(entidade);
                 migracao.criarTabela(nomeTabela, colunas);
+                
+                // Adicionar índices
+                for (const indice of entidade.obterIndices()) {
+                    migracao.adicionarIndice(nomeTabela, indice.nome, indice.colunas, indice.unico, indice.tipo);
+                }
+                
+                // Adicionar restrições
+                for (const restricao of entidade.obterRestricoes()) {
+                    migracao.adicionarRestricao(nomeTabela, restricao.nome, restricao.sql);
+                }
             } else {
                 GeradorMigracoes.compararEGerarAlteracoes(
                     entidade, schemaExistente, migracao

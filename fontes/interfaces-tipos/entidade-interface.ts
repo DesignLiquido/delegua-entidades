@@ -2,13 +2,18 @@ import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua
 import { ColunaEValor, Condicao, Criar } from "@designliquido/lincones-js";
 
 import { RelacionamentoInterface } from "./relacionamento-interface";
+import { IndiceInterface } from "./indice-interface";
+import { RestriacaoInterface } from "./restricao-interface";
 
 export interface EntidadeInterface {
     modelo: DescritorTipoClasse;
     obterNome(): string;
     obterNomeChavePrimaria(): string;
+    obterNomesChavesPrimarias(): string[];
     obterNomesColunas(): string[];
     obterRelacionamentos(): RelacionamentoInterface[];
+    obterIndices(): IndiceInterface[];
+    obterRestricoes(): RestriacaoInterface[];
     obterNomeBancoDados(): string;
     obterNomeColunaExclusaoLogica(): string;
     possuiCriadoEm(): boolean;

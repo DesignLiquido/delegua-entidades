@@ -10,6 +10,8 @@ import { pluralizar } from "@designliquido/flexoes";
 import { TabelaInterface } from "./interfaces-tipos/tabela-interface";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-interface";
+import { IndiceInterface } from "./interfaces-tipos/indice-interface";
+import { RestriacaoInterface } from "./interfaces-tipos/restricao-interface";
 import { Relacionamento } from "./relacionamento";
 
 /**
@@ -20,6 +22,9 @@ import { Relacionamento } from "./relacionamento";
 export class Entidade implements EntidadeInterface {
     modelo: DescritorTipoClasse;
     nomePropriedadeChavePrimaria: string;
+    nomePropriedadesChavesPrimarias: string[] = [];
+    indices: IndiceInterface[] = [];
+    restricoes: RestriacaoInterface[] = [];
 
     /**
      * Construtor da classe Entidades.
@@ -46,15 +51,43 @@ export class Entidade implements EntidadeInterface {
         for (const propriedade of modelo.propriedades) {
             if (propriedade.nome.lexema === "id") {
                 this.nomePropriedadeChavePrimaria = "id";
-                break;
+                this.nomePropriedadesChavesPrimarias.push("id");
             }
 
             for (const decorador of propriedade.decoradores) {
                 if (decorador.nome === "@chave") {
                     this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
-                    break;
+                    this.nomePropriedadesChavesPrimarias.push(propriedade.nome.lexema);
+                }
+                
+                // Detectar índices
+                if (decorador.nome === "@indice" || decorador.nome === "@indiceUnico") {
+                    const eUnico = decorador.nome === "@indiceUnico";
+                    const nomeIndice = decorador.atributos?.nome || `idx_${propriedade.nome.lexema}`;
+                    this.indices.push({
+                        nome: nomeIndice,
+                        colunas: [propriedade.nome.lexema],
+                        unico: eUnico
+                    });
+                }
+                
+                // Detectar restrições
+                if (decorador.nome === "@restricao") {
+                    this.restricoes.push({
+                        nome: decorador.atributos?.nome || `constr_${propriedade.nome.lexema}`,
+                        sql: decorador.atributos?.sql || decorador.atributos?.restricao || '',
+                        tipo: 'CHECK'
+                    });
                 }
             }
+        }
+
+        if (!this.nomePropriedadeChavePrimaria) {
+            throw new Error(
+                "Modelo não possui uma chave primária definida. " +
+                    "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
+                    "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
+            );
         }
 
         return this.construirDescritorTipoClasse(modelo);
@@ -93,22 +126,46 @@ export class Entidade implements EntidadeInterface {
         for (const propriedade of modelo.propriedades) {
             if (propriedade.nome.lexema === "id") {
                 this.nomePropriedadeChavePrimaria = "id";
-                return;
+                this.nomePropriedadesChavesPrimarias.push("id");
             }
 
             for (const decorador of propriedade.decoradores) {
                 if (decorador.nome === "chave") {
                     this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
-                    return;
+                    this.nomePropriedadesChavesPrimarias.push(propriedade.nome.lexema);
+                }
+                
+                // Detectar índices
+                if (decorador.nome === "indice" || decorador.nome === "indiceUnico") {
+                    const eUnico = decorador.nome === "indiceUnico";
+                    const nomeIndice = decorador.atributos?.nome || `idx_${propriedade.nome.lexema}`;
+                    this.indices.push({
+                        nome: nomeIndice,
+                        colunas: [propriedade.nome.lexema],
+                        unico: eUnico,
+                        tipo: decorador.atributos?.tipo
+                    });
+                }
+                
+                // Detectar restrições
+                if (decorador.nome === "restricao") {
+                    this.restricoes.push({
+                        nome: decorador.atributos?.nome || `constr_${propriedade.nome.lexema}`,
+                        sql: decorador.atributos?.sql || decorador.atributos?.restricao || '',
+                        tipo: 'CHECK'
+                    });
                 }
             }
         }
 
-        throw new Error(
-            "Modelo não possui uma chave primária definida. " +
-                "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
-                "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
-        );
+        // Se nenhuma chave primária foi encontrada, lançar erro
+        if (!this.nomePropriedadeChavePrimaria) {
+            throw new Error(
+                "Modelo não possui uma chave primária definida. " +
+                    "Para definir uma chave primária, você pode ou declarar uma propriedade `id` com o tipo `número`, " +
+                    "ou declarar uma propriedade com o tipo número e decorá-la com `@chave`."
+            );
+        }
     }
 
     obterNome(): string {
@@ -125,6 +182,20 @@ export class Entidade implements EntidadeInterface {
 
     obterNomeChavePrimaria(): string {
         return this.nomePropriedadeChavePrimaria;
+    }
+
+    obterNomesChavesPrimarias(): string[] {
+        return this.nomePropriedadesChavesPrimarias.length > 0 
+            ? this.nomePropriedadesChavesPrimarias 
+            : [this.nomePropriedadeChavePrimaria];
+    }
+
+    obterIndices(): IndiceInterface[] {
+        return this.indices;
+    }
+
+    obterRestricoes(): RestriacaoInterface[] {
+        return this.restricoes;
     }
 
     /**
@@ -337,7 +408,23 @@ export class Entidade implements EntidadeInterface {
     }
 
     resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao {
-        const chave = this.nomePropriedadeChavePrimaria;
+        const chaves = this.obterNomesChavesPrimarias();
+        
+        // Se houver apenas uma chave primária, usar o formato antigo
+        if (chaves.length === 1) {
+            const chave = chaves[0];
+            const valor = registro.propriedades[chave];
+            return new Condicao(
+                new ReferenciaColuna(chave),
+                'IGUAL',
+                new Literal(valor, typeof valor === 'number' ? "INTEIRO" : "TEXTO")
+            );
+        }
+        
+        // Para chaves compostas, criar múltiplas condições (serão unidas com AND)
+        // Para compatibilidade, retornamos a primeira condição aqui
+        // e as demais serão adicionadas pela camada de Colecao
+        const chave = chaves[0];
         const valor = registro.propriedades[chave];
         return new Condicao(
             new ReferenciaColuna(chave),
