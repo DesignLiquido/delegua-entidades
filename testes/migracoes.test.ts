@@ -172,6 +172,18 @@ describe('Migrações', () => {
             expect(tecnologiaMock.comandosExecutados[0]).toContain('ADD CONSTRAINT');
         });
 
+        it('executa migração adicionarColunaComputada via SQL direto', async () => {
+            const executor = new ExecutorMigracoes(tecnologiaMock);
+            const migracao = new Migracao('008', 'Adicionar coluna computada')
+                .adicionarColunaComputada('Artigo', 'total', 'INTEIRO', 'quantidade * preco', true);
+
+            await executor.executar(migracao);
+
+            expect(tecnologiaMock.comandosExecutados).toHaveLength(1);
+            expect(typeof tecnologiaMock.comandosExecutados[0]).toBe('string');
+            expect(tecnologiaMock.comandosExecutados[0]).toContain('GENERATED ALWAYS AS');
+        });
+
         it('executarTodas executa múltiplas migrações em ordem', async () => {
             const executor = new ExecutorMigracoes(tecnologiaMock);
             const migracoes = [
@@ -199,7 +211,7 @@ describe('Migrações', () => {
 
         it('reverte migração em ordem inversa', async () => {
             const executor = new ExecutorMigracoes(tecnologiaMock);
-            const migracao = new Migracao('008', 'Reverter operações')
+            const migracao = new Migracao('009', 'Reverter operações')
                 .adicionarColuna('Artigo', new Coluna('resumo', 'TEXTO'))
                 .adicionarIndice('Artigo', 'idx_artigo_resumo', ['resumo'])
                 .adicionarRestricao('Artigo', 'ck_artigo_resumo', 'resumo <> ""');

@@ -72,7 +72,7 @@ describe("Semeador", () => {
         expect(tecnologia.dadosEmMemoria["sementes"][0].nome).toBe("SementeRegistro");
     });
 
-    it("deve falhar quando dependencia nao existe", async () => {
+    it("deve falhar quando dependencia não existe", async () => {
         class SementeComDependencia implements SementeInterface {
             nome = "SementeComDependencia";
             dependencias = ["SementeAusente"];
@@ -84,7 +84,7 @@ describe("Semeador", () => {
         const semeador = new Semeador(contexto);
 
         await expect(semeador.semear([SementeComDependencia])).rejects.toThrow(
-            "Dependencia nao encontrada: SementeAusente"
+            "Dependencia não encontrada: SementeAusente"
         );
     });
 });

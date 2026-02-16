@@ -9,7 +9,7 @@ import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
 import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
-describe("Upsert (salvarOuAtualizar)", () => {
+describe("Atualinserção, ou Upsert (salvarOuAtualizar)", () => {
     const descritorUsuario = new DescritorTipoClasse(
         new Simbolo("IDENTIFICADOR", "Usuario", "Usuario", 1, -1),
         null,
@@ -28,7 +28,7 @@ describe("Upsert (salvarOuAtualizar)", () => {
         ]
     );
 
-    it("insere quando registro nao existe", async () => {
+    it("insere quando registro não existe", async () => {
         const entidade = new Entidade(descritorUsuario);
         const tecnologia = new BonecoTecnologia();
         tecnologia.dadosEmMemoria["Usuario"] = [];

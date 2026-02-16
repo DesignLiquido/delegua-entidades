@@ -83,7 +83,7 @@ export class Semeador {
             for (const dep of dependencias) {
                 const sementeDependente = mapaPorNome.get(dep);
                 if (!sementeDependente) {
-                    throw new Error(`Dependencia nao encontrada: ${dep}`);
+                    throw new Error(`Dependencia não encontrada: ${dep}`);
                 }
                 visitar(sementeDependente);
             }
