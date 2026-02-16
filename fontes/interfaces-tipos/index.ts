@@ -9,5 +9,6 @@ export * from './muito-para-muitos-interface';
 export * from './polimorfico-interface';
 export * from './relacionamento-interface';
 export * from './restricao-interface';
+export * from './semente-interface';
 export * from './tabela-interface';
 export * from './transacao-interface';

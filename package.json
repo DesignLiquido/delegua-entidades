@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "main": "index.js",
   "scripts": {
-    "testes-unitarios": "jest --coverage"
+    "testes-unitarios": "jest --coverage",
+    "executar-semeadura": "ts-node fontes/ilc/semeadura.ts executar-semeadura"
   },
   "license": "MIT",
   "devDependencies": {
