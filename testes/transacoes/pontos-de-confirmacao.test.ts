@@ -98,7 +98,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await transacao.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = transacao.obterOperacoes();
-            const operacaoReversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const operacaoReversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(operacaoReversao).toBeDefined();
             expect(operacaoReversao.sql).toBeTruthy();
         });
@@ -124,7 +124,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await transacao.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = transacao.obterOperacoes();
-            const operacaoReversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const operacaoReversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(operacaoReversao.savepointsRemovidos).toEqual(["sp2", "sp3"]);  // Apenas sp2 e sp3
         });
 
@@ -205,7 +205,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await tx.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = tx.obterOperacoes();
-            const reversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const reversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(reversao.sql).toContain("ROLLBACK TO");
         });
 
@@ -215,7 +215,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await tx.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = tx.obterOperacoes();
-            const reversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const reversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(reversao.sql).toContain("ROLLBACK TO SAVEPOINT");
         });
 
@@ -225,7 +225,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await tx.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = tx.obterOperacoes();
-            const reversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const reversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(reversao.sql).toContain("ROLLBACK TRANSACTION");
         });
 
@@ -302,8 +302,8 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             const hasUpdateAntes = operacoes.slice(0, operacoesAntes).some(op => op.tipo === "UPDATE");
             expect(hasUpdateAntes).toBe(true);
             
-            // E que há um ROLLBACK_SAVEPOINT registrado
-            const hasRollback = operacoes.some(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            // E que há um REVERSAO_PONTO_DE_CONFIRMACAO registrado
+            const hasRollback = operacoes.some(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(hasRollback).toBe(true);
         });
     });
@@ -352,7 +352,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             const depois = new Date();
 
             const operacoes = transacao.obterOperacoes();
-            const opcao = operacoes.find(op => op.tipo === "SAVEPOINT");
+            const opcao = operacoes.find(op => op.tipo === "PONTO_DE_CONFIRMACAO");
 
             expect(opcao.timestamp).toBeDefined();
             expect(opcao.timestamp.getTime()).toBeGreaterThanOrEqual(antes.getTime());
@@ -368,10 +368,10 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
 
             const operacoes = transacao.obterOperacoes();
             expect(operacoes[0].tipo).toBe("OP1");
-            expect(operacoes[1].tipo).toBe("SAVEPOINT");
+            expect(operacoes[1].tipo).toBe("PONTO_DE_CONFIRMACAO");
             expect(operacoes[1].nome).toBe("sp1");
             expect(operacoes[2].tipo).toBe("OP2");
-            expect(operacoes[3].tipo).toBe("SAVEPOINT");
+            expect(operacoes[3].tipo).toBe("PONTO_DE_CONFIRMACAO");
             expect(operacoes[3].nome).toBe("sp2");
             expect(operacoes[4].tipo).toBe("OP3");
         });
@@ -391,7 +391,7 @@ describe("Pontos de Confirmação e Transações Aninhadas", () => {
             await tx.reverterParaPontoDeConfirmacao("sp1");
 
             const operacoes = tx.obterOperacoes();
-            const reversao = operacoes.find(op => op.tipo === "ROLLBACK_SAVEPOINT");
+            const reversao = operacoes.find(op => op.tipo === "REVERSAO_PONTO_DE_CONFIRMACAO");
             expect(reversao.sql).toContain("ROLLBACK TO");
         });
     });

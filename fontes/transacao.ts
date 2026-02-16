@@ -155,10 +155,10 @@ export class Transacao implements TransacaoInterface {
 
         // Registrar operação
         this.registrarOperacao({
-            tipo: 'ROLLBACK_SAVEPOINT',
+            tipo: 'REVERSAO_PONTO_DE_CONFIRMACAO',
             nome: nome,
             sql: sql,
-            pontosRemovidos: pontosRemovidos.map(sp => sp.nome),
+            savepointsRemovidos: pontosRemovidos.map(sp => sp.nome),
             timestamp: new Date()
         });
     }
