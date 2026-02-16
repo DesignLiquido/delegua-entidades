@@ -8,6 +8,10 @@ export { Relacionamento } from './fontes/relacionamento';
 export { Validador } from './fontes/validacoes/validador';
 export { ErroDeValidacao, ErroValidacao } from './fontes/erros/erro-validacao';
 
+export { CacheConsultas } from './fontes/cache-consultas';
+export { CarregadorLote as CarregadorLote, GerenciadorCarregadoresLote } from './fontes/carregador-lotes';
+export { AnalisadorDicas, TipoDica, NivelSeveridade, Dica } from './fontes/analisador-dicas';
+
 export { EntidadeInterface } from './fontes/interfaces-tipos/entidade-interface';
 export { GanchosInterface, FuncaoGancho, EventoGancho } from './fontes/interfaces-tipos/ganchos';
 export { RelacionamentoInterface, TipoRelacionamento, AcaoCascata } from './fontes/interfaces-tipos/relacionamento-interface';

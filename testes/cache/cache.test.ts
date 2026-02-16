@@ -5,10 +5,10 @@ import {
 import { PropriedadeClasse } from "@designliquido/delegua/declaracoes";
 import { Simbolo } from "@designliquido/delegua/lexador";
 
-import { GerenciadorCache } from "../fontes/gerenciador-cache";
-import { ContextoEntidades } from "../fontes/contexto-entidades";
-import { Entidade } from "../fontes/entidade";
-import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
+import { GerenciadorCache } from "../../fontes/gerenciador-cache";
+import { ContextoEntidades } from "../../fontes/contexto-entidades";
+import { Entidade } from "../../fontes/entidade";
+import { BonecoTecnologia } from "../auxiliar/boneco-tecnologia";
 
 describe('Cache (4.7)', () => {
     describe('Cache de Primeira Nível (Identity Map)', () => {

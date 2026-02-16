@@ -6,7 +6,7 @@ import { AnaliseN1 } from "./interfaces-tipos/analise-n1-interface";
  * e identifica quando um único resultado desencadeia N consultas adicionais.
  * 
  * Padrão N+1:
- * 1. Query principal retorna N registros
+ * 1. consulta principal retorna N registros
  * 2. Seguida imediatamente por N consultas idênticas ou similares
  * 3. Geralmente ocorre ao carregar relacionamentos sem eager loading
  * 
@@ -107,12 +107,12 @@ export class DetectorConsultasN1 {
                 }
 
                 // Estratégia 2: Procurar por padrão N+1 cross-table
-                // Uma query retorna N registros, seguida por ~N queries de tabela diferente
+                // Uma consulta retorna N registros, seguida por ~N consultas de tabela diferente
                 const proximasConsultas = ultimasConsultas.slice(i + 1);
                 const tabelaAtual = this.extrairTabela(consultaAtual.sql);
 
                 if (proximasConsultas.length >= 2 && tabelaAtual) {
-                    // Coletar as próximas queries de uma tabela diferente
+                    // Coletar as próximas consultas de uma tabela diferente
                     const clusterQueries: InformacaoConsulta[] = [];
                     const tabelasPrincipais = new Map<string, number>();
 
@@ -129,7 +129,7 @@ export class DetectorConsultasN1 {
                         }
                     }
 
-                    // Se encontrou um cluster de queries de uma única tabela diferente
+                    // Se encontrou um cluster de consultas de uma única tabela diferente
                     // com tamanho próximo a N (entre 70% e 120% de N)
                     if (clusterQueries.length >= consultaAtual.quantidadeRegistros * 0.7 && 
                         clusterQueries.length <= consultaAtual.quantidadeRegistros * 1.2 &&

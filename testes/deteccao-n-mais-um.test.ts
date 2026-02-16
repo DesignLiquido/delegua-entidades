@@ -213,7 +213,7 @@ describe("Detecção de Consultas N+1", () => {
                 50
             );
 
-            // 20 queries de pedidos com quantidade fixa
+            // 20 consultas de pedidos com quantidade fixa
             for (let i = 1; i <= 20; i++) {
                 detector.registrarConsulta(
                     `SELECT id, descricao FROM pedidos WHERE usuario_id = ${i}`,

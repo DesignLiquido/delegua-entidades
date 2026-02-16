@@ -6,7 +6,8 @@
     "testes-unitarios": "jest --coverage",
     "migracoes": "ts-node fontes/ilc/migracoes.ts",
     "sementes": "ts-node fontes/ilc/semeadura.ts",
-    "gerar-modelo": "ts-node fontes/ilc/gerador-entidades.ts"
+    "gerar-modelo": "ts-node fontes/ilc/gerador-entidades.ts",
+    "performance": "ts-node fontes/indicadores-performance/index.ts"
   },
   "license": "MIT",
   "devDependencies": {

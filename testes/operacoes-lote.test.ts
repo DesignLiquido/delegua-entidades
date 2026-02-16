@@ -10,7 +10,7 @@ import { Entidade } from "../fontes/entidade";
 import { Colecao } from "../fontes/colecao";
 import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
 
-describe('Operações em Lote (Batch Operations)', () => {
+describe('Operações em Lote (Lote Operations)', () => {
     let descritor: DescritorTipoClasse;
     let entidade: Entidade;
     let tecnologia: BonecoTecnologia;
