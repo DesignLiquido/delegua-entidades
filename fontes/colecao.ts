@@ -7,6 +7,7 @@ import { EventoGancho, FuncaoGancho, GanchosInterface } from "./interfaces-tipos
 import { ConstrutorConsulta } from "./construtor-consulta";
 import { Validador } from "./validacoes/validador";
 import { ErroDeValidacao } from "./erros/erro-validacao";
+import { ErroConcorrencia } from "./erros/erro-concorrencia";
 import { Taquigrafo } from "./taquigrafia";
 import { Serializador, OpcoesSerializacao } from "./serializador";
 
@@ -107,9 +108,38 @@ export class Colecao<TEntidade extends EntidadeInterface> {
             colunasAtualizacao = this.tipoEntidade.obterNomesColunas();
         }
 
+        const nomePropriedadeVersao = this.tipoEntidade.obterNomePropriedadeVersao?.() || "";
+        
+        // Se a entidade possui campo de versão, preparar versão
+        let versaoAtual: any = null;
+        let novaVersao: any = null;
+        
+        if (nomePropriedadeVersao) {
+            versaoAtual = registro.propriedades ? registro.propriedades[nomePropriedadeVersao] : (registro as any)[nomePropriedadeVersao];
+            novaVersao = typeof versaoAtual === 'number' ? versaoAtual + 1 : 1;
+            
+            // Atualizar versão no próprio registro
+            if (registro.propriedades) {
+                registro.propriedades[nomePropriedadeVersao] = novaVersao;
+            } else {
+                (registro as any)[nomePropriedadeVersao] = novaVersao;
+            }
+        }
+
         const colunasEValores: ColunaEValor[] = this.tipoEntidade.resolverColunasEValores(registro, colunasAtualizacao);
-        const condicao = this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro);
-        return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, [condicao]);
+        const condicoes: Condicao[] = [this.tipoEntidade.resolverCondicaoPorChavePrimaria(registro)];
+        
+        // Se a entidade possui campo de versão, adicionar condição de versão
+        if (nomePropriedadeVersao) {
+            // Adicionar condição de versão atual ao WHERE
+            condicoes.push({
+                coluna: new ReferenciaColuna(nomePropriedadeVersao),
+                operador: '=',
+                valor: new Literal(versaoAtual || 0)
+            } as any);
+        }
+        
+        return new Atualizar(-1, this.tipoEntidade.obterNome(), colunasEValores, condicoes);
     }
 
     excluir(registro: ObjetoDeleguaClasse): Excluir | Atualizar {
@@ -244,6 +274,15 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         await this.executarGanchos('antesDeAtualizar', registro);
         const comando = this.atualizar(registro, colunas);
         const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE');
+        
+        // Verificar conflito de concorrência
+        const nomePropriedadeVersao = this.tipoEntidade.obterNomePropriedadeVersao?.();
+        if (nomePropriedadeVersao && resultado[0] && resultado[0][0]?.affectedRows === 0) {
+            throw new ErroConcorrencia(
+                `Não foi possível atualizar o registro. Possível conflito de versão: o registro foi modificado por outro processo.`
+            );
+        }
+        
         await this.executarGanchos('aposAtualizar', registro);
         return resultado;
     }
@@ -295,12 +334,21 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         }
 
         const resultados: RetornoComandoInterface[][] = [];
+        const nomePropriedadeVersao = this.tipoEntidade.obterNomePropriedadeVersao?.();
 
         for (const registro of registros) {
             await this.validarRegistro(registro);
             await this.executarGanchos('antesDeAtualizar', registro);
             const comando = this.atualizar(registro, colunas);
             const resultado = await this.executarComandoComRegistroOperacao(comando, 'UPDATE LOTE');
+            
+            // Verificar conflito de concorrência
+            if (nomePropriedadeVersao && resultado[0] && resultado[0][0]?.affectedRows === 0) {
+                throw new ErroConcorrencia(
+                    `Não foi possível atualizar o registro. Possível conflito de versão: o registro foi modificado por outro processo.`
+                );
+            }
+            
             resultados.push(resultado);
             await this.executarGanchos('aposAtualizar', registro);
         }

@@ -18,6 +18,7 @@ export interface EntidadeInterface {
     obterRestricoes(): RestricaoInterface[];
     obterMuitosParaMuitos(): MuitoParaMuitoInterface[];
     obterPolimorficos(): PolimorficInterface[];
+    obterNomePropriedadeVersao(): string;
     obterNomeBancoDados(): string;
     obterNomeColunaExclusaoLogica(): string;
     possuiCriadoEm(): boolean;

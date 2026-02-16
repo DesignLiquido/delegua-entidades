@@ -29,6 +29,7 @@ export class Entidade implements EntidadeInterface {
     restricoes: RestricaoInterface[] = [];
     muitosParaMuitos: MuitoParaMuitoInterface[] = [];
     polimorficos: PolimorficInterface[] = [];
+    nomePropriedadeVersao: string;
 
     /**
      * Construtor da classe Entidades.
@@ -118,6 +119,16 @@ export class Entidade implements EntidadeInterface {
                         deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
                     });
                 }
+
+                // Detectar campo de versão para concorrência otimista (decorador)
+                if (decorador.nome === "@versao") {
+                    this.nomePropriedadeVersao = propriedade.nome.lexema;
+                }
+            }
+
+            // Detectar campo de versão para concorrência otimista (por convenção de nome)
+            if (propriedade.nome.lexema === "versao") {
+                this.nomePropriedadeVersao = propriedade.nome.lexema;
             }
         }
 
@@ -229,6 +240,16 @@ export class Entidade implements EntidadeInterface {
                         deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
                     });
                 }
+
+                // Detectar campo de versão para concorrência otimista (decorador)
+                if (decorador.nome === "versao") {
+                    this.nomePropriedadeVersao = propriedade.nome.lexema;
+                }
+            }
+
+            // Detectar campo de versão para concorrência otimista (por convenção de nome)
+            if (propriedade.nome.lexema === "versao") {
+                this.nomePropriedadeVersao = propriedade.nome.lexema;
             }
         }
 
@@ -278,6 +299,10 @@ export class Entidade implements EntidadeInterface {
 
     obterPolimorficos(): PolimorficInterface[] {
         return this.polimorficos;
+    }
+
+    obterNomePropriedadeVersao(): string {
+        return this.nomePropriedadeVersao || "";
     }
 
     /**
