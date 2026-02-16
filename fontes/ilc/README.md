@@ -4,38 +4,47 @@ Aqui são implementados uma série de comandos para facilitar a interação com 
 
 ## Comandos Disponíveis
 
-### 1. Gerador de Entidades
+## 1. Gerador de Modelos (Delégua)
 
-Cria automaticamente uma nova entidade TypeScript e sua migração correspondente.
+Cria automaticamente um novo modelo Delégua e sua migração correspondente.
 
 ```bash
-yarn gerar-entidade <NomeEntidade> [campos] [relacionamentos]
+yarn gerar-modelo <NomeModelo> [campos] [relacionamentos]
 ```
 
 **Exemplos:**
 
 ```bash
-# Entidade simples com campos
-yarn gerar-entidade Usuario nome:texto email:texto idade:numero
+# Modelo simples com campos
+yarn gerar-modelo Usuario nome:texto email:texto idade:numero
 
 # Com relacionamentos
-yarn gerar-entidade Produto nome:texto preco:decimal --pertenceA Categoria
+yarn gerar-modelo Produto nome:texto preco:decimal --pertenceA Categoria
 
 # Múltiplos relacionamentos
-yarn gerar-entidade Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
+yarn gerar-modelo Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
 ```
 
 **Tipos Suportados:** `texto`, `numero`, `inteiro`, `decimal`, `booleano`, `logico`, `data`, `data_hora`, `timestamp`
 
 **Opções de Relacionamento:**
-- `--pertenceA <Entidade>` — Adiciona relacionamento pertence a
-- `--temUm <Entidade>` — Adiciona relacionamento tem um
-- `--temMuitos <Entidade>` — Adiciona relacionamento tem muitos
+- `--pertenceA <Modelo>` — Adiciona relacionamento pertence a
+- `--temUm <Modelo>` — Adiciona relacionamento tem um
+- `--temMuitos <Modelo>` — Adiciona relacionamento tem muitos
 
 **Saída:**
-- Cria arquivo de entidade em `fontes/nomeentidade.ts`
-- Cria migração vazia em `fontes/migracoes/geradas/TIMESTAMP_criar_tabela_*.ts`
+- Cria arquivo de modelo em `modelos/nomemodelo.delegua` (sintaxe Delégua)
+- Cria migração em `migracoes/geradas/TIMESTAMP_criar_tabela_*.delegua` (sintaxe Delégua)
 - Você deve editar a migração para implementar a criação da tabela
+
+**Nota:** Os arquivos gerados estão em **Delégua**, não em TypeScript. Exemplo de saída:
+```delegua
+classe Usuario herda Modelo {
+    id: numero
+    nome: texto
+    email: texto
+}
+```
 
 ---
 
@@ -116,14 +125,14 @@ yarn sementes ./dados/sementes-desenvolvimento.ts
 
 ## Fluxo Típico de Desenvolvimento
 
-1. **Criar Entidade:**
+1. **Criar Modelo:**
    ```bash
-   yarn gerar-entidade Usuario nome:texto email:texto senha:texto
+   yarn gerar-modelo Usuario nome:texto email:texto senha:texto
    ```
 
-2. **Editar Entidade e Migração:**
-   - Revise `fontes/usuario.ts`
-   - Implemente a migração em `fontes/migracoes/geradas/TIMESTAMP_*.ts`
+2. **Editar Modelo e Migração:**
+   - Revise `modelos/usuario.delegua`
+   - Implemente a migração em `migracoes/geradas/TIMESTAMP_*.delegua`
 
 3. **Executar Migrações:**
    ```bash
@@ -150,8 +159,11 @@ yarn sementes ./dados/sementes-desenvolvimento.ts
 
 ## Notas Importantes
 
-- **PascalCase para Entidades:** `Usuario`, `Produto`, `Empresa`
+- **PascalCase para Modelos:** `Usuario`, `Produto`, `Empresa`
 - **snake_case para Campos:** `nome_completo`, `email_principal`
+- **Linguagem:** Modelos e migrações são gerados em **Delégua** (não TypeScript)
+- **Estrutura:** Models em `modelos/`, Migrações em `migracoes/geradas/`
+- **Extensões:** `.delegua` para modelos e migrações
 - **Timestamps Automáticos:** Migrações usam YYYYMMDDHHMMSS
 - **Rastreamento:** Ambos CLI (migrações e sementes) rastreiam execução
 - **Sem Duplicação:** Não execute migrações/sementes já rodadas

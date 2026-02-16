@@ -1,34 +1,35 @@
 #!/usr/bin/env node
 
 /**
- * CLI para Gerador de Entidades
+ * CLI para Gerador de Modelos (Delégua)
  * 
  * Uso:
- *   yarn gerar-entidade Usuario nome:texto email:texto idade:numero
- *   yarn gerar-entidade Usuario nome:texto --pertenceA Empresa --temMuitos Pedidos
+ *   yarn gerar-modelo Usuario nome:texto email:texto idade:numero
+ *   yarn gerar-modelo Usuario nome:texto --pertenceA Empresa --temMuitos Pedidos
  */
 
 import path from "path";
 import fs from "fs";
+import { pluralizar } from "@designliquido/flexoes";
 
-interface CampoEntidade {
+interface CampoModelo {
     nome: string;
     tipo: string;
 }
 
 interface ConfiguracaoRelacionamento {
     tipo: "pertenceA" | "temUm" | "temMuitos";
-    entidadeAlvo: string;
+    modeloAlvo: string;
 }
 
-interface ConfiguracaoEntidade {
+interface ConfiguracaoModelo {
     nome: string;
-    campos: CampoEntidade[];
+    campos: CampoModelo[];
     relacionamentos: ConfiguracaoRelacionamento[];
 }
 
-const DIRETORIO_ENTIDADES = path.join(process.cwd(), "fontes");
-const DIRETORIO_MIGRACOES = path.join(process.cwd(), "fontes", "migracoes", "geradas");
+const DIRETORIO_MODELOS = path.join(process.cwd(), "modelos");
+const DIRETORIO_MIGRACOES = path.join(process.cwd(), "migracoes", "geradas");
 
 const MAPEAMENTO_TIPOS: { [tipo: string]: string } = {
     "texto": "texto",
@@ -44,36 +45,37 @@ const MAPEAMENTO_TIPOS: { [tipo: string]: string } = {
 
 function mostrarAjuda(): void {
     console.log(`
-delegua-entidades: Gerador de Entidades
+delegua-entidades: Gerador de Modelos (Delégua)
 
 USO:
-  yarn gerar-entidade <NomeEntidade> [campos] [opções]
+  yarn gerar-modelo <NomeModelo> [campos] [opções]
 
 ARGUMENTOS:
-  NomeEntidade       Nome da entidade em PascalCase (ex: Usuario, Produto)
+  NomeModelo        Nome do modelo em PascalCase (ex: Usuario, Produto)
   campos             Campos no formato nome:tipo (ex: nome:texto email:texto)
 
 TIPOS SUPORTADOS:
   texto, numero, inteiro, decimal, booleano, logico, data, data_hora, timestamp
 
 OPÇÕES:
-  --pertenceA <Entidade>     Adiciona relacionamento pertence a
-  --temUm <Entidade>         Adiciona relacionamento tem um
-  --temMuitos <Entidade>     Adiciona relacionamento tem muitos
+  --pertenceA <Modelo>       Adiciona relacionamento pertence a
+  --temUm <Modelo>           Adiciona relacionamento tem um
+  --temMuitos <Modelo>       Adiciona relacionamento tem muitos
 
 EXEMPLOS:
-  yarn gerar-entidade Usuario nome:texto email:texto idade:numero
-  yarn gerar-entidade Produto nome:texto preco:decimal --pertenceA Categoria
-  yarn gerar-entidade Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
+  yarn gerar-modelo Usuario nome:texto email:texto idade:numero
+  yarn gerar-modelo Produto nome:texto preco:decimal --pertenceA Categoria
+  yarn gerar-modelo Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
 
 NOTAS:
-  - A entidade sempre possuirá um campo 'id: numero' como chave primária
-  - Use nomes em PascalCase para nomes de entidades
+  - Em Delégua, use: classe MeuModelo herda Modelo { ... }
+  - Use nomes em PascalCase para nomes de modelos
   - Use nomes em minusculas para campos (ex: nome_completo, email_principal)
+  - Arquivos saem em modelos/ com extensão .delegua
     `);
 }
 
-function validarNomeEntidade(nome: string): boolean {
+function validarNomeModelo(nome: string): boolean {
     return /^[A-Z][a-zA-Z0-9]*$/.test(nome);
 }
 
@@ -85,22 +87,22 @@ function validarTipo(tipo: string): boolean {
     return tipo in MAPEAMENTO_TIPOS;
 }
 
-function normalizarNomeEntidade(nome: string): string {
+function normalizarNomeModelo(nome: string): string {
     return nome.charAt(0).toUpperCase() + nome.slice(1);
 }
 
-function obterNomeTabelaFromEntidade(nomeEntidade: string): string {
+function obterNomeTabelaFromModelo(nomeModelo: string): string {
     // Converte PascalCase para snake_case
-    const resultado = nomeEntidade
+    const resultado = nomeModelo
         .replace(/([A-Z])/g, "_$1")
         .toLowerCase()
         .replace(/^_/, "");
     
-    // Plural simples (adiciona 's')
-    return resultado + "s";
+    // Pluraliza em português usando flexoes
+    return pluralizar(resultado);
 }
 
-function parseArgumentos(): ConfiguracaoEntidade | null {
+function compreenderArgumentos(): ConfiguracaoModelo | null {
     const args = process.argv.slice(2);
 
     if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
@@ -108,15 +110,15 @@ function parseArgumentos(): ConfiguracaoEntidade | null {
         return null;
     }
 
-    const nomeEntidade = normalizarNomeEntidade(args[0]);
+    const nomeModelo = normalizarNomeModelo(args[0]);
 
-    if (!validarNomeEntidade(nomeEntidade)) {
-        console.error(`❌ Erro: Nome de entidade inválido '${nomeEntidade}'.`);
+    if (!validarNomeModelo(nomeModelo)) {
+        console.error(`❌ Erro: Nome de modelo inválido '${nomeModelo}'.`);
         console.error("   Use PascalCase (ex: Usuario, Produto, Empresa)");
         process.exit(1);
     }
 
-    const campos: CampoEntidade[] = [];
+    const campos: CampoModelo[] = [];
     const relacionamentos: ConfiguracaoRelacionamento[] = [];
 
     let i = 1;
@@ -135,19 +137,19 @@ function parseArgumentos(): ConfiguracaoEntidade | null {
             }
 
             if (i + 1 >= args.length) {
-                console.error(`❌ Erro: Opção '${arg}' requer um nome de entidade.`);
+                console.error(`❌ Erro: Opção '${arg}' requer um nome de modelo.`);
                 process.exit(1);
             }
 
-            const entidadeAlvo = normalizarNomeEntidade(args[i + 1]);
-            if (!validarNomeEntidade(entidadeAlvo)) {
-                console.error(`❌ Erro: Nome de entidade alvo inválido '${entidadeAlvo}'.`);
+            const modeloAlvo = normalizarNomeModelo(args[i + 1]);
+            if (!validarNomeModelo(modeloAlvo)) {
+                console.error(`❌ Erro: Nome de modelo alvo inválido '${modeloAlvo}'.`);
                 process.exit(1);
             }
 
             relacionamentos.push({
                 tipo: tipoRelacionamento,
-                entidadeAlvo
+                modeloAlvo
             });
 
             i += 2;
@@ -182,60 +184,56 @@ function parseArgumentos(): ConfiguracaoEntidade | null {
 
     if (campos.length === 0) {
         console.error("❌ Erro: Nenhum campo especificado.");
-        console.error("   Use: yarn gerar-entidade Usuario nome:texto email:texto");
+        console.error("   Use: yarn gerar-modelo Usuario nome:texto email:texto");
         process.exit(1);
     }
 
     return {
-        nome: nomeEntidade,
+        nome: nomeModelo,
         campos,
         relacionamentos
     };
 }
 
-function gerarCodigoEntidade(config: ConfiguracaoEntidade): string {
-    const nomeTabela = obterNomeTabelaFromEntidade(config.nome);
+function gerarCodigoModelo(config: ConfiguracaoModelo): string {
+    const nomeTabela = obterNomeTabelaFromModelo(config.nome);
     const camposDeclaracao = config.campos
-        .map((c) => `    ${c.nome}: ${c.tipo};`)
+        .map((c) => `    ${c.nome}: ${c.tipo}`)
         .join("\n");
 
     const relacionamentosDeclaracao = config.relacionamentos
         .map((r) => {
-            const propriedade = r.tipo === "temMuitos" 
-                ? obterNomeTabelaFromEntidade(r.entidadeAlvo)
-                : `${r.entidadeAlvo.toLowerCase()}`;
+            let propriedade: string;
+            if (r.tipo === "temMuitos") {
+                // Para relações temMuitos, coloca o nome no plural da entidade alvo
+                propriedade = obterNomeTabelaFromModelo(r.modeloAlvo);
+            } else {
+                // Para pertenceA e temUm, coloca em minúsculas (singular)
+                propriedade = r.modeloAlvo.toLowerCase();
+            }
             
-            return `    @${r.tipo}(() => ${r.entidadeAlvo}) ${propriedade}?: any;`;
+            return `    @${r.tipo}\n    ${propriedade}: ${r.modeloAlvo}`;
         })
         .join("\n");
 
     const todasAsPropriedades = camposDeclaracao + 
-        (relacionamentosDeclaracao ? "\n" + relacionamentosDeclaracao : "");
+        (relacionamentosDeclaracao ? "\n\n" + relacionamentosDeclaracao : "");
 
-    return `import { Entidade } from "../entidade";
-
-/**
- * Entidade ${config.nome}
+    return `/**
+ * Modelo ${config.nome}
  * 
  * Tabela: ${nomeTabela}
  */
 @tabela("${nomeTabela}")
-export class ${config.nome} extends Entidade {
-    id: numero;
+classe ${config.nome} herda Modelo {
+    id: numero
 
 ${todasAsPropriedades}
-
-    constructor(dados?: Partial<${config.nome}>) {
-        super();
-        if (dados) {
-            Object.assign(this, dados);
-        }
-    }
 }
 `;
 }
 
-function gerarMigracao(config: ConfiguracaoEntidade): string {
+function gerarMigracao(config: ConfiguracaoModelo): string {
     const agora = new Date();
     const timestamp = [
         agora.getFullYear(),
@@ -246,7 +244,7 @@ function gerarMigracao(config: ConfiguracaoEntidade): string {
         String(agora.getSeconds()).padStart(2, "0")
     ].join("");
 
-    const nomeTabela = obterNomeTabelaFromEntidade(config.nome);
+    const nomeTabela = obterNomeTabelaFromModelo(config.nome);
     const descricao = `Criar tabela ${nomeTabela}`;
 
     const colunas = ["id: INTEIRO (chave primária)"];
@@ -257,29 +255,47 @@ function gerarMigracao(config: ConfiguracaoEntidade): string {
 
     config.relacionamentos.forEach((rel) => {
         if (rel.tipo === "pertenceA") {
-            const nomeColuna = `id_${rel.entidadeAlvo.toLowerCase()}`;
+            const nomeColuna = `id_${rel.modeloAlvo.toLowerCase()}`;
             colunas.push(`${nomeColuna}: INTEIRO (chave estrangeira)`);
         }
     });
 
-    const colunasComentario = colunas.map((c) => `//     ${c}`).join("\n");
+    const colunasComentario = colunas.map((c) => `    // ${c}`).join("\n");
 
-    return `import { Migracao } from "../../migracoes/migracao";
+    return `/**
+ * Migração: ${descricao}
+ * Timestamp: ${timestamp}
+ */
 
-export const migracao = new Migracao("${timestamp}", "${descricao}");
+classe Migracao${timestamp} herda Migracao {
+    versao(): texto {
+        retorne "${timestamp}"
+    }
 
-// Crie a tabela ${nomeTabela} com as seguintes colunas:
+    descricao(): texto {
+        retorne "${descricao}"
+    }
+
+    acima() {
+        // Crie a tabela ${nomeTabela} com as seguintes colunas:
 ${colunasComentario}
 
-// Exemplo de implementação:
-// migracao.criarTabela("${nomeTabela}", [
-//     new Coluna("id", "INTEIRO", undefined, false, true, false, true),
-${config.campos.map((c) => `//     new Coluna("${c.nome}", "${converterTipoParaSQL(c.tipo)}")`).join(",\n")}
+        // Exemplo de implementação:
+        // criar_tabela("${nomeTabela}", [
+        //     { nome: "id", tipo: "INTEIRO", chave_primaria: verdadeiro },
+${config.campos.map((c) => `        //     { nome: "${c.nome}", tipo: "${converterTipoParaSQL(c.tipo)}" }`).join(",\n")}
 ${config.relacionamentos
     .filter((r) => r.tipo === "pertenceA")
-    .map((r) => `//     new Coluna("id_${r.entidadeAlvo.toLowerCase()}", "INTEIRO")`)
+    .map((r) => `        //     { nome: "id_${r.modeloAlvo.toLowerCase()}", tipo: "INTEIRO" }`)
     .join(",\n")}
-// ]);
+        // ])
+    }
+
+    abaixo() {
+        // Reverta a migração aqui
+        // excluir_tabela("${nomeTabela}")
+    }
+}
 `;
 }
 
@@ -315,20 +331,20 @@ const TIPOS_RELACIONAMENTO = {
     temMuitos: true
 };
 
-function main(): void {
-    const config = parseArgumentos();
+function principal(): void {
+    const config = compreenderArgumentos();
 
     if (!config) {
         process.exit(1);
     }
 
     try {
-        // Gerar arquivo de entidade
-        const codigoEntidade = gerarCodigoEntidade(config);
-        const caminhoEntidade = path.join(DIRETORIO_ENTIDADES, `${config.nome.toLowerCase()}.ts`);
+        // Gerar arquivo de modelo
+        const codigoModelo = gerarCodigoModelo(config);
+        const caminhoModelo = path.join(DIRETORIO_MODELOS, `${config.nome.toLowerCase()}.delegua`);
         
-        criarArquivo(caminhoEntidade, codigoEntidade);
-        console.log(`✓ Entidade criada: ${caminhoEntidade}`);
+        criarArquivo(caminhoModelo, codigoModelo);
+        console.log(`✓ Modelo criado: ${caminhoModelo}`);
 
         // Gerar migração
         const codigoMigracao = gerarMigracao(config);
@@ -342,26 +358,26 @@ function main(): void {
             String(agora.getSeconds()).padStart(2, "0")
         ].join("");
 
-        const nomeTabela = obterNomeTabelaFromEntidade(config.nome);
+        const nomeTabela = obterNomeTabelaFromModelo(config.nome);
         const caminhoMigracao = path.join(
             DIRETORIO_MIGRACOES,
-            `${timestamp}_criar_tabela_${nomeTabela}.ts`
+            `${timestamp}_criar_tabela_${nomeTabela}.delegua`
         );
 
         criarArquivo(caminhoMigracao, codigoMigracao);
         console.log(`✓ Migração criada: ${caminhoMigracao}`);
 
-        console.log(`\n✅ Entidade '${config.nome}' gerada com sucesso!`);
+        console.log(`\n✅ Modelo '${config.nome}' gerado com sucesso!`);
         console.log(`\nPróximos passos:`);
-        console.log(`  1. Edite ${caminhoEntidade} e revise os campos/relacionamentos`);
+        console.log(`  1. Edite ${caminhoModelo} e revise os campos/relacionamentos`);
         console.log(`  2. Edite ${caminhoMigracao} e implemente a criação da tabela`);
         console.log(`  3. Rode: yarn migracoes executar`);
-        console.log(`  4. Importe a entidade onde precisar`);
+        console.log(`  4. Importe o modelo onde precisar`);
 
     } catch (erro) {
-        console.error(`❌ Erro ao gerar entidade:`, erro);
+        console.error(`❌ Erro ao gerar modelo:`, erro);
         process.exit(1);
     }
 }
 
-main();
+principal();
