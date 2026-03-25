@@ -21,7 +21,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@designliquido/delegua": "^1.7.0",
+    "@designliquido/delegua": "^1.15.3",
     "@designliquido/flexoes": "^0.1.0",
     "@designliquido/lincones-js": "^0.2.0"
   }
