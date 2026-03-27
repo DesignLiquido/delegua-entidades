@@ -1,0 +1,162 @@
+{
+    "classes": [
+        {
+            "nome": "Modelo",
+            "descricao": "Classe base para todos os modelos Delégua. Fornece operações de ORM para persistência e consultas. Não deve ser instanciada diretamente — use via herança: `classe MeuModelo herda Modelo { ... }`",
+            "propriedades": [
+                { "nome": "id", "tipo": "numero" }
+            ],
+            "metodos": [
+                {
+                    "nome": "salvar",
+                    "descricao": "Persiste o registro no banco de dados como uma nova inserção.",
+                    "parametros": []
+                },
+                {
+                    "nome": "modificar",
+                    "descricao": "Atualiza os campos do registro já existente no banco de dados.",
+                    "parametros": []
+                },
+                {
+                    "nome": "remover",
+                    "descricao": "Exclui o registro do banco de dados.",
+                    "parametros": []
+                },
+                {
+                    "nome": "salvarOuAtualizar",
+                    "descricao": "Insere o registro se ainda não existe, ou atualiza se já existir (upsert).",
+                    "parametros": []
+                },
+                {
+                    "nome": "buscarTodos",
+                    "descricao": "Retorna todos os registros da tabela correspondente.",
+                    "parametros": []
+                },
+                {
+                    "nome": "buscarPorId",
+                    "descricao": "Retorna o registro correspondente ao identificador informado, ou nulo se não encontrado.",
+                    "parametros": [
+                        { "nome": "id", "tipo": "numero" }
+                    ]
+                },
+                {
+                    "nome": "consulta",
+                    "descricao": "Retorna um construtor de consultas para filtros e ordenações avançadas.",
+                    "parametros": []
+                }
+            ]
+        },
+        {
+            "nome": "Migracao",
+            "descricao": "Classe base para todas as migrações Delégua. Não deve ser instanciada diretamente — use via herança: `classe MinhaMigracao herda Migracao { ... }`",
+            "propriedades": [],
+            "metodos": [
+                {
+                    "nome": "versao",
+                    "descricao": "Retorna a versão (timestamp) desta migração.",
+                    "parametros": [],
+                    "retorno": "texto"
+                },
+                {
+                    "nome": "descricao",
+                    "descricao": "Retorna a descrição legível desta migração.",
+                    "parametros": [],
+                    "retorno": "texto"
+                },
+                {
+                    "nome": "acima",
+                    "descricao": "Executa as operações de migração para frente (aplicar).",
+                    "parametros": []
+                },
+                {
+                    "nome": "abaixo",
+                    "descricao": "Reverte as operações desta migração.",
+                    "parametros": []
+                },
+                {
+                    "nome": "criarTabela",
+                    "descricao": "Registra uma operação de criação de tabela.",
+                    "parametros": [
+                        { "nome": "nome", "tipo": "texto" },
+                        { "nome": "colunas", "tipo": "qualquer" }
+                    ]
+                },
+                {
+                    "nome": "excluirTabela",
+                    "descricao": "Registra uma operação de exclusão de tabela.",
+                    "parametros": [
+                        { "nome": "nome", "tipo": "texto" }
+                    ]
+                },
+                {
+                    "nome": "adicionarColuna",
+                    "descricao": "Registra a adição de uma coluna a uma tabela existente.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "coluna", "tipo": "qualquer" }
+                    ]
+                },
+                {
+                    "nome": "removerColuna",
+                    "descricao": "Registra a remoção de uma coluna de uma tabela.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeColuna", "tipo": "texto" }
+                    ]
+                },
+                {
+                    "nome": "alterarColuna",
+                    "descricao": "Registra a alteração de uma coluna existente.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "coluna", "tipo": "qualquer" }
+                    ]
+                },
+                {
+                    "nome": "adicionarIndice",
+                    "descricao": "Registra a criação de um índice em uma ou mais colunas.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeIndice", "tipo": "texto" },
+                        { "nome": "colunas", "tipo": "qualquer" }
+                    ]
+                },
+                {
+                    "nome": "removerIndice",
+                    "descricao": "Registra a remoção de um índice.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeIndice", "tipo": "texto" }
+                    ]
+                },
+                {
+                    "nome": "adicionarRestricao",
+                    "descricao": "Registra a adição de uma restrição CHECK a uma tabela.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeRestricao", "tipo": "texto" },
+                        { "nome": "sql", "tipo": "texto" }
+                    ]
+                },
+                {
+                    "nome": "removerRestricao",
+                    "descricao": "Registra a remoção de uma restrição.",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeRestricao", "tipo": "texto" }
+                    ]
+                },
+                {
+                    "nome": "adicionarColunaComputada",
+                    "descricao": "Registra a adição de uma coluna computada (gerada por expressão SQL).",
+                    "parametros": [
+                        { "nome": "tabela", "tipo": "texto" },
+                        { "nome": "nomeColuna", "tipo": "texto" },
+                        { "nome": "tipoColuna", "tipo": "texto" },
+                        { "nome": "expressaoColuna", "tipo": "texto" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

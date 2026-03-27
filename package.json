@@ -1,27 +1,43 @@
 {
   "name": "@designliquido/delegua-entidades",
   "version": "0.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "empacotar": "yarn rimraf ./dist && tsc && yarn copyfiles -V ./README.md ./dist && yarn copyfiles -V ./package.json ./dist",
+    "publicar-npm": "npm publish ./dist --access public",
     "testes-unitarios": "jest --coverage",
+    "lint": "eslint fontes/**/*.ts",
     "migracoes": "ts-node fontes/ilc/migracoes.ts",
     "sementes": "ts-node fontes/ilc/semeadura.ts",
     "gerar-modelo": "ts-node fontes/ilc/gerador-entidades.ts",
+    "gerar-definicoes": "ts-node fontes/ilc/gerador-definicoes.ts",
     "performance": "ts-node fontes/indicadores-performance/index.ts"
   },
+  "delegua": {
+    "definicoes": "./definicoes"
+  },
   "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.26.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.4",
+    "copyfiles": "^2.4.1",
+    "eslint": "^8.0.0",
     "jest": "^29.7.0",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "tslint": "^6.1.3",
     "typescript": "^5.7.3"
   },
+  "peerDependencies": {
+    "@designliquido/delegua": "^1.15.4"
+  },
   "dependencies": {
-    "@designliquido/delegua": "^1.15.3",
     "@designliquido/flexoes": "^0.1.0",
     "@designliquido/lincones-js": "^0.2.0"
   }
