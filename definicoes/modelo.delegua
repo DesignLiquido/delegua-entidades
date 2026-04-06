@@ -11,35 +11,35 @@
  * }`
  */
 @definicao
-classe abstrata Modelo {
+classe estrangeira Modelo {
     id: numero
 
     /**
      * Persiste o registro no banco de dados como uma nova inserção.
      */
-    salvar() {}
+    salvar()
     /**
      * Atualiza os campos do registro já existente no banco de dados.
      */
-    modificar() {}
+    modificar()
     /**
      * Exclui o registro do banco de dados.
      */
-    remover() {}
+    remover()
     /**
      * Insere o registro se ainda não existe, ou atualiza se já existir (upsert).
      */
-    salvarOuAtualizar() {}
+    salvarOuAtualizar()
     /**
      * Retorna todos os registros da tabela correspondente.
      */
-    buscarTodos() {}
+    buscarTodos()
     /**
      * Retorna o registro correspondente ao identificador informado, ou nulo se não encontrado.
      */
-    buscarPorId(id: numero) {}
+    buscarPorId(id: numero)
     /**
      * Retorna um construtor de consultas para filtros e ordenações avançadas.
      */
-    consulta() {}
+    consulta()
 }

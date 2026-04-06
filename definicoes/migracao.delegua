@@ -10,61 +10,61 @@
  * }`
  */
 @definicao
-classe abstrata Migracao {
+classe estrangeira Migracao {
     /**
      * Retorna a versão (timestamp) desta migração.
      */
-    versao(): texto {}
+    versao(): texto
     /**
      * Retorna a descrição legível desta migração.
      */
-    descricao(): texto {}
+    descricao(): texto
     /**
      * Executa as operações de migração para frente (aplicar).
      */
-    acima() {}
+    acima()
     /**
      * Reverte as operações desta migração.
      */
-    abaixo() {}
+    abaixo()
     /**
      * Registra uma operação de criação de tabela.
      */
-    criarTabela(nome: texto, colunas: qualquer) {}
+    criarTabela(nome: texto, colunas: qualquer)
     /**
      * Registra uma operação de exclusão de tabela.
      */
-    excluirTabela(nome: texto) {}
+    excluirTabela(nome: texto)
     /**
      * Registra a adição de uma coluna a uma tabela existente.
      */
-    adicionarColuna(tabela: texto, coluna: qualquer) {}
+    adicionarColuna(tabela: texto, coluna: qualquer)
     /**
      * Registra a remoção de uma coluna de uma tabela.
      */
-    removerColuna(tabela: texto, nomeColuna: texto) {}
+    removerColuna(tabela: texto, nomeColuna: texto)
     /**
      * Registra a alteração de uma coluna existente.
      */
-    alterarColuna(tabela: texto, coluna: qualquer) {}
+    alterarColuna(tabela: texto, coluna: qualquer)
     /**
      * Registra a criação de um índice em uma ou mais colunas.
      */
-    adicionarIndice(tabela: texto, nomeIndice: texto, colunas: qualquer) {}
+    adicionarIndice(tabela: texto, nomeIndice: texto, colunas: qualquer)
     /**
      * Registra a remoção de um índice.
      */
-    removerIndice(tabela: texto, nomeIndice: texto) {}
+    removerIndice(tabela: texto, nomeIndice: texto)
     /**
      * Registra a adição de uma restrição CHECK a uma tabela.
      */
-    adicionarRestricao(tabela: texto, nomeRestricao: texto, sql: texto) {}
+    adicionarRestricao(tabela: texto, nomeRestricao: texto, sql: texto)
     /**
      * Registra a remoção de uma restrição.
      */
-    removerRestricao(tabela: texto, nomeRestricao: texto) {}
+    removerRestricao(tabela: texto, nomeRestricao: texto)
     /**
      * Registra a adição de uma coluna computada (gerada por expressão SQL).
      */
-    adicionarColunaComputada(tabela: texto, nomeColuna: texto, tipoColuna: texto, expressaoColuna: texto) {}
+    adicionarColunaComputada(tabela: texto, nomeColuna: texto, tipoColuna: texto, expressaoColuna: texto)
 }
