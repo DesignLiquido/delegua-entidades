@@ -1,19 +1,6 @@
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
-
-/**
- * Opções de serialização para controlar o comportamento da conversão.
- */
-export interface OpcoesSerializacao {
-    /** Campos a incluir (se vazio, inclui todos) */
-    incluir?: string[];
-    /** Campos a excluir */
-    excluir?: string[];
-    /** Profundidade máxima para serializar relacionamentos (0 = apenas IDs) */
-    profundidade?: number;
-    /** Se deve incluir registros excluídos logicamente */
-    incluirExcluidos?: boolean;
-}
+import { OpcoesSerializacao } from "./interfaces-tipos";
 
 /**
  * Classe responsável pela serialização de registros para JSON e dicionários.

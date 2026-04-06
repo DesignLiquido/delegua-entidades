@@ -1,6 +1,6 @@
 import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 
-import { ConfiguracaoBancoDados, ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
+import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 
 /**

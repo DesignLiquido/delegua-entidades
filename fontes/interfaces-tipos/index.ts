@@ -7,6 +7,7 @@ export * from './indice-interface';
 export * from './coluna-computada-interface';
 export * from './informacao-consulta-interface';
 export * from './muito-para-muitos-interface';
+export * from './opcoes-serializacao-interface';
 export * from './polimorfico-interface';
 export * from './relacionamento-interface';
 export * from './restricao-interface';

@@ -1,8 +1,5 @@
 import { DetectorConsultasN1, type AnaliseN1 } from './detector-n-mais-um';
-
-export type NivelDetalhamentoTaquigrafia = 'desligado' | 'erros' | 'avisos' | 'info' | 'depuracao';
-
-export type FuncaoTaquigrafia = (mensagem: string, detalhes?: any) => void;
+import { FuncaoTaquigrafia, NivelDetalhamentoTaquigrafia } from './tipos';
 
 const NIVEIS_PRIORIDADE_DETALHAMENTO: { [key: string]: number } = {
     'desligado': 0,

@@ -60,7 +60,7 @@ function gerarAssinaturaMetodo(metodo: MetodoDefinicao): string {
 
     const retorno = metodo.retorno ? `: ${metodo.retorno}` : "";
 
-    return `    ${metodo.nome}(${parametros})${retorno} {}`;
+    return `    ${metodo.nome}(${parametros})${retorno}`;
 }
 
 function gerarBlocoComentario(texto: string, recuo: string = ""): string {
@@ -80,7 +80,7 @@ function gerarConteudoClasse(classe: ClasseDefinicao): string {
     partes.push("@definicao");
 
     // Cabeçalho da classe
-    partes.push(`classe abstrata ${classe.nome} {`);
+    partes.push(`classe estrangeira ${classe.nome} {`);
 
     // Propriedades
     if (classe.propriedades.length > 0) {
