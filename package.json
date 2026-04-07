@@ -39,7 +39,17 @@
     "@designliquido/delegua": "^1.16.0"
   },
   "dependencies": {
+    "@designliquido/delprops": "^0.0.1",
     "@designliquido/flexoes": "^0.1.0",
-    "@designliquido/lincones-js": "^0.2.0"
+    "@designliquido/lincones-js": "^0.2.0",
+    "@designliquido/lincones-sqlite": "^0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@designliquido/lincones-mysql": {
+      "optional": true
+    },
+    "@designliquido/lincones-postgresql": {
+      "optional": true
+    }
   }
 }

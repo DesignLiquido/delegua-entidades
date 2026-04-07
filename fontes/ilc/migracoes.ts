@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/// <reference types="node" />
 
 /**
  * CLI para Migrações
@@ -12,6 +13,10 @@
 
 import caminho from "path";
 import sistemaArquivos from "fs";
+
+import { Migracao } from "../migracoes/migracao";
+import { ExecutorMigracoes } from "../migracoes/executor-migracoes";
+import { lerConfiguracaoDelprops, instanciarAdaptador } from "./leitor-configuracao";
 
 type NomeComando = "gerar" | "executar" | "reverter" | "status" | "desfazer";
 
@@ -105,7 +110,7 @@ export const migracao = new Migracao("${timestamp}", "Descrição da migração"
     console.log(`✓ Migração criada: ${nomeMigracao}.ts`);
 }
 
-function executarMigracoes(): void {
+async function executarMigracoes(): Promise<void> {
     garantirDiretorio();
 
     console.log("Verificando migrações pendentes...");
@@ -129,11 +134,44 @@ function executarMigracoes(): void {
         return;
     }
 
+    // Obter adaptador a partir de configuracao.delprops, se disponível
+    const configuracaoDelprops = lerConfiguracaoDelprops();
+    let executor: ExecutorMigracoes | null = null;
+
+    if (configuracaoDelprops) {
+        const nomesConexao = Object.keys(configuracaoDelprops.dados);
+        if (nomesConexao.length > 0) {
+            const conexaoPadrao = configuracaoDelprops.dados[nomesConexao[0]];
+            const adaptador = instanciarAdaptador(conexaoPadrao);
+            if (adaptador) {
+                const caminhoConexao = conexaoPadrao.caminho ?? conexaoPadrao.banco ?? "";
+                await adaptador.iniciar(caminhoConexao);
+                executor = new ExecutorMigracoes(adaptador);
+                console.log(`Usando adaptador '${conexaoPadrao.tecnologia}' (conexão '${nomesConexao[0]}').`);
+            }
+        }
+    } else {
+        console.log("Arquivo configuracao.delprops não encontrado. Apenas o histórico será atualizado.");
+    }
+
     console.log(`Executando ${pendentes.length} migração(ões) pendente(s)...`);
 
     for (const arquivo of pendentes) {
         const versao = arquivo.replace("_migracao_vazia.ts", "").replace(/\.ts$/, "");
         console.log(`  • ${arquivo}`);
+
+        if (executor) {
+            const caminhoMigracao = caminho.join(DIRETORIO_MIGRACOES, arquivo);
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const modulo = require(caminhoMigracao) as { migracao?: Migracao; default?: Migracao };
+            const migracao = modulo.migracao ?? modulo.default;
+
+            if (migracao) {
+                await executor.executar(migracao);
+            } else {
+                console.warn(`  ⚠ Módulo '${arquivo}' não exporta 'migracao' nem exportação padrão. Pulando.`);
+            }
+        }
 
         historico.migracoes_executadas.push({
             versao,
@@ -190,7 +228,7 @@ function desfazerHistorico(): void {
     console.log("✓ Histórico de migrações limpo.");
 }
 
-function principal(): void {
+async function principal(): Promise<void> {
     const args = process.argv.slice(2);
     const comando = (args[0] || COMANDO_PADRAO) as NomeComando;
 
@@ -199,7 +237,7 @@ function principal(): void {
             gerarMigracao();
             break;
         case "executar":
-            executarMigracoes();
+            await executarMigracoes();
             break;
         case "reverter":
             desfazerMigracao();
@@ -217,4 +255,7 @@ function principal(): void {
     }
 }
 
-principal();
+principal().catch((erro) => {
+    console.error("Falha ao executar migrações:", erro);
+    process.exit(1);
+});
