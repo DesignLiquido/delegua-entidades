@@ -9,11 +9,12 @@ import { Validador } from "./validacoes/validador";
 import { ErroDeValidacao } from "./erros/erro-validacao";
 import { ErroConcorrencia } from "./erros/erro-concorrencia";
 import { Taquigrafo } from "./taquigrafia";
-import { Serializador, OpcoesSerializacao } from "./serializador";
+import { Serializador } from "./serializador";
+import { OpcoesSerializacaoInterface } from "./interfaces-tipos";
 
 export class Colecao<TEntidade extends EntidadeInterface> {
     tipoEntidade: TEntidade;
-    tecnologia: TecnologiaLinconesInterface;
+    tecnologia: TecnologiaLinconesInterface | undefined;
     ganchos: GanchosInterface;
     taquigrafo?: Taquigrafo;
 
@@ -460,7 +461,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
      */
     serializarParaDicionario(
         registro: ObjetoDeleguaClasse,
-        opcoes?: OpcoesSerializacao
+        opcoes?: OpcoesSerializacaoInterface
     ): Record<string, any> {
         return Serializador.paraDicionario(registro, this.tipoEntidade, opcoes);
     }
@@ -470,7 +471,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
      */
     serializarParaJson(
         registro: ObjetoDeleguaClasse,
-        opcoes?: OpcoesSerializacao
+        opcoes?: OpcoesSerializacaoInterface
     ): string {
         return Serializador.paraJson(registro, this.tipoEntidade, opcoes);
     }
@@ -480,7 +481,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
      */
     serializarMuitosParaDicionario(
         registros: ObjetoDeleguaClasse[],
-        opcoes?: OpcoesSerializacao
+        opcoes?: OpcoesSerializacaoInterface
     ): Record<string, any>[] {
         return Serializador.muitosParaDicionario(registros, this.tipoEntidade, opcoes);
     }
@@ -490,7 +491,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
      */
     serializarMuitosParaJson(
         registros: ObjetoDeleguaClasse[],
-        opcoes?: OpcoesSerializacao
+        opcoes?: OpcoesSerializacaoInterface
     ): string {
         return Serializador.muitosParaJson(registros, this.tipoEntidade, opcoes);
     }

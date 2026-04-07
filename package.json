@@ -22,7 +22,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@designliquido/delegua": "^1.16.0",
+    "@designliquido/delegua": "^1.16.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.4",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -36,7 +36,7 @@
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
-    "@designliquido/delegua": "^1.16.0"
+    "@designliquido/delegua": "^1.16.1"
   },
   "dependencies": {
     "@designliquido/delprops": "^0.0.1",

@@ -1,6 +1,6 @@
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
-import { OpcoesSerializacao } from "./interfaces-tipos";
+import { OpcoesSerializacaoInterface } from "./interfaces-tipos";
 
 /**
  * Classe responsável pela serialização de registros para JSON e dicionários.
@@ -17,7 +17,7 @@ export class Serializador {
     static paraDicionario(
         registro: ObjetoDeleguaClasse,
         tipoEntidade: EntidadeInterface,
-        opcoes: OpcoesSerializacao = {}
+        opcoes: OpcoesSerializacaoInterface = {}
     ): Record<string, any> {
         const dicionario: Record<string, any> = {};
         const profundidade = opcoes.profundidade ?? 1;
@@ -52,7 +52,7 @@ export class Serializador {
     static paraJson(
         registro: ObjetoDeleguaClasse,
         tipoEntidade: EntidadeInterface,
-        opcoes: OpcoesSerializacao = {}
+        opcoes: OpcoesSerializacaoInterface = {}
     ): string {
         const dicionario = this.paraDicionario(registro, tipoEntidade, opcoes);
         return JSON.stringify(dicionario);
@@ -68,7 +68,7 @@ export class Serializador {
     static muitosParaDicionario(
         registros: ObjetoDeleguaClasse[],
         tipoEntidade: EntidadeInterface,
-        opcoes: OpcoesSerializacao = {}
+        opcoes: OpcoesSerializacaoInterface = {}
     ): Record<string, any>[] {
         return registros.map(registro => this.paraDicionario(registro, tipoEntidade, opcoes));
     }
@@ -83,7 +83,7 @@ export class Serializador {
     static muitosParaJson(
         registros: ObjetoDeleguaClasse[],
         tipoEntidade: EntidadeInterface,
-        opcoes: OpcoesSerializacao = {}
+        opcoes: OpcoesSerializacaoInterface = {}
     ): string {
         const dicionarios = this.muitosParaDicionario(registros, tipoEntidade, opcoes);
         return JSON.stringify(dicionarios);
@@ -94,7 +94,7 @@ export class Serializador {
      */
     private static _deveIncluirCampo(
         nomeCampo: string,
-        opcoes: OpcoesSerializacao
+        opcoes: OpcoesSerializacaoInterface
     ): boolean {
         if (opcoes.excluir && opcoes.excluir.includes(nomeCampo)) {
             return false;

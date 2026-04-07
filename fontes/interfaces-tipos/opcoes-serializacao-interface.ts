@@ -1,7 +1,7 @@
 /**
  * Opções de serialização para controlar o comportamento da conversão.
  */
-export interface OpcoesSerializacao {
+export interface OpcoesSerializacaoInterface {
     /** Campos a incluir (se vazio, inclui todos) */
     incluir?: string[];
     /** Campos a excluir */
