@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import fs from "fs";
 import path from "path";
+
 import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 
 const NOME_ARQUIVO_CONFIGURACAO = "configuracao.delprops";
@@ -22,8 +23,11 @@ export interface ConfiguracaoDelprops {
 function analisarValor(valorBruto: string): string | number | boolean {
     const aparado = valorBruto.trim();
 
-    // Texto entre aspas simples
-    if (aparado.startsWith("'") && aparado.endsWith("'")) {
+    // Texto entre aspas simples ou duplas
+    if (
+        (aparado.startsWith("'") && aparado.endsWith("'")) ||
+        (aparado.startsWith("\"") && aparado.endsWith("\""))
+    ) {
         return aparado.slice(1, -1);
     }
 
@@ -65,13 +69,22 @@ export function lerConfiguracaoDelprops(diretorio: string = process.cwd()): Conf
         const valorBruto = aparada.slice(indiceSeparador + 1).trim();
         const valor = analisarValor(valorBruto);
 
-        // Só processar chaves no espaço `liquido.dados.<conexao>.<propriedade>`
+        // Aceita tanto `dados.<propriedade>` quanto `dados.<conexao>.<propriedade>`.
         const partes = chave.split(".");
-        if (partes.length < 4) continue;
-        if (partes[0] !== "liquido" || partes[1] !== "dados") continue;
+        if (partes[0] !== "dados") continue;
 
-        const nomeConexao = partes[2];
-        const propriedade = partes[3];
+        let nomeConexao: string;
+        let propriedade: string;
+
+        if (partes.length === 2) {
+            nomeConexao = "padrao";
+            propriedade = partes[1];
+        } else if (partes.length >= 3) {
+            nomeConexao = partes[1];
+            propriedade = partes[2];
+        } else {
+            continue;
+        }
 
         if (!configuracao.dados[nomeConexao]) {
             configuracao.dados[nomeConexao] = {};
@@ -133,7 +146,7 @@ export function instanciarAdaptador(configuracaoConexao: ConfiguracaoConexao): T
 
 /**
  * Lê `configuracao.delprops` e retorna o adaptador para a primeira conexão configurada em
- * `liquido.dados`. Retorna `null` se o arquivo não existir ou o adaptador não puder ser
+ * `dados`. Retorna `null` se o arquivo não existir ou o adaptador não puder ser
  * instanciado.
  */
 export function obterAdaptadorPadrao(diretorio: string = process.cwd()): TecnologiaLinconesInterface | null {

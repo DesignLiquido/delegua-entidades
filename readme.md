@@ -91,6 +91,55 @@ Há também comandos de geração de SQL, se for interessante obter a consulta g
 
 - `contexto.modelo(Modelo).gerarSQLSelecionar()`
 
+### Configuração em tempo de execução
+
+A classe `Configuracoes` permite ajustar os parâmetros de conexão com o banco de dados diretamente no código Delégua, sem precisar editar o arquivo `configuracao.delprops`.
+
+```js
+var configuracoes = entidades.Configuracoes()
+configuracoes.caminho = "dados/meu-banco.db"
+configuracoes.aplicar()
+
+var contexto = entidades.Contexto() // Contexto agora usa o banco de dados configurado
+```
+
+Para bancos de dados em servidor:
+
+```js
+var configuracoes = entidades.Configuracoes()
+configuracoes.tecnologia = "postgresql"
+configuracoes.host = "localhost"
+configuracoes.porta = 5432
+configuracoes.banco = "minha_base"
+configuracoes.usuario = "postgres"
+configuracoes.senha = "segredo"
+configuracoes.aplicar()
+
+var contexto = entidades.Contexto() // Contexto agora usa o banco de dados configurado
+```
+
+**Propriedades disponíveis:**
+
+| Propriedade   | Tipo   | Descrição                                             |
+|---------------|--------|-------------------------------------------------------|
+| `caminho`     | texto  | Caminho do arquivo de banco de dados (SQLite).        |
+| `porta`       | numero | Porta do servidor (PostgreSQL, MySQL).                |
+| `host`        | texto  | Endereço do servidor de banco de dados.               |
+| `usuario`     | texto  | Nome de usuário para autenticação.                    |
+| `senha`       | texto  | Senha para autenticação.                              |
+| `banco`       | texto  | Nome do banco de dados.                               |
+| `tecnologia`  | texto  | Tipo de banco: `'sqlite'`, `'postgresql'`, `'mysql'`. |
+
+**Ordem de precedência na resolução da conexão:**
+
+Quando um `Contexto` é criado sem argumento explícito, a tecnologia é resolvida na seguinte ordem:
+
+1. `Configuracoes.aplicar()` — configuração aplicada em memória (maior prioridade)
+2. Arquivo `configuracao.delprops` no diretório de trabalho
+3. SQLite padrão sem caminho (fallback)
+
+---
+
 ## Execução por linha de comando
 
-Este pacote não funciona sozinho em modo por linha de comando. É necessário também instalar um dos pacotes específicos de tecnologia de LinConEs. 
+Este pacote funciona sozinho em modo por linha de comando apenas com SQLite, que é o padrão deste projeto. Se houver necessidade de utilizar outro banco de dados, é necessário também instalar um dos pacotes específicos de tecnologia de LinConEs. 

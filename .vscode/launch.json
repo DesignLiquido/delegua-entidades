@@ -4,18 +4,68 @@
     // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-      {
-        "name": "Testes unitários",
-        "type": "node",
-        "request": "launch",
-        "runtimeArgs": [
-            "--inspect-brk",
-            "${workspaceRoot}/node_modules/jest/bin/jest.js",
-            "--runInBand"
-        ],
-        "skipFiles": ["<node_internals>/**", "node_modules/**"],
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
-      }
+        {
+            "name": "Migrador > Gerar Migrações",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "${workspaceFolder}${pathSeparator}fontes${pathSeparator}ilc${pathSeparator}migracoes.ts",
+                "gerar"
+            ],
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--nolazy",
+                "-r",
+                "ts-node/register/transpile-only",
+                "-r",
+                "tsconfig-paths/register"
+                // "--preserve-symlinks"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "**/node_modules/@designliquido/**"
+            ],
+            "skipFiles": ["<node_internals>/**", "node_modules/**"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Migrador > Executar Migrações",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "${workspaceFolder}${pathSeparator}fontes${pathSeparator}ilc${pathSeparator}migracoes.ts",
+                "executar"
+            ],
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--nolazy",
+                "-r",
+                "ts-node/register/transpile-only",
+                "-r",
+                "tsconfig-paths/register"
+                // "--preserve-symlinks"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "**/node_modules/@designliquido/**"
+            ],
+            "skipFiles": ["<node_internals>/**", "node_modules/**"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Testes unitários",
+            "type": "node",
+            "request": "launch",
+            "runtimeArgs": [
+                "--inspect-brk",
+                "${workspaceRoot}/node_modules/jest/bin/jest.js",
+                "--runInBand"
+            ],
+            "skipFiles": ["<node_internals>/**", "node_modules/**"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
     ]
 }
