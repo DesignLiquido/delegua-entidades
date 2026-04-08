@@ -52,7 +52,7 @@ async function executar(): Promise<void> {
     }
 
     const contexto = await Promise.resolve(criarContexto());
-    const semeador = new Semeador(contexto, contexto.logger);
+    const semeador = new Semeador(contexto, contexto.taquigrafo);
 
     await semeador.semear(sementes);
 }

@@ -9,7 +9,7 @@ import { RastreadorMudancas } from "./rastreador-mudancas";
 import { Transacao } from "./transacao";
 import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
 import { RoteadorBancos } from "./roteador-bancos";
-import { ConfiguracaoBancoDados, ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
+import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
 import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
 
 /**
@@ -18,39 +18,55 @@ import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
  * Também gerencia cache L1 (identity map) e L2 (cache persistente).
  */
 export class ContextoEntidades {
-    tecnologia: TecnologiaLinconesInterface;
+    tecnologia: TecnologiaLinconesInterface | undefined;
     colecoes: {[key: string]: Colecao<EntidadeInterface>};
-    logger?: Taquigrafo;
+    taquigrafo?: Taquigrafo;
     rastreador: RastreadorMudancas;
     private transacao: Transacao | null = null;
     private roteador: RoteadorBancos;
     private cache: GerenciadorCache;
 
-    constructor(tecnologia: TecnologiaLinconesInterface, logger?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
-        this.tecnologia = tecnologia;
+    constructor(tecnologia?: TecnologiaLinconesInterface | unknown, taquigrafo?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
+        // ClassePadrao do Delégua passa argumentos como array; ignorar se não for tecnologia válida
+        const tecnologiaValida = Array.isArray(tecnologia) || !tecnologia ? undefined : tecnologia as TecnologiaLinconesInterface;
+        this.tecnologia = tecnologiaValida;
         this.colecoes = {};
-        this.logger = logger;
+        this.taquigrafo = taquigrafo;
         this.rastreador = new RastreadorMudancas();
         this.cache = new GerenciadorCache(opcoesCacheL2);
-        
-        // Inicializar roteador com o banco padrão
+
+        // Inicializar roteador com o banco padrão, se tecnologia fornecida
         this.roteador = new RoteadorBancos();
-        this.roteador.registrarBanco('padrão', tecnologia, true);
+        if (tecnologiaValida) {
+            this.roteador.registrarBanco('padrão', tecnologiaValida, true);
+        }
     }
 
     registrarColecao(entidade: EntidadeInterface): Colecao<EntidadeInterface> {
         const nome = entidade.obterNome();
-        // Obter a tecnologia para o banco da entidade
-        const tecnologiaEntidade = this.roteador.obterTecnologiaParaEntidade(entidade);
-        const colecao = new Colecao(entidade, tecnologiaEntidade, this.logger);
+        // Obter a tecnologia para o banco da entidade (pode ser undefined sem tecnologia)
+        const tecnologiaEntidade = this.tecnologia ? this.roteador.obterTecnologiaParaEntidade(entidade) : undefined;
+        const colecao = new Colecao(entidade, tecnologiaEntidade, this.taquigrafo);
         this.colecoes[nome] = colecao;
         return colecao;
     }
 
-    colecao(tipoModelo: DescritorTipoClasse): Colecao<EntidadeInterface> {
-        const nome = tipoModelo.simboloOriginal.lexema;
+    colecao(tipoModelo: DescritorTipoClasse | unknown): Colecao<EntidadeInterface> {
+        // Desencapsular argumento do caminho nativo do Delégua (envelopagem {nome, valor})
+        let tipoDescritor: object = tipoModelo as object;
+        while (
+            tipoDescritor !== null &&
+            tipoDescritor !== undefined &&
+            typeof tipoDescritor === 'object' &&
+            Object.prototype.hasOwnProperty.call(tipoDescritor, 'valor') &&
+            !(tipoDescritor instanceof DescritorTipoClasse)
+        ) {
+            tipoDescritor = (tipoDescritor as {valor: object}).valor;
+        }
+        const descritor = tipoDescritor as DescritorTipoClasse;
+        const nome = descritor.simboloOriginal?.lexema || '';
         if (!this.colecoes[nome]) {
-            const entidade = new Entidade(tipoModelo);
+            const entidade = new Entidade(descritor);
             this.registrarColecao(entidade);
         }
 
@@ -130,18 +146,18 @@ export class ContextoEntidades {
      * Processa cascata de inserção para relacionamentos.
      */
     private async processarCascataInserir(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
-        const col = this.colecoes[nomeEntidade];
-        if (!col) return;
+        const colecao = this.colecoes[nomeEntidade];
+        if (!colecao) return;
 
-        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        const relacionamentos = colecao.tipoEntidade.obterRelacionamentos();
         
-        for (const rel of relacionamentos) {
-            if (!rel.cascata || !rel.cascata.includes('inserir')) continue;
+        for (const relacionamento of relacionamentos) {
+            if (!relacionamento.cascata || !relacionamento.cascata.includes('inserir')) continue;
             
-            const filhos = registro.propriedades[rel.nomePropriedade];
+            const filhos = registro.propriedades[relacionamento.nomePropriedade];
             if (!filhos) continue;
 
-            const colFilha = this.colecoes[rel.entidadeDestino];
+            const colFilha = this.colecoes[relacionamento.entidadeDestino || ''];
             if (!colFilha) continue;
 
             const listaFilhos = Array.isArray(filhos) ? filhos : [filhos];
@@ -151,10 +167,10 @@ export class ContextoEntidades {
                     // Definir a chave estrangeira no filho
                     if (filho.propriedades) {
                         // É um ObjetoDeleguaClasse
-                        filho.propriedades[rel.colunaDestino] = registro.propriedades[rel.colunaOrigem];
+                        filho.propriedades[relacionamento.colunaDestino || ''] = registro.propriedades[relacionamento.colunaOrigem || ''];
                     } else {
                         // É um objeto plain
-                        filho[rel.colunaDestino] = registro.propriedades[rel.colunaOrigem];
+                        filho[relacionamento.colunaDestino || ''] = registro.propriedades[relacionamento.colunaOrigem || ''];
                     }
                     
                     // Salvar o filho
@@ -168,18 +184,18 @@ export class ContextoEntidades {
      * Processa cascata de atualização para relacionamentos.
      */
     private async processarCascataAtualizar(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
-        const col = this.colecoes[nomeEntidade];
-        if (!col) return;
+        const colecao = this.colecoes[nomeEntidade];
+        if (!colecao) return;
 
-        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        const relacionamentos = colecao.tipoEntidade.obterRelacionamentos();
         
-        for (const rel of relacionamentos) {
-            if (!rel.cascata || !rel.cascata.includes('atualizar')) continue;
+        for (const relacionamento of relacionamentos) {
+            if (!relacionamento.cascata || !relacionamento.cascata.includes('atualizar')) continue;
             
-            const filhos = registro.propriedades[rel.nomePropriedade];
+            const filhos = registro.propriedades[relacionamento.nomePropriedade];
             if (!filhos) continue;
 
-            const colFilha = this.colecoes[rel.entidadeDestino];
+            const colFilha = this.colecoes[relacionamento.entidadeDestino || ''];
             if (!colFilha) continue;
 
             const listaFilhos = Array.isArray(filhos) ? filhos : [filhos];
@@ -200,19 +216,19 @@ export class ContextoEntidades {
      * Processa cascata de exclusão para relacionamentos.
      */
     private async processarCascataExcluir(nomeEntidade: string, registro: ObjetoDeleguaClasse): Promise<void> {
-        const col = this.colecoes[nomeEntidade];
-        if (!col) return;
+        const colecao = this.colecoes[nomeEntidade];
+        if (!colecao) return;
 
-        const relacionamentos = col.tipoEntidade.obterRelacionamentos();
+        const relacionamentos = colecao.tipoEntidade.obterRelacionamentos();
         
-        for (const rel of relacionamentos) {
-            if (!rel.cascata || !rel.cascata.includes('excluir')) continue;
+        for (const relacionamento of relacionamentos) {
+            if (!relacionamento.cascata || !relacionamento.cascata.includes('excluir')) continue;
 
-            const colFilha = this.colecoes[rel.entidadeDestino];
-            if (!colFilha) continue;
+            const colecaoFilha = this.colecoes[relacionamento.entidadeDestino || ''];
+            if (!colecaoFilha) continue;
 
             // Verificar se os filhos estão carregados
-            const filhos = registro.propriedades[rel.nomePropriedade];
+            const filhos = registro.propriedades[relacionamento.nomePropriedade];
             
             if (filhos) {
                 // Filhos estão carregados, excluí-los diretamente
@@ -220,23 +236,24 @@ export class ContextoEntidades {
                 
                 for (const filho of listaFilhos) {
                     if (filho && typeof filho === 'object') {
-                        await colFilha.remover(filho);
+                        await colecaoFilha.remover(filho);
                     }
                 }
             } else {
                 // Filhos não estão carregados, executar DELETE WHERE
-                const valorId = registro.propriedades[rel.colunaOrigem];
+                const valorId = registro.propriedades[relacionamento.colunaOrigem || ''];
                 if (valorId !== undefined && valorId !== null) {
-                    const sql = `DELETE FROM ${rel.entidadeDestino} WHERE ${rel.colunaDestino} = ${
+                    const sql = `DELETE FROM ${relacionamento.entidadeDestino} WHERE ${relacionamento.colunaDestino} = ${
                         typeof valorId === 'string' ? `'${valorId}'` : valorId
                     }`;
-                    await this.tecnologia.executar(null, sql, []);
+                    await this.tecnologia?.executar(null, sql, []);
                 }
             }
         }
     }
 
     async iniciar(caminho: string): Promise<void> {
+        if (!this.tecnologia) throw new Error("Tecnologia não configurada no contexto");
         await this.tecnologia.iniciar(caminho);
         for (const nome in this.colecoes) {
             const criar = this.colecoes[nome].tipoEntidade.gerarComandoCriarTabela();
@@ -253,8 +270,8 @@ export class ContextoEntidades {
             throw new Error('Já existe uma transação ativa neste contexto');
         }
         
-        this.transacao = new Transacao(this.tecnologia);
-        this.logger?.info('Transação iniciada');
+        this.transacao = new Transacao(this.tecnologia!);
+        this.taquigrafo?.info('Transação iniciada');
         return this.transacao;
     }
 
@@ -281,7 +298,7 @@ export class ContextoEntidades {
         }
 
         await this.transacao.confirmar();
-        this.logger?.info('Transação confirmada');
+        this.taquigrafo?.info('Transação confirmada');
         this.transacao = null;
     }
 
@@ -294,7 +311,7 @@ export class ContextoEntidades {
         }
 
         await this.transacao.reverter();
-        this.logger?.info('Transação revertida');
+        this.taquigrafo?.info('Transação revertida');
         this.transacao = null;
     }
 

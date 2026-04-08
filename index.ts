@@ -4,6 +4,7 @@ export { Entidade } from './fontes/entidade';
 export { Colecao } from './fontes/colecao';
 export { ConstrutorConsulta } from './fontes/construtor-consulta';
 export { ContextoEntidades } from './fontes/contexto-entidades';
+export { ContextoEntidades as Contexto } from './fontes/contexto-entidades';
 export { Relacionamento } from './fontes/relacionamento';
 export { Validador } from './fontes/validacoes/validador';
 export { ErroDeValidacao, ErroValidacao } from './fontes/erros/erro-validacao';
