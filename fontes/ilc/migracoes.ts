@@ -25,38 +25,16 @@
 import caminho from "path";
 import sistemaArquivos from "fs";
 
-import { Coluna } from "@designliquido/lincones-js";
+import { Coluna, TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 import { Simbolo } from "@designliquido/lincones-js/lexador/simbolo";
 import { Migracao } from "../migracoes/migracao";
 import { ExecutorMigracoes } from "../migracoes/executor-migracoes";
 import { lerConfiguracaoDelprops, instanciarAdaptador } from "./leitor-configuracao";
-import { HistoricoMigracoesInterface } from "../interfaces-tipos/migracao";
+import { CampoSnapshot, HistoricoMigracoesInterface, ModeloSnapshot } from "../interfaces-tipos/migracao";
+import { Snapshot } from "../interfaces-tipos/migracao/fotografia-interface";
+import { OperacaoDelta } from "../interfaces-tipos/migracao/operacao-delta-interface";
 
 type NomeComando = "gerar" | "executar" | "reverter" | "status" | "desfazer";
-
-interface CampoSnapshot {
-    nome: string;
-    tipo: string;
-}
-
-interface ModeloSnapshot {
-    tabela: string;
-    campos: CampoSnapshot[];
-}
-
-interface Snapshot {
-    timestamp: string;
-    modelos: { [nomeClasse: string]: ModeloSnapshot };
-}
-
-interface OperacaoDelta {
-    tipo: "criar_tabela" | "excluir_tabela" | "adicionar_coluna" | "remover_coluna" | "alterar_coluna";
-    tabela: string;
-    campo?: CampoSnapshot;
-    campoAnterior?: CampoSnapshot;
-    campos?: CampoSnapshot[];
-    nomeCampo?: string;
-}
 
 const MAPEAMENTO_TIPOS_LINCONES: { [tipo: string]: string } = {
     numero: "INTEIRO",
@@ -488,6 +466,51 @@ function gerarMigracao(nomeOpcional?: string): void {
     console.log(`  ${operacoes.length} operação(ões) detectada(s).`);
 }
 
+interface AdaptadorComRecursos extends TecnologiaLinconesInterface {
+    encerrar?: () => Promise<void>;
+    clientePostgreSQL?: {
+        instanciaBancoDeDados?: {
+            end: () => Promise<void>;
+        };
+    };
+    clienteMySQL?: {
+        instanciaBancoDeDados?: {
+            end: (callback: (erro: Error | null) => void) => void;
+        };
+    };
+}
+
+async function encerrarAdaptadorSeNecessario(adaptador: AdaptadorComRecursos | null): Promise<void> {
+    if (!adaptador) {
+        return;
+    }
+
+    if (typeof adaptador.encerrar === "function") {
+        await adaptador.encerrar();
+        return;
+    }
+
+    const clientePostgreSQL = adaptador.clientePostgreSQL?.instanciaBancoDeDados;
+    if (clientePostgreSQL && typeof clientePostgreSQL.end === "function") {
+        await clientePostgreSQL.end();
+        return;
+    }
+
+    const conexaoMySQL = adaptador.clienteMySQL?.instanciaBancoDeDados;
+    if (conexaoMySQL && typeof conexaoMySQL.end === "function") {
+        await new Promise<void>((resolve, reject) => {
+            conexaoMySQL.end((erro: Error | null) => {
+                if (erro) {
+                    reject(erro);
+                    return;
+                }
+
+                resolve();
+            });
+        });
+    }
+}
+
 async function executarMigracoes(): Promise<void> {
     garantirDiretorio();
 
@@ -517,57 +540,62 @@ async function executarMigracoes(): Promise<void> {
 
     // Obter adaptador a partir de configuracao.delprops, se disponível
     const configuracaoDelprops = lerConfiguracaoDelprops();
+    let adaptador: TecnologiaLinconesInterface | null = null;
     let executor: ExecutorMigracoes | null = null;
 
-    if (configuracaoDelprops) {
-        const nomesConexao = Object.keys(configuracaoDelprops.dados);
-        if (nomesConexao.length === 0) {
-            throw new Error("Arquivo configuracao.delprops encontrado, mas nenhuma conexão válida foi definida em 'dados'.");
-        }
-
-        const conexaoPadrao = configuracaoDelprops.dados[nomesConexao[0]];
-        const adaptador = instanciarAdaptador(conexaoPadrao);
-        if (!adaptador) {
-            throw new Error(`Não foi possível instanciar o adaptador para a conexão '${nomesConexao[0]}'.`);
-        }
-
-        const caminhoConexao = conexaoPadrao.caminho ?? conexaoPadrao.banco ?? "";
-        await adaptador.iniciar(caminhoConexao);
-        executor = new ExecutorMigracoes(adaptador);
-        console.log(`Usando adaptador '${conexaoPadrao.tecnologia}' (conexão '${nomesConexao[0]}').`);
-    } else {
-        console.log("Arquivo configuracao.delprops não encontrado. Apenas o histórico será atualizado.");
-    }
-
-    console.log(`Executando ${pendentes.length} migração(ões) pendente(s)...`);
-
-    for (const arquivo of pendentes) {
-        const versao = arquivo.replace(/\.delegua$/, "");
-        console.log(`  • ${arquivo}`);
-
-        if (executor) {
-            const caminhoMigracao = caminho.join(DIRETORIO_MIGRACOES, arquivo);
-            const conteudoMigracao = sistemaArquivos.readFileSync(caminhoMigracao, "utf-8");
-            const descricao = extrairDescricaoMigracao(conteudoMigracao);
-            const operacoes = extrairOperacoesBlocoAcima(conteudoMigracao);
-
-            if (operacoes.length === 0) {
-                throw new Error(`Não foi possível extrair operações do arquivo '${arquivo}'.`);
+    try {
+        if (configuracaoDelprops) {
+            const nomesConexao = Object.keys(configuracaoDelprops.dados);
+            if (nomesConexao.length === 0) {
+                throw new Error("Arquivo configuracao.delprops encontrado, mas nenhuma conexão válida foi definida em 'dados'.");
             }
 
-            const migracao = construirMigracao(versao, descricao, operacoes);
-            await executor.executar(migracao);
+            const conexaoPadrao = configuracaoDelprops.dados[nomesConexao[0]];
+            adaptador = instanciarAdaptador(conexaoPadrao);
+            if (!adaptador) {
+                throw new Error(`Não foi possível instanciar o adaptador para a conexão '${nomesConexao[0]}'.`);
+            }
+
+            const caminhoConexao = conexaoPadrao.caminho ?? conexaoPadrao.banco ?? "";
+            await adaptador.iniciar(caminhoConexao);
+            executor = new ExecutorMigracoes(adaptador);
+            console.log(`Usando adaptador '${conexaoPadrao.tecnologia}' (conexão '${nomesConexao[0]}').`);
+        } else {
+            console.log("Arquivo configuracao.delprops não encontrado. Apenas o histórico será atualizado.");
         }
 
-        historico.migracoesExecutadas.push({
-            versao,
-            descricao: "Migração executada",
-            dataExecucao: new Date().toISOString()
-        });
-    }
+        console.log(`Executando ${pendentes.length} migração(ões) pendente(s)...`);
 
-    salvarHistoricoMigracoes(historico);
-    console.log("✓ Migrações executadas com sucesso!");
+        for (const arquivo of pendentes) {
+            const versao = arquivo.replace(/\.delegua$/, "");
+            console.log(`  • ${arquivo}`);
+
+            if (executor) {
+                const caminhoMigracao = caminho.join(DIRETORIO_MIGRACOES, arquivo);
+                const conteudoMigracao = sistemaArquivos.readFileSync(caminhoMigracao, "utf-8");
+                const descricao = extrairDescricaoMigracao(conteudoMigracao);
+                const operacoes = extrairOperacoesBlocoAcima(conteudoMigracao);
+
+                if (operacoes.length === 0) {
+                    throw new Error(`Não foi possível extrair operações do arquivo '${arquivo}'.`);
+                }
+
+                const migracao = construirMigracao(versao, descricao, operacoes);
+                await executor.executar(migracao);
+            }
+
+            historico.migracoesExecutadas.push({
+                versao,
+                descricao: "Migração executada",
+                dataExecucao: new Date().toISOString()
+            });
+        }
+
+        salvarHistoricoMigracoes(historico);
+        console.log("✓ Migrações executadas com sucesso!");
+    } finally {
+        await encerrarAdaptadorSeNecessario(adaptador);
+    }
 }
 
 function desfazerMigracao(): void {
