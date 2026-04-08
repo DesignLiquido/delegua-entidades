@@ -1,5 +1,6 @@
 import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
+import LinconesSQLite from "@designliquido/lincones-sqlite";
 
 import { Colecao } from "./colecao";
 import { Entidade } from "./entidade";
@@ -11,6 +12,23 @@ import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
 import { RoteadorBancos } from "./roteador-bancos";
 import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
 import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
+import { obterAdaptadorPadrao } from "./ilc/leitor-configuracao";
+
+type ColecaoDelegua = {
+    todos: () => Promise<ObjetoDeleguaClasse[]>,
+    buscarTodos: () => Promise<ObjetoDeleguaClasse[]>,
+    obterPorId: (valorId: any) => Promise<ObjetoDeleguaClasse | null>,
+    buscarPorId: (valorId: any) => Promise<ObjetoDeleguaClasse | null>,
+    salvar: (registro: ObjetoDeleguaClasse) => Promise<any>,
+    modificar: (registro: ObjetoDeleguaClasse, colunas?: string[]) => Promise<any>,
+    remover: (registro: ObjetoDeleguaClasse) => Promise<any>,
+    inserirVarios: (registros: ObjetoDeleguaClasse[]) => Promise<any>,
+    consulta: () => any,
+};
+
+function criarAdaptadorSqlitePadrao(): TecnologiaLinconesInterface {
+    return new LinconesSQLite();
+}
 
 /**
  * O contexto de entidades é usado para manter todas as entidades e seus relacionamentos
@@ -25,11 +43,15 @@ export class ContextoEntidades {
     private transacao: Transacao | null = null;
     private roteador: RoteadorBancos;
     private cache: GerenciadorCache;
+    private inicializacaoAutomaticaHabilitada: boolean;
 
     constructor(tecnologia?: TecnologiaLinconesInterface | unknown, taquigrafo?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
         // ClassePadrao do Delégua passa argumentos como array; ignorar se não for tecnologia válida
-        const tecnologiaValida = Array.isArray(tecnologia) || !tecnologia ? undefined : tecnologia as TecnologiaLinconesInterface;
+        const tecnologiaValida = Array.isArray(tecnologia) || !tecnologia
+            ? (obterAdaptadorPadrao() || criarAdaptadorSqlitePadrao())
+            : tecnologia as TecnologiaLinconesInterface;
         this.tecnologia = tecnologiaValida;
+        this.inicializacaoAutomaticaHabilitada = Array.isArray(tecnologia) || !tecnologia;
         this.colecoes = {};
         this.taquigrafo = taquigrafo;
         this.rastreador = new RastreadorMudancas();
@@ -51,9 +73,62 @@ export class ContextoEntidades {
         return colecao;
     }
 
-    colecao(tipoModelo: DescritorTipoClasse | unknown): Colecao<EntidadeInterface> {
+    private async garantirTecnologiaInicializada(colecao: Colecao<EntidadeInterface>): Promise<void> {
+        const tecnologia = colecao.tecnologia as TecnologiaLinconesInterface & { __deleguaEntidadesInicializada?: boolean };
+        if (!this.inicializacaoAutomaticaHabilitada || !tecnologia || typeof tecnologia.iniciar !== 'function') {
+            return;
+        }
+
+        if (tecnologia.__deleguaEntidadesInicializada) {
+            return;
+        }
+
+        await tecnologia.iniciar(null as any);
+        tecnologia.__deleguaEntidadesInicializada = true;
+    }
+
+    private criarColecaoDelegua(colecao: Colecao<EntidadeInterface>): ColecaoDelegua {
+        return {
+            todos: async () => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.buscarTodos();
+            },
+            buscarTodos: async () => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.buscarTodos();
+            },
+            obterPorId: async (valorId: any) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.buscarPorId(valorId);
+            },
+            buscarPorId: async (valorId: any) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.buscarPorId(valorId);
+            },
+            salvar: async (registro: ObjetoDeleguaClasse) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.salvar(registro);
+            },
+            modificar: async (registro: ObjetoDeleguaClasse, colunas: string[] = []) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.modificar(registro, colunas);
+            },
+            remover: async (registro: ObjetoDeleguaClasse) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.remover(registro);
+            },
+            inserirVarios: async (registros: ObjetoDeleguaClasse[]) => {
+                await this.garantirTecnologiaInicializada(colecao);
+                return colecao.inserirVarios(registros);
+            },
+            consulta: () => colecao.consulta(),
+        };
+    }
+
+    colecao(tipoModelo: DescritorTipoClasse | unknown): Colecao<EntidadeInterface> | ColecaoDelegua {
         // Desencapsular argumento do caminho nativo do Delégua (envelopagem {nome, valor})
         let tipoDescritor: object = tipoModelo as object;
+        let veioDoDelegua = false;
         while (
             tipoDescritor !== null &&
             tipoDescritor !== undefined &&
@@ -61,6 +136,7 @@ export class ContextoEntidades {
             Object.prototype.hasOwnProperty.call(tipoDescritor, 'valor') &&
             !(tipoDescritor instanceof DescritorTipoClasse)
         ) {
+            veioDoDelegua = true;
             tipoDescritor = (tipoDescritor as {valor: object}).valor;
         }
         const descritor = tipoDescritor as DescritorTipoClasse;
@@ -70,7 +146,8 @@ export class ContextoEntidades {
             this.registrarColecao(entidade);
         }
 
-        return this.colecoes[nome];
+        const colecao = this.colecoes[nome];
+        return veioDoDelegua ? this.criarColecaoDelegua(colecao) : colecao;
     }
 
     novo(nomeEntidade: string, registro: ObjetoDeleguaClasse): void {

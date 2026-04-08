@@ -76,6 +76,15 @@ export const DeleguaModuloEntidades = {
                     }
                 ]
             },
+            obterPorId: {
+                tipoRetorno: 'qualquer',
+                argumentos: [
+                    {
+                        nome: 'valorId',
+                        tipo: 'qualquer'
+                    }
+                ]
+            },
             salvar: {
                 tipoRetorno: 'qualquer',
                 argumentos: [
