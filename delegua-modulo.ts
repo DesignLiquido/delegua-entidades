@@ -1,7 +1,26 @@
 import { ContextoEntidades } from './fontes/contexto-entidades';
 import { Colecao } from './fontes/colecao';
+import { Configuracoes } from './fontes/configuracoes';
 
 export const DeleguaModuloEntidades = {
+    Configuracoes: {
+        implementacao: Configuracoes,
+        propriedades: {
+            caminho:    { tipo: 'texto' },
+            porta:      { tipo: 'numero' },
+            host:       { tipo: 'texto' },
+            usuario:    { tipo: 'texto' },
+            senha:      { tipo: 'texto' },
+            banco:      { tipo: 'texto' },
+            tecnologia: { tipo: 'texto' },
+        },
+        metodos: {
+            aplicar: {
+                tipoRetorno: 'vazio',
+                argumentos: []
+            }
+        }
+    },
     Contexto: {
         implementacao: ContextoEntidades,
         propriedades: {},

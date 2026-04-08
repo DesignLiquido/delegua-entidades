@@ -13,6 +13,7 @@ import { RoteadorBancos } from "./roteador-bancos";
 import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
 import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
 import { obterAdaptadorPadrao } from "./ilc/leitor-configuracao";
+import { criarAdaptadorDaConfiguracaoGlobal } from "./configuracoes";
 
 type ColecaoDelegua = {
     todos: () => Promise<ObjetoDeleguaClasse[]>,
@@ -48,7 +49,7 @@ export class ContextoEntidades {
     constructor(tecnologia?: TecnologiaLinconesInterface | unknown, taquigrafo?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
         // ClassePadrao do Delégua passa argumentos como array; ignorar se não for tecnologia válida
         const tecnologiaValida = Array.isArray(tecnologia) || !tecnologia
-            ? (obterAdaptadorPadrao() || criarAdaptadorSqlitePadrao())
+            ? (criarAdaptadorDaConfiguracaoGlobal() || obterAdaptadorPadrao() || criarAdaptadorSqlitePadrao())
             : tecnologia as TecnologiaLinconesInterface;
         this.tecnologia = tecnologiaValida;
         this.inicializacaoAutomaticaHabilitada = Array.isArray(tecnologia) || !tecnologia;

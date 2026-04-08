@@ -29,6 +29,7 @@ export { TransacaoInterface } from './fontes/interfaces-tipos/transacao-interfac
 export { RoteadorBancos } from './fontes/roteador-bancos';
 export { ConfiguracaoBancoDados, ConfiguracoesBancos } from './fontes/interfaces-tipos/configuracao-banco-dados-interface';
 export { SementeInterface } from './fontes/interfaces-tipos/semente-interface';
+export { Configuracoes } from './fontes/configuracoes';
 
 /**
  * Essa função inicializa uma instância de `Entidade` com um modelo carregado.
