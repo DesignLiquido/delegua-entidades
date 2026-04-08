@@ -3,11 +3,15 @@
   "version": "0.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "delegua-entidades": "./ilc/delegua-entidades.js"
+  },
   "scripts": {
-    "empacotar": "yarn rimraf ./dist && tsc && yarn copyfiles -V ./README.md ./dist && yarn copyfiles -V ./package.json ./dist",
+    "empacotar": "yarn rimraf ./dist && tsc && yarn copyfiles -V ./README.md ./dist && yarn copyfiles -V ./package.json ./dist && yarn copyfiles -u 1 ./fontes/ilc/manifesto-definicoes.json ./dist/ilc/",
     "publicar-npm": "npm publish ./dist --access public",
     "testes-unitarios": "jest --coverage",
     "lint": "eslint fontes/**/*.ts",
+    "ilc": "ts-node fontes/ilc/delegua-entidades.ts",
     "migracoes": "ts-node fontes/ilc/migracoes.ts",
     "sementes": "ts-node fontes/ilc/semeadura.ts",
     "gerar-modelo": "ts-node fontes/ilc/gerador-entidades.ts",

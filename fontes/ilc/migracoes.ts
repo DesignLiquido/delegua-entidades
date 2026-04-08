@@ -39,7 +39,7 @@ function mostrarAjuda(): void {
 delegua-entidades: Ferramenta de Migrações
 
 USO:
-  yarn migracoes <comando>
+  delegua-entidades migracoes <comando>
 
 COMANDOS:
   gerar      Gera uma nova migração vazia com timestamp
@@ -49,9 +49,9 @@ COMANDOS:
   desfazer   Limpa histórico (cuidado!)
 
 EXEMPLOS:
-  yarn migracoes gerar
-  yarn migracoes executar
-  yarn migracoes status
+  delegua-entidades migracoes gerar
+  delegua-entidades migracoes executar
+  delegua-entidades migracoes status
     `);
 }
 

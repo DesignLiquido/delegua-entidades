@@ -4,8 +4,8 @@
  * CLI para Gerador de Modelos (Delégua)
  * 
  * Uso:
- *   yarn gerar-modelo Usuario nome:texto email:texto idade:numero
- *   yarn gerar-modelo Usuario nome:texto --pertenceA Empresa --temMuitos Pedidos
+ *   delegua-entidades gerar-modelo Usuario nome:texto email:texto idade:numero
+ *   delegua-entidades gerar-modelo Usuario nome:texto --pertenceA Empresa --temMuitos Pedidos
  */
 
 import path from "path";
@@ -48,7 +48,7 @@ function mostrarAjuda(): void {
 delegua-entidades: Gerador de Modelos (Delégua)
 
 USO:
-  yarn gerar-modelo <NomeModelo> [campos] [opções]
+  delegua-entidades gerar-modelo <NomeModelo> [campos] [opções]
 
 ARGUMENTOS:
   NomeModelo        Nome do modelo em PascalCase (ex: Usuario, Produto)
@@ -63,9 +63,9 @@ OPÇÕES:
   --temMuitos <Modelo>       Adiciona relacionamento tem muitos
 
 EXEMPLOS:
-  yarn gerar-modelo Usuario nome:texto email:texto idade:numero
-  yarn gerar-modelo Produto nome:texto preco:decimal --pertenceA Categoria
-  yarn gerar-modelo Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
+  delegua-entidades gerar-modelo Usuario nome:texto email:texto idade:numero
+  delegua-entidades gerar-modelo Produto nome:texto preco:decimal --pertenceA Categoria
+  delegua-entidades gerar-modelo Usuario nome:texto --temMuitos Pedidos --temMuitos Comentarios
 
 NOTAS:
   - Em Delégua, use: classe MeuModelo herda Modelo { ... }
@@ -184,7 +184,7 @@ function compreenderArgumentos(): ConfiguracaoModelo | null {
 
     if (campos.length === 0) {
         console.error("❌ Erro: Nenhum campo especificado.");
-        console.error("   Use: yarn gerar-modelo Usuario nome:texto email:texto");
+        console.error("   Use: delegua-entidades gerar-modelo Usuario nome:texto email:texto");
         process.exit(1);
     }
 
@@ -371,7 +371,7 @@ function principal(): void {
         console.log(`\nPróximos passos:`);
         console.log(`  1. Edite ${caminhoModelo} e revise os campos/relacionamentos`);
         console.log(`  2. Edite ${caminhoMigracao} e implemente a criação da tabela`);
-        console.log(`  3. Rode: yarn migracoes executar`);
+        console.log(`  3. Rode: delegua-entidades migracoes executar`);
         console.log(`  4. Importe o modelo onde precisar`);
 
     } catch (erro) {

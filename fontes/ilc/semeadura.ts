@@ -11,7 +11,7 @@ type ModuloSementes = {
 
 function mostrarAjuda(): void {
     console.log("Uso:");
-    console.log("  yarn executar-semeadura -- <caminho-modulo>");
+    console.log("  delegua-entidades sementes <caminho-modulo>");
     console.log("");
     console.log("O módulo deve exportar:");
     console.log("  - criarContexto(): ContextoEntidades");
@@ -29,10 +29,9 @@ async function carregarModulo(caminhoModulo: string): Promise<ModuloSementes> {
 
 async function executar(): Promise<void> {
     const argumentos = process.argv.slice(2);
-    const comando = argumentos[0];
-    const caminhoModulo = argumentos[1];
+    const caminhoModulo = argumentos[0];
 
-    if (comando !== "executar-semeadura" || !caminhoModulo) {
+    if (!caminhoModulo) {
         mostrarAjuda();
         process.exit(1);
     }

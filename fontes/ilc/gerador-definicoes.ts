@@ -115,7 +115,7 @@ function gerarArquivoDefinicao(classe: ClasseDefinicao): void {
     const cabecalho = [
         `/**`,
         ` * Definição gerada automaticamente — não edite manualmente.`,
-        ` * Gerado por: yarn gerar-definicoes`,
+        ` * Gerado por: delegua-entidades gerar-definicoes`,
         ` * Fonte: fontes/ilc/manifesto-definicoes.json`,
         ` */`,
     ].join("\n");
