@@ -12,6 +12,7 @@
  */
 
 const SUBCOMANDOS_DISPONIVEIS = [
+    "banco",
     "migracoes",
     "sementes",
     "gerar-modelo",
@@ -27,6 +28,7 @@ USO:
   delegua-entidades <subcomando> [argumentos...]
 
 SUBCOMANDOS:
+  banco              Inicializa ou elimina o banco de dados diretamente
   migracoes          Gerencia o ciclo de vida de migrações do banco de dados
   sementes           Executa scripts de população do banco de dados
   gerar-modelo       Gera um novo modelo Delégua e sua migração correspondente
@@ -59,6 +61,9 @@ async function principal(): Promise<void> {
     process.argv.splice(2, 1);
 
     switch (subcomando) {
+        case "banco":
+            await import("./banco");
+            break;
         case "migracoes":
             await import("./migracoes");
             break;
