@@ -1,5 +1,5 @@
 import { DescritorTipoClasse, ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
-import { TecnologiaLinconesInterface } from "@designliquido/lincones-js";
+import { RemoverEntidade, TecnologiaLinconesInterface } from "@designliquido/lincones-js";
 import LinconesSQLite from "@designliquido/lincones-sqlite";
 
 import { Colecao } from "./colecao";
@@ -336,6 +336,22 @@ export class ContextoEntidades {
         for (const nome in this.colecoes) {
             const criar = this.colecoes[nome].tipoEntidade.gerarComandoCriarTabela();
             await this.tecnologia.executarComando(criar);
+        }
+    }
+
+    async inicializar(): Promise<void> {
+        if (!this.tecnologia) throw new Error("Tecnologia não configurada no contexto");
+        for (const nome in this.colecoes) {
+            const criar = this.colecoes[nome].tipoEntidade.gerarComandoCriarTabela();
+            await this.tecnologia.executarComando(criar);
+        }
+    }
+
+    async eliminar(): Promise<void> {
+        if (!this.tecnologia) throw new Error("Tecnologia não configurada no contexto");
+        const nomes = Object.keys(this.colecoes).reverse();
+        for (const nome of nomes) {
+            await this.tecnologia.executarComando(new RemoverEntidade(-1, nome, 'TABELA'));
         }
     }
 

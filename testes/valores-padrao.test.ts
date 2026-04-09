@@ -135,7 +135,7 @@ describe('Valores Padrão', () => {
             // Aplicar padrões
             for (const propriedade of entidade.modelo.propriedades) {
                 const nomeCampo = propriedade.nome.lexema;
-                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null) {
+                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null || registro.propriedades[nomeCampo] === '') {
                     for (const decorador of propriedade.decoradores) {
                         const nomeDecorador = decorador.nome.replace(/^@/, '');
                         if (nomeDecorador === 'padrao') {
@@ -183,7 +183,7 @@ describe('Valores Padrão', () => {
             // Aplicar padrões
             for (const propriedade of entidade.modelo.propriedades) {
                 const nomeCampo = propriedade.nome.lexema;
-                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null) {
+                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null || registro.propriedades[nomeCampo] === '') {
                     for (const decorador of propriedade.decoradores) {
                         const nomeDecorador = decorador.nome.replace(/^@/, '');
                         if (nomeDecorador === 'padrao') {
@@ -243,7 +243,7 @@ describe('Valores Padrão', () => {
             // Aplicar padrões
             for (const propriedade of entidade.modelo.propriedades) {
                 const nomeCampo = propriedade.nome.lexema;
-                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null) {
+                if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null || registro.propriedades[nomeCampo] === '') {
                     for (const decorador of propriedade.decoradores) {
                         const nomeDecorador = decorador.nome.replace(/^@/, '');
                         if (nomeDecorador === 'padrao') {

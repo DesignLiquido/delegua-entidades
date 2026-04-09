@@ -14,6 +14,7 @@ export interface ConfiguracaoConexao {
     usuario?: string;
     senha?: string;
     banco?: string;
+    desenvolvimento?: boolean;
 }
 
 export interface ConfiguracaoDelprops {
@@ -69,22 +70,12 @@ export function lerConfiguracaoDelprops(diretorio: string = process.cwd()): Conf
         const valorBruto = aparada.slice(indiceSeparador + 1).trim();
         const valor = analisarValor(valorBruto);
 
-        // Aceita tanto `dados.<propriedade>` quanto `dados.<conexao>.<propriedade>`.
+        // Formato obrigatório: `dados.<conexao>.<propriedade>` (ex: `dados.padrao.tecnologia`).
         const partes = chave.split(".");
-        if (partes[0] !== "dados") continue;
+        if (partes[0] !== "dados" || partes.length < 3) continue;
 
-        let nomeConexao: string;
-        let propriedade: string;
-
-        if (partes.length === 2) {
-            nomeConexao = "padrao";
-            propriedade = partes[1];
-        } else if (partes.length >= 3) {
-            nomeConexao = partes[1];
-            propriedade = partes[2];
-        } else {
-            continue;
-        }
+        const nomeConexao = partes[1];
+        const propriedade = partes[2];
 
         if (!configuracao.dados[nomeConexao]) {
             configuracao.dados[nomeConexao] = {};

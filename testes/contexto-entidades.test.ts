@@ -88,9 +88,9 @@ describe('ContextoEntidades', () => {
 
     it('coleções recebem referência à tecnologia', () => {
         const contexto = new ContextoEntidades(tecnologiaMock);
-        const colecao = contexto.colecao(descritorArtigo);
+        contexto.colecao(descritorArtigo);
 
-        expect(colecao.tecnologia).toBe(tecnologiaMock);
+        expect(contexto.colecoes['Artigo'].tecnologia).toBe(tecnologiaMock);
     });
 
     describe('iniciar()', () => {

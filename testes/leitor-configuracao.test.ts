@@ -9,17 +9,18 @@ describe("leitor-configuracao", () => {
         return fs.mkdtempSync(path.join(os.tmpdir(), "delegua-entidades-config-"));
     }
 
-    it("aceita configuracao plana em dados.<propriedade>", () => {
+    it("aceita configuracao nomeada em dados.padrao.<propriedade> com flag de desenvolvimento", () => {
         const diretorio = criarDiretorioTemporario();
         const caminhoArquivo = path.join(diretorio, "configuracao.delprops");
 
         fs.writeFileSync(
             caminhoArquivo,
             [
-                "dados.tecnologia = \"mysql\"",
-                "dados.caminho = \"localhost:3306/delegua_entidades\"",
-                "dados.usuario = \"root\"",
-                "dados.senha = \"123123\"",
+                "dados.padrao.tecnologia = \"mysql\"",
+                "dados.padrao.caminho = \"localhost:3306/delegua_entidades\"",
+                "dados.padrao.usuario = \"root\"",
+                "dados.padrao.senha = \"123123\"",
+                "dados.padrao.desenvolvimento = verdadeiro",
             ].join("\n")
         );
 
@@ -31,6 +32,7 @@ describe("leitor-configuracao", () => {
             caminho: "localhost:3306/delegua_entidades",
             usuario: "root",
             senha: "123123",
+            desenvolvimento: true,
         });
     });
 

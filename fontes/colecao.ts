@@ -180,8 +180,8 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         for (const propriedade of this.tipoEntidade.modelo.propriedades) {
             const nomeCampo = propriedade.nome.lexema;
             
-            // Aplicar valor padrão apenas se o campo não foi definido
-            if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null) {
+            // Aplicar valor padrão apenas se o campo não foi definido ou está vazio
+            if (registro.propriedades[nomeCampo] === undefined || registro.propriedades[nomeCampo] === null || registro.propriedades[nomeCampo] === '') {
                 for (const decorador of propriedade.decoradores) {
                     const nomeDecorador = decorador.nome.replace(/^@/, '');
                     
