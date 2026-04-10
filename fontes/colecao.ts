@@ -69,7 +69,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
 
     consulta(): ConstrutorConsulta {
         this.verificarTecnologia();
-        return new ConstrutorConsulta(this.tipoEntidade, this.tecnologia);
+        return new ConstrutorConsulta(this.tipoEntidade, this.tecnologia as TecnologiaLinconesInterface);
     }
 
     todos(): Selecionar {
@@ -254,10 +254,10 @@ export class Colecao<TEntidade extends EntidadeInterface> {
         this.taquigrafo?.depuracao(`${operacao} em ${tabela}`, { comando: comando.constructor.name });
         const inicio = Date.now();
         try {
-            const resultado = await this.tecnologia.executarComando(comando);
+            const resultado = await this.tecnologia?.executarComando(comando);
             const duracao = Date.now() - inicio;
             this.taquigrafo?.info(`${operacao} em ${tabela} concluído em ${duracao}ms`);
-            return resultado;
+            return resultado as RetornoComandoInterface[];
         } catch (erro) {
             const duracao = Date.now() - inicio;
             this.taquigrafo?.erro(`${operacao} em ${tabela} falhou após ${duracao}ms`, erro);

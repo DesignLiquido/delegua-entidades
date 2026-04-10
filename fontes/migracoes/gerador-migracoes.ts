@@ -2,11 +2,9 @@ import { Coluna } from "@designliquido/lincones-js";
 
 import { EntidadeInterface } from "../interfaces-tipos/entidade-interface";
 import { Migracao } from "./migracao";
+import { InformacaoEsquemaInterface } from "../interfaces-tipos/migracao";
 
-export interface SchemaInfo {
-    nomeTabela: string;
-    colunas: { nome: string; tipo: string }[];
-}
+export { InformacaoEsquemaInterface } from "../interfaces-tipos/migracao";
 
 const MAPEAMENTO_TIPOS: { [tipo: string]: string } = {
     'número': 'INTEIRO',
@@ -29,12 +27,12 @@ const MAPEAMENTO_TIPOS: { [tipo: string]: string } = {
 export class GeradorMigracoes {
     static gerar(
         entidades: EntidadeInterface[],
-        schemaAtual: SchemaInfo[],
+        schemaAtual: InformacaoEsquemaInterface[],
         versao: string = '001',
         descricao: string = 'Migração automática'
     ): Migracao {
         const migracao = new Migracao(versao, descricao);
-        const schemasMap = new Map<string, SchemaInfo>();
+        const schemasMap = new Map<string, InformacaoEsquemaInterface>();
 
         for (const schema of schemaAtual) {
             schemasMap.set(schema.nomeTabela, schema);
@@ -94,7 +92,7 @@ export class GeradorMigracoes {
             if (nomesComputadas.has(nome)) {
                 continue;
             }
-            const tipo = MAPEAMENTO_TIPOS[propriedade.tipo] || 'TEXTO';
+            const tipo = MAPEAMENTO_TIPOS[propriedade.tipo as string] || 'TEXTO';
             const ehChavePrimaria = nome === chavePrimaria;
             colunas.push(new Coluna(nome, tipo, undefined, !ehChavePrimaria, ehChavePrimaria, false, ehChavePrimaria));
         }
@@ -104,7 +102,7 @@ export class GeradorMigracoes {
 
     private static compararEGerarAlteracoes(
         entidade: EntidadeInterface,
-        schemaExistente: SchemaInfo,
+        schemaExistente: InformacaoEsquemaInterface,
         migracao: Migracao
     ): void {
         const colunasExistentes = new Map<string, { nome: string; tipo: string }>();
@@ -117,7 +115,7 @@ export class GeradorMigracoes {
         for (const propriedade of entidade.modelo.propriedades) {
             const nome = propriedade.nome.lexema;
             nomesColunasEntidade.add(nome);
-            const tipoEsperado = MAPEAMENTO_TIPOS[propriedade.tipo] || 'TEXTO';
+            const tipoEsperado = MAPEAMENTO_TIPOS[propriedade.tipo as string] || 'TEXTO';
             const colunaExistente = colunasExistentes.get(nome);
 
             if (!colunaExistente) {

@@ -109,13 +109,13 @@ export class Semeador {
 
     private async garantirTabelaSementes(): Promise<void> {
         const sql = "CREATE TABLE IF NOT EXISTS sementes (nome TEXTO PRIMARY KEY, executada_em DATA_HORA)";
-        await this.contexto.tecnologia.executar(null, sql, []);
+        await this.contexto.tecnologia?.executar(null, sql, []);
     }
 
     private async obterSementesExecutadas(): Promise<Set<string>> {
         const sql = "SELECT nome FROM sementes";
-        const resultados = await this.contexto.tecnologia.executar(null, sql, []);
-        const linhas = resultados[0]?.linhasRetornadas || [];
+        const resultados = await this.contexto.tecnologia?.executar(null, sql, []);
+        const linhas = resultados?.[0]?.linhasRetornadas || [];
 
         const nomes = new Set<string>();
         for (const linha of linhas) {
@@ -134,6 +134,6 @@ export class Semeador {
             new Literal(new Date().toISOString(), "TEXTO")
         ];
         const comando = new Inserir(-1, "sementes", nomesColunas, valoresColunas);
-        await this.contexto.tecnologia.executarComando(comando);
+        await this.contexto.tecnologia?.executarComando(comando);
     }
 }

@@ -1,8 +1,12 @@
 import { ContextoEntidades } from './fontes/contexto-entidades';
 import { Colecao } from './fontes/colecao';
 import { Configuracoes } from './fontes/configuracoes';
+import { Base } from './fontes/base';
 
 export const DeleguaModuloEntidades = {
+    Base: {
+        objeto: Base
+    },
     Configuracoes: {
         implementacao: Configuracoes,
         propriedades: {

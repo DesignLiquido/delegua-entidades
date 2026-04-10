@@ -19,17 +19,18 @@ export { RelacionamentoInterface, TipoRelacionamento, AcaoCascata } from './font
 
 export { Taquigrafo, NivelDetalhamentoTaquigrafia, FuncaoTaquigrafia } from './fontes/taquigrafia';
 export { RastreadorMudancas, EstadoEntidade, RegistroRastreado } from './fontes/rastreador-mudancas';
-export { Migracao, OperacaoMigracao } from './fontes/migracoes/migracao';
+export { Migracao } from './fontes/migracoes/migracao';
 export { ExecutorMigracoes } from './fontes/migracoes/executor-migracoes';
-export { GeradorMigracoes, SchemaInfo } from './fontes/migracoes/gerador-migracoes';
+export { GeradorMigracoes, InformacaoEsquemaInterface as SchemaInfo } from './fontes/migracoes/gerador-migracoes';
 export { Semeador, ClasseSemente } from './fontes/migracoes/semeador';
 export { CarregadorPreguicoso } from './fontes/carregador-preguicoso';
 export { Transacao } from './fontes/transacao';
 export { TransacaoInterface } from './fontes/interfaces-tipos/transacao-interface';
 export { RoteadorBancos } from './fontes/roteador-bancos';
-export { ConfiguracaoBancoDados, ConfiguracoesBancos } from './fontes/interfaces-tipos/configuracao-banco-dados-interface';
+export { ConfiguracaoBancoDadosInterface as ConfiguracaoBancoDados, ConfiguracoesBancos } from './fontes/interfaces-tipos/configuracao-banco-dados-interface';
 export { SementeInterface } from './fontes/interfaces-tipos/semente-interface';
 export { Configuracoes } from './fontes/configuracoes';
+export { Base } from './fontes/base';
 
 /**
  * Essa função inicializa uma instância de `Entidade` com um modelo carregado.

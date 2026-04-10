@@ -1,23 +1,17 @@
 import { Coluna } from "@designliquido/lincones-js";
 
-export interface OperacaoMigracao {
-    tipo: 'criarTabela' | 'excluirTabela' | 'adicionarColuna' | 'removerColuna' | 'alterarColuna' | 'adicionarIndice' | 'removerIndice' | 'adicionarRestricao' | 'removerRestricao' | 'adicionarColunaComputada';
-    tabela: string;
-    coluna?: Coluna;
-    colunaAnterior?: Coluna;
-    colunas?: Coluna[];
-    nomeColuna?: string;
-    tipoColuna?: string;
-    expressaoColuna?: string;
-    persistida?: boolean;
-    nomeIndice?: string;
-    nomeRestricao?: string;
-    tipoIndice?: 'BTREE' | 'HASH' | 'GIST' | 'GIN';
-    columnasIndice?: string[];
-    unico?: boolean;
-    sqlRestricao?: string;
-}
+import { OperacaoMigracao } from "../interfaces-tipos/migracao";
 
+/**
+ * Implementação de classe estrangeira `Migracao`, conforme definição em definicoes\migracao.delegua.
+ * Essa classe é projetada para ser utilizada em processos de migração de banco de dados, permitindo 
+ * a definição de operações como criação e exclusão de tabelas, adição e remoção de colunas, 
+ * índices e restrições. 
+ * 
+ * Cada instância da classe `Migracao` representa uma versão específica da migração, com uma 
+ * descrição e um conjunto de operações a serem executadas. As operações são armazenadas em um 
+ * array, permitindo a construção fluida de migrações complexas.
+ */
 export class Migracao {
     versao: string;
     descricao: string;

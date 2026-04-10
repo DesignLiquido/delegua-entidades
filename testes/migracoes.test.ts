@@ -7,7 +7,7 @@ import { Coluna } from "@designliquido/lincones-js";
 
 import { Migracao } from "../fontes/migracoes/migracao";
 import { ExecutorMigracoes } from "../fontes/migracoes/executor-migracoes";
-import { GeradorMigracoes, SchemaInfo } from "../fontes/migracoes/gerador-migracoes";
+import { GeradorMigracoes, InformacaoEsquemaInterface } from "../fontes/migracoes/gerador-migracoes";
 import { Entidade } from "../fontes/entidade";
 import { Taquigrafo } from "../fontes/taquigrafia";
 import { BonecoTecnologia } from "./auxiliar/boneco-tecnologia";
@@ -59,7 +59,7 @@ describe('Migrações', () => {
 
             expect(migracao.operacoes[0].tipo).toBe('adicionarColuna');
             expect(migracao.operacoes[0].tabela).toBe('Usuario');
-            expect(migracao.operacoes[0].coluna.nomeColuna).toBe('email');
+            expect(migracao.operacoes[0].coluna!.nomeColuna).toBe('email');
         });
 
         it('registra operação removerColuna', () => {
@@ -76,7 +76,7 @@ describe('Migrações', () => {
                 .alterarColuna('Usuario', coluna);
 
             expect(migracao.operacoes[0].tipo).toBe('alterarColuna');
-            expect(migracao.operacoes[0].coluna.nomeColuna).toBe('nome');
+            expect(migracao.operacoes[0].coluna!.nomeColuna).toBe('nome');
         });
     });
 
@@ -228,7 +228,7 @@ describe('Migrações', () => {
     describe('GeradorMigracoes', () => {
         const descritorArtigo = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Artigo", "Artigo", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -255,7 +255,7 @@ describe('Migrações', () => {
         });
 
         it('gera excluirTabela para tabela que não tem entidade correspondente', () => {
-            const schemaAtual: SchemaInfo[] = [
+            const schemaAtual: InformacaoEsquemaInterface[] = [
                 { nomeTabela: 'TabelaObsoleta', colunas: [{ nome: 'id', tipo: 'INTEIRO' }] }
             ];
 
@@ -268,7 +268,7 @@ describe('Migrações', () => {
 
         it('gera adicionarColuna para coluna nova', () => {
             const entidade = new Entidade(descritorArtigo);
-            const schemaAtual: SchemaInfo[] = [
+            const schemaAtual: InformacaoEsquemaInterface[] = [
                 { nomeTabela: 'Artigo', colunas: [{ nome: 'id', tipo: 'INTEIRO' }] }
             ];
 
@@ -276,12 +276,12 @@ describe('Migrações', () => {
 
             const ops = migracao.operacoes.filter(o => o.tipo === 'adicionarColuna');
             expect(ops).toHaveLength(1);
-            expect(ops[0].coluna.nomeColuna).toBe('titulo');
+            expect(ops[0].coluna!.nomeColuna).toBe('titulo');
         });
 
         it('gera removerColuna para coluna que não existe na entidade', () => {
             const entidade = new Entidade(descritorArtigo);
-            const schemaAtual: SchemaInfo[] = [
+            const schemaAtual: InformacaoEsquemaInterface[] = [
                 {
                     nomeTabela: 'Artigo',
                     colunas: [
@@ -301,7 +301,7 @@ describe('Migrações', () => {
 
         it('gera alterarColuna quando tipo muda', () => {
             const entidade = new Entidade(descritorArtigo);
-            const schemaAtual: SchemaInfo[] = [
+            const schemaAtual: InformacaoEsquemaInterface[] = [
                 {
                     nomeTabela: 'Artigo',
                     colunas: [
@@ -315,12 +315,12 @@ describe('Migrações', () => {
 
             const ops = migracao.operacoes.filter(o => o.tipo === 'alterarColuna');
             expect(ops).toHaveLength(1);
-            expect(ops[0].coluna.nomeColuna).toBe('titulo');
+            expect(ops[0].coluna!.nomeColuna).toBe('titulo');
         });
 
         it('não gera operações quando schema está igual', () => {
             const entidade = new Entidade(descritorArtigo);
-            const schemaAtual: SchemaInfo[] = [
+            const schemaAtual: InformacaoEsquemaInterface[] = [
                 {
                     nomeTabela: 'Artigo',
                     colunas: [

@@ -1,7 +1,7 @@
 /**
  * Configuração de conexão com banco de dados.
  */
-export interface ConfiguracaoBancoDados {
+export interface ConfiguracaoBancoDadosInterface {
     /**
      * Nome único identificador do banco de dados.
      */
@@ -51,4 +51,4 @@ export interface ConfiguracaoBancoDados {
 /**
  * Mapa de configurações de banco de dados.
  */
-export type ConfiguracoesBancos = { [nome: string]: ConfiguracaoBancoDados };
+export type ConfiguracoesBancos = { [nome: string]: ConfiguracaoBancoDadosInterface };
