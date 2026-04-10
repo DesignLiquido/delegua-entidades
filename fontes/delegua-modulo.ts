@@ -1,7 +1,7 @@
-import { ContextoEntidades } from './fontes/contexto-entidades';
-import { Colecao } from './fontes/colecao';
-import { Configuracoes } from './fontes/configuracoes';
-import { Base } from './fontes/base';
+import { ContextoEntidades } from './contexto-entidades';
+import { Colecao } from './colecao';
+import { Configuracoes } from './configuracoes';
+import { Base } from './base';
 
 export const DeleguaModuloEntidades = {
     Base: {
