@@ -4,6 +4,8 @@ migracoes/
 modelos/
 node_modules/
 
+!/fontes/migracoes
+
 .claude/
 CLAUDE.md
 

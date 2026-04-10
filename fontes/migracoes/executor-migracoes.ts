@@ -1,7 +1,8 @@
-import { Criar, Alterar, RemoverEntidade, TecnologiaLinconesInterface, OperacaoAlteracaoTabela } from "@designliquido/lincones-js";
+import { Criar, Alterar, RemoverEntidade, TecnologiaLinconesInterface, OperacaoAlteracaoTabela, Coluna } from "@designliquido/lincones-js";
 
 import { Taquigrafo } from "../taquigrafia";
-import { Migracao, OperacaoMigracao } from "./migracao";
+import { Migracao } from "./migracao";
+import { OperacaoMigracao } from "../interfaces-tipos/migracao";
 
 export class ExecutorMigracoes {
     private tecnologia: TecnologiaLinconesInterface;
@@ -54,7 +55,7 @@ export class ExecutorMigracoes {
         switch (operacao.tipo) {
             case 'criarTabela': {
                 this.logger?.depuracao(`Criando tabela ${operacao.tabela}`);
-                const comando = new Criar(-1, operacao.tabela, operacao.colunas, true);
+                const comando = new Criar(-1, operacao.tabela, operacao.colunas as Coluna[], true);
                 await this.tecnologia.executarComando(comando);
                 break;
             }
@@ -66,14 +67,14 @@ export class ExecutorMigracoes {
             }
             case 'adicionarColuna': {
                 this.logger?.depuracao(`Adicionando coluna em ${operacao.tabela}`);
-                const op = new OperacaoAlteracaoTabela('ADICIONAR', operacao.coluna);
+                const op = new OperacaoAlteracaoTabela('ADICIONAR', operacao.coluna as Coluna);
                 const comando = new Alterar(-1, operacao.tabela, 'TABELA', [op]);
                 await this.tecnologia.executarComando(comando);
                 break;
             }
             case 'alterarColuna': {
                 this.logger?.depuracao(`Alterando coluna em ${operacao.tabela}`);
-                const op = new OperacaoAlteracaoTabela('ALTERAR', operacao.coluna);
+                const op = new OperacaoAlteracaoTabela('ALTERAR', operacao.coluna as Coluna);
                 const comando = new Alterar(-1, operacao.tabela, 'TABELA', [op]);
                 await this.tecnologia.executarComando(comando);
                 break;
