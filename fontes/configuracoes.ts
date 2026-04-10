@@ -34,7 +34,7 @@ export function criarAdaptadorDaConfiguracaoGlobal(): TecnologiaLinconesInterfac
  *
  * Exemplo de uso em Delégua:
  * ```
- * var configuracoes = novo entidades.Configuracoes()
+ * var configuracoes = entidades.Configuracoes()
  * configuracoes.caminho = "meu-banco.db"
  * configuracoes.porta = 5432
  * configuracoes.aplicar()
