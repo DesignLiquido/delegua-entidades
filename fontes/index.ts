@@ -11,14 +11,14 @@ export { ErroDeValidacao, ErroValidacao } from './erros/erro-validacao';
 
 export { CacheConsultas } from './cache-consultas';
 export { CarregadorLote as CarregadorLote, GerenciadorCarregadoresLote } from './carregador-lotes';
-export { AnalisadorDicas, TipoDica, NivelSeveridade, Dica } from './analisador-dicas';
+export { AnalisadorDicas } from './analisador-dicas';
 
 export { EntidadeInterface } from './interfaces-tipos/entidade-interface';
 export { GanchosInterface, FuncaoGancho, EventoGancho } from './interfaces-tipos/ganchos';
 export { RelacionamentoInterface, TipoRelacionamento, AcaoCascata } from './interfaces-tipos/relacionamento-interface';
 
 export { Taquigrafo, NivelDetalhamentoTaquigrafia, FuncaoTaquigrafia } from './taquigrafia';
-export { RastreadorMudancas, EstadoEntidade, RegistroRastreado } from './rastreador-mudancas';
+export { RastreadorMudancas } from './rastreador-mudancas';
 export { Migracao } from './migracoes/migracao';
 export { ExecutorMigracoes } from './migracoes/executor-migracoes';
 export { GeradorMigracoes, InformacaoEsquemaInterface as SchemaInfo } from './migracoes/gerador-migracoes';
