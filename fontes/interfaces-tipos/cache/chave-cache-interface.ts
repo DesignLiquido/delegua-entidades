@@ -1,7 +1,7 @@
 /**
  * Chave de cache composta (tipo de entidade + ID)
  */
-export interface ChaveCache {
+export interface ChaveCacheInterface {
     entidade: string;
     id: any;
 }

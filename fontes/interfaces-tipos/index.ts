@@ -7,7 +7,7 @@ export * from './ganchos';
 export * from './indice-interface';
 export * from './coluna-computada-interface';
 export * from './informacao-consulta-interface';
-export * from './muito-para-muitos-interface';
+export * from './muitos-para-muitos-interface';
 export * from './opcoes-serializacao-interface';
 export * from './ordenacao-interface';
 export * from './polimorfico-interface';

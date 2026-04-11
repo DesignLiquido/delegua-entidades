@@ -2,7 +2,7 @@ import { Condicao, Juncao, Literal, ReferenciaColuna, Selecionar, TecnologiaLinc
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
-import { Ordenacao } from "./interfaces-tipos";
+import { OrdenacaoInterface } from "./interfaces-tipos";
 
 type OperadorCondicao = 
     'IGUAL' | 
@@ -37,7 +37,7 @@ export class ConstrutorConsulta {
     private _condicoesOu: Condicao[][];
     private _condicoesSqlExtras: string[];
     private _condicoesOuSqlExtras: string[];
-    private _ordenacoes: Ordenacao[];
+    private _ordenacoes: OrdenacaoInterface[];
     private _limite: number | null;
     private _deslocamento: number | null;
     private _juncoes: Juncao[];

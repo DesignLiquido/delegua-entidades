@@ -47,8 +47,8 @@
   "dependencies": {
     "@designliquido/delprops": "^0.0.1",
     "@designliquido/flexoes": "^0.1.0",
-    "@designliquido/lincones-js": "^0.2.2",
-    "@designliquido/lincones-sqlite": "^0.3.1"
+    "@designliquido/lincones-js": "^0.2.3",
+    "@designliquido/lincones-sqlite": "^0.3.2"
   },
   "peerDependenciesMeta": {
     "@designliquido/lincones-mysql": {

@@ -14,7 +14,7 @@ import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados
 import { GerenciadorCache } from "./gerenciador-cache";
 import { obterAdaptadorPadrao } from "./ilc/leitor-configuracao";
 import { criarAdaptadorDaConfiguracaoGlobal } from "./configuracoes";
-import { OpcoesCacheL2 } from "./interfaces-tipos/cache";
+import { OpcoesCacheL2Interface } from "./interfaces-tipos/cache";
 import { ColecaoDelegua } from "./interfaces-tipos/tipos";
 
 function criarAdaptadorSqlitePadrao(): TecnologiaLinconesInterface {
@@ -36,7 +36,7 @@ export class ContextoEntidades {
     private cache: GerenciadorCache;
     private inicializacaoAutomaticaHabilitada: boolean;
 
-    constructor(tecnologia?: TecnologiaLinconesInterface | unknown, taquigrafo?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2) {
+    constructor(tecnologia?: TecnologiaLinconesInterface | unknown, taquigrafo?: Taquigrafo, opcoesCacheL2?: OpcoesCacheL2Interface) {
         // ClassePadrao do Delégua passa argumentos como array; ignorar se não for tecnologia válida
         const tecnologiaValida = Array.isArray(tecnologia) || !tecnologia
             ? (criarAdaptadorDaConfiguracaoGlobal() || obterAdaptadorPadrao() || criarAdaptadorSqlitePadrao())

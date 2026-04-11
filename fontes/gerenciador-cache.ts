@@ -1,4 +1,4 @@
-import { EntradaCache, OpcoesCacheL2 } from "./interfaces-tipos/cache";
+import { EntradaCacheInterface, OpcoesCacheL2Interface } from "./interfaces-tipos/cache";
 
 /**
  * Gerenciador de cache com suporte a cache de primeira nível (identity map)
@@ -14,16 +14,16 @@ export class GerenciadorCache {
     private cacheNivel1: Map<string, Map<any, any>> = new Map();
 
     /** Cache de segunda nível: chave composta -> valor com timestamp */
-    private cacheNivel2: Map<string, EntradaCache> = new Map();
+    private cacheNivel2: Map<string, EntradaCacheInterface> = new Map();
 
     /** Opções de cache L2 */
-    private opcoes: OpcoesCacheL2;
+    private opcoes: OpcoesCacheL2Interface;
 
     /**
      * Cria uma nova instância do gerenciador de cache.
      * @param opcoes Opções de configuração do cache L2 (opcionais)
      */
-    constructor(opcoes?: OpcoesCacheL2) {
+    constructor(opcoes?: OpcoesCacheL2Interface) {
         this.opcoes = opcoes || { ttl: 60000, tamanhMaximo: 1000 };
     }
 

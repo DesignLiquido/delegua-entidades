@@ -4,7 +4,7 @@
  * 
  * @example
  * ```typescript
- * interface MuitoParaMuitoInterface {
+ * interface MuitosParaMuitosInterface {
  *     tipo: 'muitoParaMuitos';
  *     nomePropriedade: 'papeis';
  *     entidadeDestino: 'Papel';
@@ -14,7 +14,7 @@
  * }
  * ```
  */
-export interface MuitoParaMuitoInterface {
+export interface MuitosParaMuitosInterface {
     /** Tipo de relacionamento */
     tipo: 'muitoParaMuitos';
     

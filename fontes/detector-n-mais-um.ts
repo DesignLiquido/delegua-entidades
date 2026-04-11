@@ -1,5 +1,5 @@
-import { InformacaoConsulta } from "./interfaces-tipos";
-import { AnaliseN1 } from "./interfaces-tipos/analise-n1-interface";
+import { InformacaoConsultaInterface } from "./interfaces-tipos";
+import { AnaliseN1Interface } from "./interfaces-tipos/analise-n1-interface";
 
 /**
  * Detector de padrão N+1 em queries. Monitora consultas executadas
@@ -29,7 +29,7 @@ import { AnaliseN1 } from "./interfaces-tipos/analise-n1-interface";
  * ```
  */
 export class DetectorConsultasN1 {
-    private consultas: InformacaoConsulta[] = [];
+    private consultas: InformacaoConsultaInterface[] = [];
     private limiteJanela: number = 500; // Número de consultas a manter em memória
     private limiarN1: number = 2; // Mínimo de consultas similares para considerar N+1
 
@@ -42,7 +42,7 @@ export class DetectorConsultasN1 {
         tempoExecucao: number = 0,
         nomeEntidade?: string
     ): void {
-        const informacao: InformacaoConsulta = {
+        const informacao: InformacaoConsultaInterface = {
             sql: this.normalizarSQL(sql),
             linhaExecucao: new Error(),
             carimboTempo: new Date(),
@@ -62,7 +62,7 @@ export class DetectorConsultasN1 {
     /**
      * Analisa as consultas recentes procurando por padrão N+1.
      */
-    analisar(): AnaliseN1 {
+    analisar(): AnaliseN1Interface {
         if (this.consultas.length < 2) {
             return { detectado: false };
         }
@@ -71,10 +71,10 @@ export class DetectorConsultasN1 {
         const ultimasConsultas = this.consultas.slice(-100);
 
         // Variáveis para rastrear as melhores análises de cada tipo
-        let melhorAnaliseSameTable: AnaliseN1 | null = null;
+        let melhorAnaliseSameTable: AnaliseN1Interface | null = null;
         let melhorRazaoSameTable = 0;
         
-        let melhorAnaliseCrossTable: AnaliseN1 | null = null;
+        let melhorAnaliseCrossTable: AnaliseN1Interface | null = null;
         let melhorRazaoCrossTable = 0;
 
         for (let i = 0; i < ultimasConsultas.length - 1; i++) {
@@ -113,7 +113,7 @@ export class DetectorConsultasN1 {
 
                 if (proximasConsultas.length >= 2 && tabelaAtual) {
                     // Coletar as próximas consultas de uma tabela diferente
-                    const clusterQueries: InformacaoConsulta[] = [];
+                    const clusterQueries: InformacaoConsultaInterface[] = [];
                     const tabelasPrincipais = new Map<string, number>();
 
                     for (const proximaQuery of proximasConsultas) {
@@ -210,14 +210,14 @@ export class DetectorConsultasN1 {
     /**
      * Retorna todas as consultas registradas.
      */
-    obterConsultas(): InformacaoConsulta[] {
+    obterConsultas(): InformacaoConsultaInterface[] {
         return [...this.consultas];
     }
 
     /**
      * Retorna as últimas N consultas.
      */
-    obterUltimasConsultas(quantidade: number = 10): InformacaoConsulta[] {
+    obterUltimasConsultas(quantidade: number = 10): InformacaoConsultaInterface[] {
         return this.consultas.slice(-quantidade);
     }
 
@@ -265,4 +265,4 @@ export class DetectorConsultasN1 {
     }
 }
 
-export type { InformacaoConsulta, AnaliseN1 };
+export type { InformacaoConsultaInterface as InformacaoConsulta, AnaliseN1Interface as AnaliseN1 };

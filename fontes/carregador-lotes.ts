@@ -5,17 +5,17 @@
  * evitando o problema N+1 através de batching inteligente.
  */
 
-import { ConfiguracaoLote, RequisicaoLote } from "./interfaces-tipos/lotes";
+import { ConfiguracaoLoteInterface, RequisicaoLoteInterface } from "./interfaces-tipos/lotes";
 
 export class CarregadorLote<T> {
-    private fila: RequisicaoLote<T>[] = [];
+    private fila: RequisicaoLoteInterface<T>[] = [];
     private tempoMaximo: NodeJS.Timeout | null = null;
     private cache: Map<string, T> = new Map();
-    private configuracao: ConfiguracaoLote;
+    private configuracao: ConfiguracaoLoteInterface;
 
     constructor(
         private funcaoCarregamento: (chaves: any[]) => Promise<Map<any, T>>,
-        config?: Partial<ConfiguracaoLote>
+        config?: Partial<ConfiguracaoLoteInterface>
     ) {
         this.configuracao = {
             tamanhoLote: config?.tamanhoLote ?? 100,
@@ -129,7 +129,7 @@ export class GerenciadorCarregadoresLote {
     criarCarregador<T>(
         chave: string,
         funcaoCarregamento: (ids: any[]) => Promise<Map<any, T>>,
-        config?: Partial<ConfiguracaoLote>
+        config?: Partial<ConfiguracaoLoteInterface>
     ): CarregadorLote<T> {
         const carregador = new CarregadorLote(funcaoCarregamento, config);
         this.carregadores.set(chave, carregador);

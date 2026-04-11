@@ -1,17 +1,9 @@
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
-
-export type EstadoEntidade = 'novo' | 'modificado' | 'excluido' | 'inalterado';
-
-export interface RegistroRastreado {
-    registro: ObjetoDeleguaClasse;
-    estado: EstadoEntidade;
-    nomeEntidade: string;
-    valoresOriginais: { [campo: string]: any };
-    camposAlterados: string[];
-}
+import { RegistroRastreadoInterface } from "./interfaces-tipos";
+import { EstadoEntidade } from "./interfaces-tipos/tipos";
 
 export class RastreadorMudancas {
-    private registros: Map<string, RegistroRastreado>;
+    private registros: Map<string, RegistroRastreadoInterface>;
 
     constructor() {
         this.registros = new Map();
@@ -65,8 +57,8 @@ export class RastreadorMudancas {
         return null;
     }
 
-    obterAlterados(): RegistroRastreado[] {
-        const alterados: RegistroRastreado[] = [];
+    obterAlterados(): RegistroRastreadoInterface[] {
+        const alterados: RegistroRastreadoInterface[] = [];
         for (const [, rastreado] of this.registros) {
             if (rastreado.estado !== 'inalterado') {
                 alterados.push(rastreado);
@@ -106,7 +98,7 @@ export class RastreadorMudancas {
         this.registros.clear();
     }
 
-    obterTodosRastreados(): RegistroRastreado[] {
+    obterTodosRastreados(): RegistroRastreadoInterface[] {
         return Array.from(this.registros.values());
     }
 

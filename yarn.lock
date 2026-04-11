@@ -297,15 +297,15 @@
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
 
-"@designliquido/lincones-js@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.2.2.tgz#48e538147cacb82d458d6fa7ee65fdb5063d8b38"
-  integrity sha512-Be4JnN3vbMY9Cca3gSNFLHyt9Vk4cBxqgxnLWecTTnots7qbEkmd2Hh3ds8YyB77HX03R7LA/s11Lwp0KDr1xg==
+"@designliquido/lincones-js@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.2.3.tgz#ef28b23efbd721c3ed7e820ec647a9cc02e24f84"
+  integrity sha512-mUMTvfmbWfErTdZCIZSHKBbw7Ao+Ib/7Z4+ngatdx1zcHyheLmncTbPQqZCW1MCWpL7P+unBpc7iECLNfouJew==
 
-"@designliquido/lincones-sqlite@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-sqlite/-/lincones-sqlite-0.3.1.tgz#40c06bad798220c3d972adafb78208b4c8f1c372"
-  integrity sha512-e14yMc/OhPYK5bdE39j7Y3F1uOI76SnefGcODXAYjkwfhVZVOpMgWSxfS+5C7AOyJ7POWhqZjSgHxhDdODnvRQ==
+"@designliquido/lincones-sqlite@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-sqlite/-/lincones-sqlite-0.3.2.tgz#f1583c158544306a3e4a42f665cdee5175010306"
+  integrity sha512-qFyua5ES0Xnsu1wB45mLENCPYYTnQf8T8skN6AP4DVs6ng9kMQnth5i6h9fW1scwDPRP1bSEUpz5rFpwat5+Pg==
   dependencies:
     "@types/sqlite3" "^5.1.0"
     sqlite "^5.1.1"

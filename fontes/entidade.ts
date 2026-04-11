@@ -10,8 +10,8 @@ import { pluralizar } from "@designliquido/flexoes";
 import { TabelaInterface } from "./interfaces-tipos/tabela-interface";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
 import { RelacionamentoInterface } from "./interfaces-tipos/relacionamento-interface";
-import { MuitoParaMuitoInterface } from "./interfaces-tipos/muito-para-muitos-interface";
-import { PolimorficInterface } from "./interfaces-tipos/polimorfico-interface";
+import { MuitosParaMuitosInterface } from "./interfaces-tipos/muitos-para-muitos-interface";
+import { PolimorficoInterface } from "./interfaces-tipos/polimorfico-interface";
 import { IndiceInterface } from "./interfaces-tipos/indice-interface";
 import { RestricaoInterface } from "./interfaces-tipos/restricao-interface";
 import { ColunaComputadaInterface } from "./interfaces-tipos/coluna-computada-interface";
@@ -29,8 +29,8 @@ export class Entidade implements EntidadeInterface {
     indices: IndiceInterface[] = [];
     restricoes: RestricaoInterface[] = [];
     colunasComputadas: ColunaComputadaInterface[] = [];
-    muitosParaMuitos: MuitoParaMuitoInterface[] = [];
-    polimorficos: PolimorficInterface[] = [];
+    muitosParaMuitos: MuitosParaMuitosInterface[] = [];
+    polimorficos: PolimorficoInterface[] = [];
     nomePropriedadeVersao: string = '';
 
     /**
@@ -330,11 +330,11 @@ export class Entidade implements EntidadeInterface {
         return this.colunasComputadas;
     }
 
-    obterMuitosParaMuitos(): MuitoParaMuitoInterface[] {
+    obterMuitosParaMuitos(): MuitosParaMuitosInterface[] {
         return this.muitosParaMuitos;
     }
 
-    obterPolimorficos(): PolimorficInterface[] {
+    obterPolimorficos(): PolimorficoInterface[] {
         return this.polimorficos;
     }
 

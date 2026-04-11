@@ -4,7 +4,7 @@
  * Fornece recomendações para otimizar consultas baseado em padrões detectados.
  */
 
-import { Dica, TipoDica, NivelSeveridade } from "./interfaces-tipos";
+import { DicaInterface, TipoDica, NivelSeveridade } from "./interfaces-tipos";
 
 export class AnalisadorDicas {
     /**
@@ -17,8 +17,8 @@ export class AnalisadorDicas {
             linhas: number;
             contagemJuncoes: number;
         }
-    ): Dica[] {
-        const dicas: Dica[] = [];
+    ): DicaInterface[] {
+        const dicas: DicaInterface[] = [];
 
         // Detecta SELECT *
         if (sql.toLowerCase().includes("select *")) {
@@ -88,7 +88,7 @@ export class AnalisadorDicas {
     /**
      * Formata dicas para exibição
      */
-    static formatarDicas(dicas: Dica[]): string {
+    static formatarDicas(dicas: DicaInterface[]): string {
         if (dicas.length === 0) {
             return "✅ Nenhuma dica de otimização necessária";
         }
@@ -99,7 +99,7 @@ export class AnalisadorDicas {
         ];
 
         // Agrupa por severidade
-        const porSeveridade = new Map<NivelSeveridade, Dica[]>();
+        const porSeveridade = new Map<NivelSeveridade, DicaInterface[]>();
         for (const dica of dicas) {
             if (!porSeveridade.has(dica.severidade)) {
                 porSeveridade.set(dica.severidade, []);

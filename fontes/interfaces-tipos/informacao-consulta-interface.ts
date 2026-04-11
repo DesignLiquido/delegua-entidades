@@ -1,7 +1,7 @@
 /**
  * Informações sobre uma consulta executada.
  */
-export interface InformacaoConsulta {
+export interface InformacaoConsultaInterface {
     sql: string;
     linhaExecucao: Error;
     carimboTempo: Date;

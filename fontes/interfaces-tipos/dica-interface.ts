@@ -18,7 +18,7 @@ export enum NivelSeveridade {
     INFO = "INFO"
 }
 
-export interface Dica {
+export interface DicaInterface {
     tipo: TipoDica;
     severidade: NivelSeveridade;
     mensagem: string;

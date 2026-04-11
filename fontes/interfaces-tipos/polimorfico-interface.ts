@@ -6,7 +6,7 @@
  * @example
  * ```typescript
  * // Comentários podem estar associados a Postagens ou Vídeos
- * interface PolimorficInterface {
+ * interface PolimorficoInterface {
  *     tipo: 'polimorfico';
  *     nomePropriedade: 'comentavel';
  *     colunaTipo: 'comentavel_tipo';
@@ -15,7 +15,7 @@
  * }
  * ```
  */
-export interface PolimorficInterface {
+export interface PolimorficoInterface {
     /** Tipo de relacionamento */
     tipo: 'polimorfico';
     

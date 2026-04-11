@@ -1,4 +1,4 @@
-export interface Ordenacao {
+export interface OrdenacaoInterface {
     coluna: string;
     direcao: 'ASC' | 'DESC';
 }

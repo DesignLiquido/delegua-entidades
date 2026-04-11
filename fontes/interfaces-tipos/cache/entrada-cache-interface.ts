@@ -1,7 +1,7 @@
 /**
  * Entrada de cache com timestamp
  */
-export interface EntradaCache {
+export interface EntradaCacheInterface {
     valor: any;
     timestamp: number;
 }

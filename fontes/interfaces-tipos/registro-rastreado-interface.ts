@@ -2,7 +2,7 @@ import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estrut
 
 import { EstadoEntidade } from "./tipos";
 
-export interface RegistroRastreado {
+export interface RegistroRastreadoInterface {
     registro: ObjetoDeleguaClasse;
     estado: EstadoEntidade;
     nomeEntidade: string;
