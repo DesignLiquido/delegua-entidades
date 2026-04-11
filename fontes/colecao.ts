@@ -177,7 +177,7 @@ export class Colecao<TEntidade extends EntidadeInterface> {
     }
 
     private aplicarValoresPadrao(registro: ObjetoDeleguaClasse): void {
-        for (const propriedade of this.tipoEntidade.modelo.propriedades) {
+        for (const propriedade of this.tipoEntidade.modelo?.propriedades ?? []) {
             const nomeCampo = propriedade.nome.lexema;
             
             // Aplicar valor padrão apenas se o campo não foi definido ou está vazio

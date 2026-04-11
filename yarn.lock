@@ -277,10 +277,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@designliquido/delegua@^1.16.2":
-  version "1.16.2"
-  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-1.16.2.tgz#64ca458d2d22caba39a04de55b9746351cea7490"
-  integrity sha512-y3j4soY0YMAUnBXspVsXgwPTHEy3PvkwsLjBpWwx0Tfkxh+xViPc0XXXEcfuz/xRysApYcR8yHcmlIH2JPua3Q==
+"@designliquido/delegua@^1.16.3":
+  version "1.16.3"
+  resolved "https://registry.yarnpkg.com/@designliquido/delegua/-/delegua-1.16.3.tgz#b8b777127f56cf7b445dc0fa70189dfef380d851"
+  integrity sha512-j904FVHPxc5CSwqXi2V4KSpofrW1hJBlJM1AtXhqhrA5VkBGMRper1MRqWgcwHj475L6mZOTcNRaN7tlEEOWPg==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
     browser-process-hrtime "^1.0.0"
@@ -297,15 +297,15 @@
   resolved "https://registry.yarnpkg.com/@designliquido/flexoes/-/flexoes-0.1.0.tgz#59bc4c872f49f51ceca9fa4b8554697b82065000"
   integrity sha512-5CpBpoeU4UgfwAV08pxJrJt5qljPqNQQdEU0DXkOsYcmDi0JcIBRjS/308stDuhsxuYH0AyeKn2wge+McynnoA==
 
-"@designliquido/lincones-js@^0.2.0":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.2.1.tgz#c3ddcf9951471a9bf14a239b1e15103f4b748cc1"
-  integrity sha512-L7Pq3CKvCre7IlkHW5Cn5a1lu94jGcIijyJxjqPIZIFEhp/CkQAMVAFJuKN6Qa/9DEOtLPivwefVVoq0FgK6+Q==
+"@designliquido/lincones-js@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-js/-/lincones-js-0.2.2.tgz#48e538147cacb82d458d6fa7ee65fdb5063d8b38"
+  integrity sha512-Be4JnN3vbMY9Cca3gSNFLHyt9Vk4cBxqgxnLWecTTnots7qbEkmd2Hh3ds8YyB77HX03R7LA/s11Lwp0KDr1xg==
 
-"@designliquido/lincones-sqlite@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@designliquido/lincones-sqlite/-/lincones-sqlite-0.3.0.tgz#c644a875da59011242777bc20ca6b6539323e4f9"
-  integrity sha512-eZRSpL4SUJnBom3SKypjfLTghdYHAyE+PanBJ7xsyOLsm4XEoHlGCdnJSwozbILG7BkFGq8JXLoBf6xTjHwpeA==
+"@designliquido/lincones-sqlite@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@designliquido/lincones-sqlite/-/lincones-sqlite-0.3.1.tgz#40c06bad798220c3d972adafb78208b4c8f1c372"
+  integrity sha512-e14yMc/OhPYK5bdE39j7Y3F1uOI76SnefGcODXAYjkwfhVZVOpMgWSxfS+5C7AOyJ7POWhqZjSgHxhDdODnvRQ==
   dependencies:
     "@types/sqlite3" "^5.1.0"
     sqlite "^5.1.1"

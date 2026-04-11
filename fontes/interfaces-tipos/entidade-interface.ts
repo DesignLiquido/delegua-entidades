@@ -9,7 +9,7 @@ import { RestricaoInterface } from "./restricao-interface";
 import { ColunaComputadaInterface } from "./coluna-computada-interface";
 
 export interface EntidadeInterface {
-    modelo: DescritorTipoClasse;
+    modelo: DescritorTipoClasse | undefined;
     obterNome(): string;
     obterNomeChavePrimaria(): string;
     obterNomesChavesPrimarias(): string[];

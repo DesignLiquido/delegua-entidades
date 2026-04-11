@@ -11,21 +11,11 @@ import { Transacao } from "./transacao";
 import { TransacaoInterface } from "./interfaces-tipos/transacao-interface";
 import { RoteadorBancos } from "./roteador-bancos";
 import { ConfiguracoesBancos } from "./interfaces-tipos/configuracao-banco-dados-interface";
-import { GerenciadorCache, OpcoesCacheL2 } from "./gerenciador-cache";
+import { GerenciadorCache } from "./gerenciador-cache";
 import { obterAdaptadorPadrao } from "./ilc/leitor-configuracao";
 import { criarAdaptadorDaConfiguracaoGlobal } from "./configuracoes";
-
-type ColecaoDelegua = {
-    todos: () => Promise<ObjetoDeleguaClasse[]>,
-    buscarTodos: () => Promise<ObjetoDeleguaClasse[]>,
-    obterPorId: (valorId: any) => Promise<ObjetoDeleguaClasse | null>,
-    buscarPorId: (valorId: any) => Promise<ObjetoDeleguaClasse | null>,
-    salvar: (registro: ObjetoDeleguaClasse) => Promise<any>,
-    modificar: (registro: ObjetoDeleguaClasse, colunas?: string[]) => Promise<any>,
-    remover: (registro: ObjetoDeleguaClasse) => Promise<any>,
-    inserirVarios: (registros: ObjetoDeleguaClasse[]) => Promise<any>,
-    consulta: () => any,
-};
+import { OpcoesCacheL2 } from "./interfaces-tipos/cache";
+import { ColecaoDelegua } from "./interfaces-tipos/tipos";
 
 function criarAdaptadorSqlitePadrao(): TecnologiaLinconesInterface {
     return new LinconesSQLite();

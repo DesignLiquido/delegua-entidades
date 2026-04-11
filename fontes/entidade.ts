@@ -23,15 +23,15 @@ import { Relacionamento } from "./relacionamento";
  * para gerar comandos de alto nível para bibliotecas como `lincones-js`. 
  */
 export class Entidade implements EntidadeInterface {
-    modelo: DescritorTipoClasse;
-    nomePropriedadeChavePrimaria: string;
+    modelo: DescritorTipoClasse | undefined = undefined;
+    nomePropriedadeChavePrimaria: string = '';
     nomePropriedadesChavesPrimarias: string[] = [];
     indices: IndiceInterface[] = [];
     restricoes: RestricaoInterface[] = [];
     colunasComputadas: ColunaComputadaInterface[] = [];
     muitosParaMuitos: MuitoParaMuitoInterface[] = [];
     polimorficos: PolimorficInterface[] = [];
-    nomePropriedadeVersao: string;
+    nomePropriedadeVersao: string = '';
 
     /**
      * Construtor da classe Entidades.
@@ -161,7 +161,7 @@ export class Entidade implements EntidadeInterface {
     }
 
     private construirDescritorTipoClasse(modelo: Classe): DescritorTipoClasse {
-        const metodos = {};
+        const metodos: {[nome: string]: DeleguaFuncao} = {};
         const definirMetodos = modelo.metodos;
         for (let i = 0; i < modelo.metodos.length; i++) {
             const metodoAtual = definirMetodos[i];
@@ -243,19 +243,20 @@ export class Entidade implements EntidadeInterface {
                     const entidadeDestino = decorador.atributos?.entidade;
                     if (!entidadeDestino) continue;
 
-                    const nomeEntidade = modelo.simboloOriginal.lexema;
+                    const nomeEntidade = modelo.simboloOriginal?.lexema;
                     const nomeEntidadeDestino = entidadeDestino;
                     const tabelaIntermediaria = 
                         decorador.atributos?.tabelaIntermediaria || 
-                        `${nomeEntidade.toLowerCase()}_${nomeEntidadeDestino.toLowerCase()}`;
+                        `${nomeEntidade?.toLowerCase() || ''}_${nomeEntidadeDestino?.toLowerCase() || ''}`;
+
 
                     this.muitosParaMuitos.push({
                         tipo: 'muitoParaMuitos',
                         nomePropriedade: propriedade.nome.lexema,
                         entidadeDestino: entidadeDestino,
                         tabelaIntermediaria: tabelaIntermediaria,
-                        colunaOrigem: decorador.atributos?.colunaOrigem || `${nomeEntidade.toLowerCase()}_id`,
-                        colunaDestino: decorador.atributos?.colunaDestino || `${nomeEntidadeDestino.toLowerCase()}_id`,
+                        colunaOrigem: decorador.atributos?.colunaOrigem || `${nomeEntidade?.toLowerCase() || ''}_id`,
+                        colunaDestino: decorador.atributos?.colunaDestino || `${nomeEntidadeDestino?.toLowerCase() || ''}_id`,
                         deletarAoRemover: decorador.atributos?.deletarAoRemover ?? false
                     });
                 }
@@ -296,15 +297,15 @@ export class Entidade implements EntidadeInterface {
     }
 
     obterNome(): string {
-        return this.modelo.simboloOriginal.lexema;
+        return this.modelo?.simboloOriginal?.lexema || '';
     }
 
     possuiCriadoEm(): boolean {
-        return this.modelo.propriedades.some(p => p.nome.lexema === 'criado_em');
+        return this.modelo?.propriedades.some(p => p.nome.lexema === 'criado_em') || false;
     }
 
     possuiAtualizadoEm(): boolean {
-        return this.modelo.propriedades.some(p => p.nome.lexema === 'atualizado_em');
+        return this.modelo?.propriedades.some(p => p.nome.lexema === 'atualizado_em') || false;
     }
 
     obterNomeChavePrimaria(): string {
@@ -346,7 +347,7 @@ export class Entidade implements EntidadeInterface {
      * Busca por decorador @banco, senão retorna "padrão".
      */
     obterNomeBancoDados(): string {
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of this.modelo?.propriedades || []) {
             for (const decorador of propriedade.decoradores) {
                 const nomeDecorador = decorador.nome.replace(/^@/, '');
                 if (nomeDecorador === 'banco') {
@@ -366,7 +367,7 @@ export class Entidade implements EntidadeInterface {
      */
     possuiExclusaoLogica(): boolean {
         // Procurar por decorador @exclusaoLogica
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of this.modelo?.propriedades || []) {
             for (const decorador of propriedade.decoradores) {
                 const nomeDecorador = decorador.nome.replace(/^@/, '');
                 if (nomeDecorador === 'exclusaoLogica') {
@@ -376,7 +377,7 @@ export class Entidade implements EntidadeInterface {
         }
         
         // Procurar por coluna "excluido_em"
-        return this.modelo.propriedades.some(p => p.nome.lexema === 'excluido_em');
+        return this.modelo?.propriedades.some(p => p.nome.lexema === 'excluido_em') || false;
     }
 
     /**
@@ -384,7 +385,7 @@ export class Entidade implements EntidadeInterface {
      * Retorna "excluido_em" como padrão.
      */
     obterNomeColunaExclusaoLogica(): string {
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of this.modelo?.propriedades || []) {
             for (const decorador of propriedade.decoradores) {
                 const nomeDecorador = decorador.nome.replace(/^@/, '');
                 if (nomeDecorador === 'exclusaoLogica') {
@@ -394,7 +395,7 @@ export class Entidade implements EntidadeInterface {
         }
         
         // Se houver uma propriedade "excluido_em", usá-la
-        if (this.modelo.propriedades.some(p => p.nome.lexema === 'excluido_em')) {
+        if (this.modelo?.propriedades.some(p => p.nome.lexema === 'excluido_em')) {
             return 'excluido_em';
         }
         
@@ -405,7 +406,7 @@ export class Entidade implements EntidadeInterface {
         const relacionamentos: RelacionamentoInterface[] = [];
         const nomeEntidade = this.obterNome();
 
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of this.modelo?.propriedades || []) {
             for (const decorador of propriedade.decoradores) {
                 const nomeDecorador = decorador.nome.replace(/^@/, '');
 
@@ -442,8 +443,8 @@ export class Entidade implements EntidadeInterface {
     }
 
     obterNomesColunas(): string[] {
-        let nomesColunas: string[] = [];
-        for (let propriedade of this.modelo.propriedades) {
+        const nomesColunas: string[] = [];
+        for (const propriedade of this.modelo?.propriedades || []) {
             nomesColunas.push(propriedade.nome.lexema);
         }
 
@@ -501,8 +502,8 @@ export class Entidade implements EntidadeInterface {
         const valores: any[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
-            if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
-                throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo.simboloOriginal.lexema}.`);
+            if (!this.modelo?.propriedades.some(p => p.nome.lexema === coluna)) {
+                throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo?.simboloOriginal?.lexema || ''}.`);
             }
 
             if (nomesComputadas.has(coluna)) {
@@ -519,8 +520,8 @@ export class Entidade implements EntidadeInterface {
         const colunasEValores: ColunaEValor[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
-            if (!this.modelo.propriedades.some(p => p.nome.lexema === coluna)) {
-                throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo.simboloOriginal.lexema}.`);
+            if (!this.modelo?.propriedades.some(p => p.nome.lexema === coluna)) {
+                throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo?.simboloOriginal?.lexema || ''}.`);
             }
 
             if (nomesComputadas.has(coluna)) {
@@ -541,7 +542,7 @@ export class Entidade implements EntidadeInterface {
     gerarComandoCriarTabela(): Criar {
         const colunas: Coluna[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
-        for (const propriedade of this.modelo.propriedades) {
+        for (const propriedade of this.modelo?.propriedades || []) {
             const nome = propriedade.nome.lexema;
             if (nomesComputadas.has(nome)) {
                 continue;
@@ -555,8 +556,8 @@ export class Entidade implements EntidadeInterface {
     }
 
     hidratarRegistro(linha: { [coluna: string]: any }): ObjetoDeleguaClasse {
-        const objeto = new ObjetoDeleguaClasse(this.modelo);
-        for (const propriedade of this.modelo.propriedades) {
+        const objeto = new ObjetoDeleguaClasse(this.modelo as DescritorTipoClasse);
+        for (const propriedade of this.modelo?.propriedades || []) {
             const nome = propriedade.nome.lexema;
             if (nome in linha) {
                 objeto.propriedades[nome] = linha[nome];

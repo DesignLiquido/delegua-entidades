@@ -1,7 +1,7 @@
 import { DetectorConsultasN1, type AnaliseN1 } from './detector-n-mais-um';
-import type { FuncaoTaquigrafia, NivelDetalhamentoTaquigrafia } from './tipos';
+import type { FuncaoTaquigrafia, NivelDetalhamentoTaquigrafia } from './interfaces-tipos/tipos';
 
-export type { FuncaoTaquigrafia, NivelDetalhamentoTaquigrafia } from './tipos';
+export type { FuncaoTaquigrafia, NivelDetalhamentoTaquigrafia } from './interfaces-tipos/tipos';
 
 const NIVEIS_PRIORIDADE_DETALHAMENTO: { [key: string]: number } = {
     'desligado': 0,

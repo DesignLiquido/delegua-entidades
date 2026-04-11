@@ -1,28 +1,4 @@
-/**
- * Interface para opções de cache (L2).
- */
-export interface OpcoesCacheL2 {
-    /** Tempo de vida em milissegundos (TTL) */
-    ttl?: number;
-    /** Tamanho máximo do cache em número de registros */
-    tamanhMaximo?: number;
-}
-
-/**
- * Chave de cache composta (tipo de entidade + ID)
- */
-interface ChaveCache {
-    entidade: string;
-    id: any;
-}
-
-/**
- * Entrada de cache com timestamp
- */
-interface EntradaCache {
-    valor: any;
-    timestamp: number;
-}
+import { EntradaCache, OpcoesCacheL2 } from "./interfaces-tipos/cache";
 
 /**
  * Gerenciador de cache com suporte a cache de primeira nível (identity map)

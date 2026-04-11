@@ -28,7 +28,7 @@ export class CarregadorPreguicoso {
         nomeTabela: string
     ): ObjetoDeleguaClasse {
         const relacionamentos = entidade.obterRelacionamentos();
-        const self = this;
+        const isto = this;
 
         return new Proxy(registro, {
             get(target: any, prop: string | symbol) {
@@ -45,8 +45,8 @@ export class CarregadorPreguicoso {
 
                 // Se já foi carregado, retornar do cache
                 const chaveCache = `${nomeTabela}:${target.propriedades.id}:${prop}`;
-                if (self.entidadesCache.has(chaveCache)) {
-                    return self.entidadesCache.get(chaveCache);
+                if (isto.entidadesCache.has(chaveCache)) {
+                    return isto.entidadesCache.get(chaveCache);
                 }
 
                 // Carregar sob demanda
@@ -54,7 +54,7 @@ export class CarregadorPreguicoso {
                 
                 // Se já tem um valor, usar ele
                 if (valor !== undefined && valor !== null) {
-                    self.entidadesCache.set(chaveCache, valor);
+                    isto.entidadesCache.set(chaveCache, valor);
                     return valor;
                 }
 
@@ -66,7 +66,7 @@ export class CarregadorPreguicoso {
             set(target: any, prop: string | symbol, valor: any) {
                 if (typeof prop === 'string') {
                     const chaveCache = `${nomeTabela}:${target.propriedades.id}:${prop}`;
-                    self.entidadesCache.set(chaveCache, valor);
+                    isto.entidadesCache.set(chaveCache, valor);
                     target.propriedades[prop] = valor;
                 }
                 return true;
@@ -99,13 +99,13 @@ export class CarregadorPreguicoso {
         }
 
         // Obter a coleção da entidade relacionada
-        const colecaoDestino = colecoes[rel.entidadeDestino];
+        const colecaoDestino = colecoes[rel.entidadeDestino || ''];
         if (!colecaoDestino) {
             throw new Error(`Coleção '${rel.entidadeDestino}' não registrada`);
         }
 
         let resultado: any;
-        const valorChave = registro.propriedades[rel.colunaOrigem];
+        const valorChave = registro.propriedades[rel.colunaOrigem || ''];
 
         if (rel.tipo === 'pertenceA' || rel.tipo === 'temUm' || rel.tipo === 'temMuitos') {
             const carregador = this.obterCarregadorLote(rel, colecaoDestino);
@@ -171,7 +171,7 @@ export class CarregadorPreguicoso {
         }
 
         for (const item of hidratados) {
-            const chave = this.obterValorColuna(item, rel.colunaDestino);
+            const chave = this.obterValorColuna(item, rel.colunaDestino || '');
             if (!agrupados.has(chave)) {
                 agrupados.set(chave, []);
             }

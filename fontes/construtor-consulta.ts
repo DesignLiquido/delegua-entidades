@@ -2,6 +2,7 @@ import { Condicao, Juncao, Literal, ReferenciaColuna, Selecionar, TecnologiaLinc
 import { ObjetoDeleguaClasse } from "@designliquido/delegua/interpretador/estruturas";
 
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
+import { Ordenacao } from "./interfaces-tipos";
 
 type OperadorCondicao = 
     'IGUAL' | 
@@ -20,11 +21,6 @@ type OperadorCondicao =
     'CONTEM' |
     'NULO' |
     'NAO_NULO';
-
-interface Ordenacao {
-    coluna: string;
-    direcao: 'ASC' | 'DESC';
-}
 
 /**
  * Construtor de consultas fluente para entidades.
@@ -189,11 +185,11 @@ export class ConstrutorConsulta {
         const tipoJuncao = rel.tipo === 'pertenceA' ? 'INTERNA' : 'ESQUERDA';
         const juncao = new Juncao(
             tipoJuncao as any,
-            rel.entidadeDestino,
+            rel.entidadeDestino || '',
             [new Condicao(
-                new ReferenciaColuna(`${this._tabela}.${rel.colunaOrigem}`),
+                new ReferenciaColuna(`${this._tabela}.${rel.colunaOrigem || ''}`),
                 'IGUAL',
-                new ReferenciaColuna(`${rel.entidadeDestino}.${rel.colunaDestino}`) as any
+                new ReferenciaColuna(`${rel.entidadeDestino || ''}.${rel.colunaDestino || ''}`) as any
             )]
         );
 
@@ -525,7 +521,7 @@ export class ConstrutorConsulta {
 
             // Coletar valores da coluna de origem dos registros pai
             const valoresOrigem = registros
-                .map(r => r.propriedades[rel.colunaOrigem])
+                .map(r => r.propriedades[rel.colunaOrigem || ''])
                 .filter(v => v !== undefined && v !== null);
 
             if (valoresOrigem.length === 0) continue;
@@ -560,7 +556,7 @@ export class ConstrutorConsulta {
             // Agrupar relacionados por valor da coluna de destino
             const relacionadosPorChave = new Map<any, any[]>();
             for (const linha of linhasRelacionadas) {
-                const chave = linha[rel.colunaDestino];
+                const chave = linha[rel.colunaDestino || ''];
                 if (!relacionadosPorChave.has(chave)) {
                     relacionadosPorChave.set(chave, []);
                 }
@@ -569,7 +565,7 @@ export class ConstrutorConsulta {
 
             // Anexar aos registros pai
             for (const registro of registros) {
-                const valorOrigem = registro.propriedades[rel.colunaOrigem];
+                const valorOrigem = registro.propriedades[rel.colunaOrigem || ''];
                 const relacionados = relacionadosPorChave.get(valorOrigem) || [];
 
                 if (rel.tipo === 'temMuitos') {

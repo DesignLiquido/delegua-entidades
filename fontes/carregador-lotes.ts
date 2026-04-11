@@ -5,17 +5,7 @@
  * evitando o problema N+1 através de batching inteligente.
  */
 
-interface ConfiguracaoLote {
-    tamanhoLote: number;
-    intervaloMs: number;
-    cache: boolean;
-}
-
-interface RequisicaoLote<T> {
-    chave: any;
-    resolver: (valor: T) => void;
-    rejeitar: (erro: Error) => void;
-}
+import { ConfiguracaoLote, RequisicaoLote } from "./interfaces-tipos/lotes";
 
 export class CarregadorLote<T> {
     private fila: RequisicaoLote<T>[] = [];

@@ -1,6 +1,7 @@
 export * from './analise-n1-interface';
 export * from './atributo-interface';
 export * from './configuracao-banco-dados-interface';
+export * from './dica-interface';
 export * from './entidade-interface';
 export * from './ganchos';
 export * from './indice-interface';
@@ -8,7 +9,9 @@ export * from './coluna-computada-interface';
 export * from './informacao-consulta-interface';
 export * from './muito-para-muitos-interface';
 export * from './opcoes-serializacao-interface';
+export * from './ordenacao-interface';
 export * from './polimorfico-interface';
+export * from './registro-rastreado-interface';
 export * from './relacionamento-interface';
 export * from './restricao-interface';
 export * from './semente-interface';

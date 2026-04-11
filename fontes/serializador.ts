@@ -22,7 +22,7 @@ export class Serializador {
         const dicionario: Record<string, any> = {};
         const profundidade = opcoes.profundidade ?? 1;
 
-        for (const propriedade of tipoEntidade.modelo.propriedades) {
+        for (const propriedade of tipoEntidade.modelo?.propriedades ?? []) {
             const nomeCampo = propriedade.nome.lexema;
 
             if (!this._deveIncluirCampo(nomeCampo, opcoes)) {
