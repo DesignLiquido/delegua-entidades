@@ -3,6 +3,7 @@ import {
     ObjetoDeleguaClasse,
 } from "@designliquido/delegua/interpretador/estruturas";
 import { Classe, PropriedadeClasse } from "@designliquido/delegua/declaracoes";
+import { Decorador } from "@designliquido/delegua/construtos";
 import { Lexador, Simbolo } from "@designliquido/delegua/lexador";
 import { AvaliadorSintatico } from "@designliquido/delegua/avaliador-sintatico";
 import { Criar } from "@designliquido/lincones-js";
@@ -170,6 +171,73 @@ describe('Entidade', () => {
 
             expect(resultado.propriedades['id']).toBe(1);
             expect(resultado.propriedades['extra']).toBeUndefined();
+        });
+    });
+
+    describe('@coluna', () => {
+        const descritorComColuna = new DescritorTipoClasse(
+            new Simbolo("IDENTIFICADOR", "Produto", "Produto", 1, -1),
+            null,
+            {},
+            [
+                new PropriedadeClasse(new Simbolo("IDENTIFICADOR", "id", "id", 1, -1), 'numero', []),
+                new PropriedadeClasse(
+                    new Simbolo("IDENTIFICADOR", "nomeExibicao", "nomeExibicao", 2, -1),
+                    'texto',
+                    [new Decorador(-1, 2, 'coluna', { nome: 'nome_exibicao' })]
+                ),
+            ]
+        );
+
+        it('gerarComandoCriarTabela usa o nome da coluna do banco', () => {
+            const entidade = new Entidade(descritorComColuna);
+            const comando = entidade.gerarComandoCriarTabela();
+
+            expect(comando.colunas[1].nomeColuna).toBe('nome_exibicao');
+        });
+
+        it('obterNomesColunas retorna nome da coluna do banco', () => {
+            const entidade = new Entidade(descritorComColuna);
+            expect(entidade.obterNomesColunas()).toEqual(['id', 'nome_exibicao']);
+        });
+
+        it('hidratarRegistro mapeia coluna do banco para propriedade Delégua', () => {
+            const entidade = new Entidade(descritorComColuna);
+            const resultado = entidade.hidratarRegistro({ id: 1, nome_exibicao: "Caneta" });
+
+            expect(resultado.propriedades['nomeExibicao']).toBe("Caneta");
+            expect(resultado.propriedades['nome_exibicao']).toBeUndefined();
+        });
+
+        it('resolverValoresParaColunas lê do nome da propriedade Delégua', () => {
+            const entidade = new Entidade(descritorComColuna);
+            const registro = new ObjetoDeleguaClasse(descritorComColuna);
+            registro.propriedades['id'] = 1;
+            registro.propriedades['nomeExibicao'] = "Caneta";
+
+            const valores = entidade.resolverValoresParaColunas(registro, ['nome_exibicao']);
+            expect(valores).toEqual(["Caneta"]);
+        });
+
+        it('resolverCondicaoPorChavePrimaria usa nome da coluna no WHERE', () => {
+            const descritorChaveCustom = new DescritorTipoClasse(
+                new Simbolo("IDENTIFICADOR", "Produto", "Produto", 1, -1),
+                null,
+                {},
+                [
+                    new PropriedadeClasse(
+                        new Simbolo("IDENTIFICADOR", "id", "id", 1, -1),
+                        'numero',
+                        [new Decorador(-1, 1, 'coluna', { nome: 'produto_id' })]
+                    ),
+                ]
+            );
+            const entidade = new Entidade(descritorChaveCustom);
+            const registro = new ObjetoDeleguaClasse(descritorChaveCustom);
+            registro.propriedades['id'] = 42;
+
+            const condicao = entidade.resolverCondicaoPorChavePrimaria(registro);
+            expect((condicao.esquerda as any).nomeColuna).toBe('produto_id');
         });
     });
 });

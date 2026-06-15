@@ -5,7 +5,6 @@ import {
 } from "@designliquido/delegua/interpretador/estruturas";
 import { Classe } from "@designliquido/delegua/declaracoes";
 import { Coluna, ColunaEValor, Condicao, Criar, Literal, ReferenciaColuna } from "@designliquido/lincones-js";
-import { pluralizar } from "@designliquido/flexoes";
 
 import { TabelaInterface } from "./interfaces-tipos/tabela-interface";
 import { EntidadeInterface } from "./interfaces-tipos/entidade-interface";
@@ -20,7 +19,7 @@ import { Relacionamento } from "./relacionamento";
 /**
  * Classe responsável por intermediar um registro (normalmente um `ObjetoDeleguaClasse`)
  * e interfaces de manipulação de dados. Normalmente usada por objetos do tipo `Colecao`
- * para gerar comandos de alto nível para bibliotecas como `lincones-js`. 
+ * para gerar comandos de alto nível para bibliotecas como `lincones-js`.
  */
 export class Entidade implements EntidadeInterface {
     modelo: DescritorTipoClasse | undefined = undefined;
@@ -32,6 +31,8 @@ export class Entidade implements EntidadeInterface {
     muitosParaMuitos: MuitosParaMuitosInterface[] = [];
     polimorficos: PolimorficoInterface[] = [];
     nomePropriedadeVersao: string = '';
+    /** Mapeia nome de propriedade Delégua → nome de coluna de banco de dados (preenchido pelo decorador @coluna). */
+    mapaColunasPropriedades: Map<string, string> = new Map();
 
     /**
      * Construtor da classe Entidades.
@@ -51,8 +52,34 @@ export class Entidade implements EntidadeInterface {
         }
     }
 
+    /** Retorna o nome da coluna de banco de dados para um nome de propriedade Delégua dado. */
+    private resolverNomeColuna(nomeProp: string): string {
+        return this.mapaColunasPropriedades.get(nomeProp) ?? nomeProp;
+    }
+
+    /** Retorna o nome da propriedade Delégua para um nome de coluna de banco de dados dado. */
+    private resolverNomeProp(nomeColuna: string): string {
+        for (const [prop, col] of this.mapaColunasPropriedades) {
+            if (col === nomeColuna) return prop;
+        }
+        return nomeColuna;
+    }
+
     private validarModeloClasse(modelo: Classe) {
-        // Validações:
+        // Primeira passagem: construir mapa de nomes de colunas a partir dos decoradores @coluna para que
+        // as passagens subsequentes possam usar resolverNomeColuna de forma confiável independentemente da ordem do decorador.
+        for (const propriedade of modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                if (decorador.nome === '@coluna') {
+                    const nomeColuna = decorador.atributos?.nome;
+                    if (nomeColuna) {
+                        this.mapaColunasPropriedades.set(propriedade.nome.lexema, nomeColuna);
+                    }
+                }
+            }
+        }
+
+        // Segunda passagem: processar todos os outros decoradores.
         // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
         // decorador @chave.
         for (const propriedade of modelo.propriedades) {
@@ -66,18 +93,18 @@ export class Entidade implements EntidadeInterface {
                     this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
                     this.nomePropriedadesChavesPrimarias.push(propriedade.nome.lexema);
                 }
-                
+
                 // Detectar índices
                 if (decorador.nome === "@indice" || decorador.nome === "@indiceUnico") {
                     const eUnico = decorador.nome === "@indiceUnico";
                     const nomeIndice = decorador.atributos?.nome || `idx_${propriedade.nome.lexema}`;
                     this.indices.push({
                         nome: nomeIndice,
-                        colunas: [propriedade.nome.lexema],
+                        colunas: [this.resolverNomeColuna(propriedade.nome.lexema)],
                         unico: eUnico
                     });
                 }
-                
+
                 // Detectar restrições
                 if (decorador.nome === "@restricao") {
                     this.restricoes.push({
@@ -95,7 +122,7 @@ export class Entidade implements EntidadeInterface {
                     }
 
                     this.colunasComputadas.push({
-                        nome: propriedade.nome.lexema,
+                        nome: this.resolverNomeColuna(propriedade.nome.lexema),
                         tipo: this.traduzirTipo(propriedade.tipo || "texto"),
                         expressao: expressao,
                         persistida: decorador.atributos?.persistida
@@ -109,8 +136,8 @@ export class Entidade implements EntidadeInterface {
 
                     const nomeEntidade = modelo.simbolo.lexema;
                     const nomeEntidadeDestino = entidadeDestino;
-                    const tabelaIntermediaria = 
-                        decorador.atributos?.tabelaIntermediaria || 
+                    const tabelaIntermediaria =
+                        decorador.atributos?.tabelaIntermediaria ||
                         `${nomeEntidade.toLowerCase()}_${nomeEntidadeDestino.toLowerCase()}`;
 
                     this.muitosParaMuitos.push({
@@ -187,7 +214,19 @@ export class Entidade implements EntidadeInterface {
     }
 
     private validarTipoModelo(modelo: DescritorTipoClasse): void {
-        // Validações:
+        // Primeira passagem: construir mapa de nomes de colunas a partir dos decoradores coluna.
+        for (const propriedade of modelo.propriedades) {
+            for (const decorador of propriedade.decoradores) {
+                if (decorador.nome === 'coluna') {
+                    const nomeColuna = decorador.atributos?.nome;
+                    if (nomeColuna) {
+                        this.mapaColunasPropriedades.set(propriedade.nome.lexema, nomeColuna);
+                    }
+                }
+            }
+        }
+
+        // Second pass: process all other decorators.
         // Deve ter uma propriedade chamada `id` ou então pelo menos uma propriedade que tenha um
         // decorador @chave.
         for (const propriedade of modelo.propriedades) {
@@ -201,19 +240,19 @@ export class Entidade implements EntidadeInterface {
                     this.nomePropriedadeChavePrimaria = propriedade.nome.lexema;
                     this.nomePropriedadesChavesPrimarias.push(propriedade.nome.lexema);
                 }
-                
+
                 // Detectar índices
                 if (decorador.nome === "indice" || decorador.nome === "indiceUnico") {
                     const eUnico = decorador.nome === "indiceUnico";
                     const nomeIndice = decorador.atributos?.nome || `idx_${propriedade.nome.lexema}`;
                     this.indices.push({
                         nome: nomeIndice,
-                        colunas: [propriedade.nome.lexema],
+                        colunas: [this.resolverNomeColuna(propriedade.nome.lexema)],
                         unico: eUnico,
                         tipo: decorador.atributos?.tipo
                     });
                 }
-                
+
                 // Detectar restrições
                 if (decorador.nome === "restricao") {
                     this.restricoes.push({
@@ -231,7 +270,7 @@ export class Entidade implements EntidadeInterface {
                     }
 
                     this.colunasComputadas.push({
-                        nome: propriedade.nome.lexema,
+                        nome: this.resolverNomeColuna(propriedade.nome.lexema),
                         tipo: this.traduzirTipo(propriedade.tipo || "texto"),
                         expressao: expressao,
                         persistida: decorador.atributos?.persistida
@@ -245,8 +284,8 @@ export class Entidade implements EntidadeInterface {
 
                     const nomeEntidade = modelo.simboloOriginal?.lexema;
                     const nomeEntidadeDestino = entidadeDestino;
-                    const tabelaIntermediaria = 
-                        decorador.atributos?.tabelaIntermediaria || 
+                    const tabelaIntermediaria =
+                        decorador.atributos?.tabelaIntermediaria ||
                         `${nomeEntidade?.toLowerCase() || ''}_${nomeEntidadeDestino?.toLowerCase() || ''}`;
 
 
@@ -313,8 +352,8 @@ export class Entidade implements EntidadeInterface {
     }
 
     obterNomesChavesPrimarias(): string[] {
-        return this.nomePropriedadesChavesPrimarias.length > 0 
-            ? this.nomePropriedadesChavesPrimarias 
+        return this.nomePropriedadesChavesPrimarias.length > 0
+            ? this.nomePropriedadesChavesPrimarias
             : [this.nomePropriedadeChavePrimaria];
     }
 
@@ -355,7 +394,7 @@ export class Entidade implements EntidadeInterface {
                 }
             }
         }
-        
+
         // Se nenhum decorador @banco foi encontrado, verificar em uma localização padrão
         // (idealmente seria no nível da classe, mas estamos limitados às propriedades)
         return 'padrão';
@@ -375,7 +414,7 @@ export class Entidade implements EntidadeInterface {
                 }
             }
         }
-        
+
         // Procurar por coluna "excluido_em"
         return this.modelo?.propriedades.some(p => p.nome.lexema === 'excluido_em') || false;
     }
@@ -393,12 +432,12 @@ export class Entidade implements EntidadeInterface {
                 }
             }
         }
-        
+
         // Se houver uma propriedade "excluido_em", usá-la
         if (this.modelo?.propriedades.some(p => p.nome.lexema === 'excluido_em')) {
             return 'excluido_em';
         }
-        
+
         return 'excluido_em';
     }
 
@@ -442,13 +481,10 @@ export class Entidade implements EntidadeInterface {
         return relacionamentos;
     }
 
+    /** Returns the database column names for all properties (respects @coluna). */
+    /** Retorna os nomes das colunas de banco de dados para todas as propriedades (respeita @coluna). */
     obterNomesColunas(): string[] {
-        const nomesColunas: string[] = [];
-        for (const propriedade of this.modelo?.propriedades || []) {
-            nomesColunas.push(propriedade.nome.lexema);
-        }
-
-        return nomesColunas;
+        return (this.modelo?.propriedades || []).map(p => this.resolverNomeColuna(p.nome.lexema));
     }
 
     obterNomesColunasPersistentes(): string[] {
@@ -491,7 +527,7 @@ export class Entidade implements EntidadeInterface {
         return tabela.atributos
             .map((atributo) => {
                 const propriedade = Object.entries(classe.propriedades).find(
-                    ([key, value]) => key === atributo.nome
+                    ([key, _]) => key === atributo.nome
                 );
                 return propriedade ? propriedade[1] : null;
             })
@@ -502,7 +538,7 @@ export class Entidade implements EntidadeInterface {
         const valores: any[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
-            if (!this.modelo?.propriedades.some(p => p.nome.lexema === coluna)) {
+            if (!this.modelo?.propriedades.some(p => this.resolverNomeColuna(p.nome.lexema) === coluna)) {
                 throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo?.simboloOriginal?.lexema || ''}.`);
             }
 
@@ -510,7 +546,7 @@ export class Entidade implements EntidadeInterface {
                 throw new Error(`Coluna computada ${coluna} nao pode receber valor manual.`);
             }
 
-            valores.push(registro.propriedades[coluna]);
+            valores.push(registro.propriedades[this.resolverNomeProp(coluna)]);
         }
 
         return valores;
@@ -520,7 +556,7 @@ export class Entidade implements EntidadeInterface {
         const colunasEValores: ColunaEValor[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const coluna of colunas) {
-            if (!this.modelo?.propriedades.some(p => p.nome.lexema === coluna)) {
+            if (!this.modelo?.propriedades.some(p => this.resolverNomeColuna(p.nome.lexema) === coluna)) {
                 throw new Error(`Coluna ${coluna} não existe em entidade ${this.modelo?.simboloOriginal?.lexema || ''}.`);
             }
 
@@ -530,8 +566,8 @@ export class Entidade implements EntidadeInterface {
 
             colunasEValores.push(
                 new ColunaEValor(
-                    new ReferenciaColuna(coluna), 
-                    new Literal(registro.propriedades[coluna])
+                    new ReferenciaColuna(coluna),
+                    new Literal(registro.propriedades[this.resolverNomeProp(coluna)])
                 )
             );
         }
@@ -543,13 +579,14 @@ export class Entidade implements EntidadeInterface {
         const colunas: Coluna[] = [];
         const nomesComputadas = new Set(this.colunasComputadas.map((c) => c.nome));
         for (const propriedade of this.modelo?.propriedades || []) {
-            const nome = propriedade.nome.lexema;
-            if (nomesComputadas.has(nome)) {
+            const nomeProp = propriedade.nome.lexema;
+            const nomeColuna = this.resolverNomeColuna(nomeProp);
+            if (nomesComputadas.has(nomeColuna)) {
                 continue;
             }
             const tipo = propriedade.tipo ? this.traduzirTipo(propriedade.tipo) : "TEXTO";
-            const chavePrimaria = nome === this.nomePropriedadeChavePrimaria;
-            colunas.push(new Coluna(nome, tipo, undefined, !chavePrimaria, chavePrimaria, false, chavePrimaria));
+            const chavePrimaria = nomeProp === this.nomePropriedadeChavePrimaria;
+            colunas.push(new Coluna(nomeColuna, tipo, undefined, !chavePrimaria, chavePrimaria, false, chavePrimaria));
         }
 
         return new Criar(-1, this.obterNome(), colunas, true);
@@ -558,9 +595,10 @@ export class Entidade implements EntidadeInterface {
     hidratarRegistro(linha: { [coluna: string]: any }): ObjetoDeleguaClasse {
         const objeto = new ObjetoDeleguaClasse(this.modelo as DescritorTipoClasse);
         for (const propriedade of this.modelo?.propriedades || []) {
-            const nome = propriedade.nome.lexema;
-            if (nome in linha) {
-                objeto.propriedades[nome] = linha[nome];
+            const nomeProp = propriedade.nome.lexema;
+            const nomeColuna = this.resolverNomeColuna(nomeProp);
+            if (nomeColuna in linha) {
+                objeto.propriedades[nomeProp] = linha[nomeColuna];
             }
         }
         return objeto;
@@ -572,25 +610,27 @@ export class Entidade implements EntidadeInterface {
 
     resolverCondicaoPorChavePrimaria(registro: ObjetoDeleguaClasse): Condicao {
         const chaves = this.obterNomesChavesPrimarias();
-        
+
         // Se houver apenas uma chave primária, usar o formato antigo
         if (chaves.length === 1) {
-            const chave = chaves[0];
-            const valor = registro.propriedades[chave];
+            const chaveProp = chaves[0];
+            const chaveColuna = this.resolverNomeColuna(chaveProp);
+            const valor = registro.propriedades[chaveProp];
             return new Condicao(
-                new ReferenciaColuna(chave),
+                new ReferenciaColuna(chaveColuna),
                 'IGUAL',
                 new Literal(valor, typeof valor === 'number' ? "INTEIRO" : "TEXTO")
             );
         }
-        
+
         // Para chaves compostas, criar múltiplas condições (serão unidas com AND)
         // Para compatibilidade, retornamos a primeira condição aqui
         // e as demais serão adicionadas pela camada de Colecao
-        const chave = chaves[0];
-        const valor = registro.propriedades[chave];
+        const chaveProp = chaves[0];
+        const chaveColuna = this.resolverNomeColuna(chaveProp);
+        const valor = registro.propriedades[chaveProp];
         return new Condicao(
-            new ReferenciaColuna(chave),
+            new ReferenciaColuna(chaveColuna),
             'IGUAL',
             new Literal(valor, typeof valor === 'number' ? "INTEIRO" : "TEXTO")
         );
