@@ -1,7 +1,7 @@
 {
   "name": "@designliquido/delegua-entidades",
   "description": "Biblioteca Node.js com o intuito de trabalhar com entidades de dados, com base nas instruções da linguagem Delégua.",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
