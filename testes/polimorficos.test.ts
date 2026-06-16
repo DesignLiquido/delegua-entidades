@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import {
     DescritorTipoClasse,
 } from "@designliquido/delegua/interpretador/estruturas";
@@ -6,7 +8,6 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 import { Decorador } from "@designliquido/delegua/construtos";
 
 import { Entidade } from "../fontes/entidade";
-import { PolimorficInterface } from "../fontes/interfaces-tipos/polimorfico-interface";
 
 describe('Relacionamentos Polimórficos', () => {
     let descritarComentario: DescritorTipoClasse;
@@ -20,7 +21,7 @@ describe('Relacionamentos Polimórficos', () => {
         // Comentário que pode estar ligado a Postagem ou Vídeo
         descritarComentario = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Comentario", "Comentario", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -45,7 +46,7 @@ describe('Relacionamentos Polimórficos', () => {
 
         descritarPostagem = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Postagem", "Postagem", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -63,7 +64,7 @@ describe('Relacionamentos Polimórficos', () => {
 
         descritarVideo = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Video", "Video", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -111,7 +112,7 @@ describe('Relacionamentos Polimórficos', () => {
         it('permite especificar nomes de coluna customizados', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Avaliacao", "Avaliacao", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -149,7 +150,7 @@ describe('Relacionamentos Polimórficos', () => {
         it('suporta relacionamentos com mais de 2 entidades possíveis', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Notificacao", "Notificacao", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -179,7 +180,7 @@ describe('Relacionamentos Polimórficos', () => {
         it('detecta múltiplos relacionamentos polimórficos na mesma entidade', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Anexo", "Anexo", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -223,7 +224,7 @@ describe('Relacionamentos Polimórficos', () => {
         it('respeita opção deletarAoRemover: true quando configurada', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Tag", "Tag", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -250,7 +251,7 @@ describe('Relacionamentos Polimórficos', () => {
     });
 
     describe('Interface Compliance', () => {
-        it('retorna array de PolimorficInterface', () => {
+        it('retorna array de PolimorficoInterface', () => {
             const polimorficos = entidadeComentario.obterPolimorficos();
             
             expect(Array.isArray(polimorficos)).toBe(true);
@@ -284,7 +285,7 @@ describe('Relacionamentos Polimórficos', () => {
         it('suporta padrão atividade em múltiplas entidades', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Atividade", "Atividade", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
