@@ -6,7 +6,7 @@ import { Simbolo } from "@designliquido/delegua/lexador";
 import { Decorador } from "@designliquido/delegua/construtos";
 
 import { Entidade } from "../../fontes/entidade";
-import { MuitoParaMuitoInterface } from "../../fontes/interfaces-tipos/muito-para-muitos-interface";
+import { MuitosParaMuitosInterface } from "../../fontes/interfaces-tipos/muitos-para-muitos-interface";
 
 describe('Relacionamentos Muitos-para-Muitos', () => {
     let descritarUsuario: DescritorTipoClasse;
@@ -17,7 +17,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
     beforeEach(() => {
         descritarUsuario = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Usuario", "Usuario", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -40,7 +40,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
 
         descritarPapel = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Papel", "Papel", 1, -1),
-            null,
+            undefined,
             {},
             [
                 new PropriedadeClasse(
@@ -62,7 +62,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
 
     describe('Detecção de @temMuitosParaMuitos', () => {
         it('detecta um relacionamento muitos-para-muitos simples', () => {
-            const m2m = entidadeUsuario.obterMuitosParaMuitos();
+            const m2m: MuitosParaMuitosInterface[] = entidadeUsuario.obterMuitosParaMuitos();
             
             expect(m2m).toHaveLength(1);
             expect(m2m[0].nomePropriedade).toBe('papeis');
@@ -79,7 +79,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
         it('permite especificar Nome customizado de tabela intermediária', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Estudante", "Estudante", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -114,7 +114,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
         it('permite especificar nomes de coluna customizados', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Livro", "Livro", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -146,7 +146,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
         it('detecta múltiplos relacionamentos M2M na mesma entidade', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Projeto", "Projeto", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(
@@ -192,7 +192,7 @@ describe('Relacionamentos Muitos-para-Muitos', () => {
         it('respeita opção deletarAoRemover: true quando configurada', () => {
             const descritor = new DescritorTipoClasse(
                 new Simbolo("IDENTIFICADOR", "Carrinho", "Carrinho", 1, -1),
-                null,
+                undefined,
                 {},
                 [
                     new PropriedadeClasse(

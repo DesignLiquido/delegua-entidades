@@ -10,16 +10,16 @@ import { Decorador } from "@designliquido/delegua/construtos";
 import { Entidade } from "../fontes/entidade";
 
 describe('Relacionamentos Polimórficos', () => {
-    let descritarComentario: DescritorTipoClasse;
-    let descritarPostagem: DescritorTipoClasse;
-    let descritarVideo: DescritorTipoClasse;
+    let descritorComentario: DescritorTipoClasse;
+    let descritorPostagem: DescritorTipoClasse;
+    let descritorVideo: DescritorTipoClasse;
     let entidadeComentario: Entidade;
     let entidadePostagem: Entidade;
     let entidadeVideo: Entidade;
 
     beforeEach(() => {
         // Comentário que pode estar ligado a Postagem ou Vídeo
-        descritarComentario = new DescritorTipoClasse(
+        descritorComentario = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Comentario", "Comentario", 1, -1),
             undefined,
             {},
@@ -44,7 +44,7 @@ describe('Relacionamentos Polimórficos', () => {
             ]
         );
 
-        descritarPostagem = new DescritorTipoClasse(
+        descritorPostagem = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Postagem", "Postagem", 1, -1),
             undefined,
             {},
@@ -62,7 +62,7 @@ describe('Relacionamentos Polimórficos', () => {
             ]
         );
 
-        descritarVideo = new DescritorTipoClasse(
+        descritorVideo = new DescritorTipoClasse(
             new Simbolo("IDENTIFICADOR", "Video", "Video", 1, -1),
             undefined,
             {},
@@ -80,9 +80,9 @@ describe('Relacionamentos Polimórficos', () => {
             ]
         );
 
-        entidadeComentario = new Entidade(descritarComentario);
-        entidadePostagem = new Entidade(descritarPostagem);
-        entidadeVideo = new Entidade(descritarVideo);
+        entidadeComentario = new Entidade(descritorComentario);
+        entidadePostagem = new Entidade(descritorPostagem);
+        entidadeVideo = new Entidade(descritorVideo);
     });
 
     describe('Detecção de @polimorfico', () => {

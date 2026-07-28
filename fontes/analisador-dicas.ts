@@ -6,6 +6,9 @@
 
 import { DicaInterface, TipoDica, NivelSeveridade } from "./interfaces-tipos";
 
+export { TipoDica, NivelSeveridade };
+export type Dica = DicaInterface;
+
 export class AnalisadorDicas {
     /**
      * Analisa consulta e retorna dicas de otimização
